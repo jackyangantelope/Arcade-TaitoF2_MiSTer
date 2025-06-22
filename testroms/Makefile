@@ -8,7 +8,7 @@ VASM = ../util/vasmz80_oldstyle
 MISTER_HOSTNAME=mister-dev
 
 
-TARGET = driftout_test
+TARGET = deadconx_test
 SRCS = init.c main.c interrupts_default.c comms.c tilemap.c input.c color.c printf/printf.c
 SRCS += obj_test.c audio_240p.c tc0360pri.c
 CHR = font.chr 
@@ -62,6 +62,13 @@ CPU_ROM_HIGH  = ic45.rom
 AUDIO_CPU_ROM = do_50.rom
 CPU_ROM_SIZE  = 0x40000
 DEFINES += -DGAME_DRIFTOUT=1
+else ifeq ($(TARGET),deadconx_test)
+GAME = deadconx
+CPU_ROM_LOW   = d28-06.3
+CPU_ROM_HIGH  = d28-12.5
+AUDIO_CPU_ROM = d28-10.6
+CPU_ROM_SIZE  = 0x40000
+DEFINES += -DGAME_DEADCONX=1
 else
 error
 endif
@@ -122,11 +129,11 @@ run: $(BUILT_BINS)
 	cd mame && ../$(MAME) -window -nomaximize -resolution0 640x480 -rompath "$(ROMPATH)" $(GAME)
 
 picorom: $(BUILT_BINS)
-	picorom reset cpu_low low
+	picorom reset cpu_high low
 	picorom upload cpu_low $(GAME_DIR)/$(CPU_ROM_LOW)
 	picorom upload cpu_high $(GAME_DIR)/$(CPU_ROM_HIGH)
 	#picorom upload audio_cpu $(GAME_DIR)/$(AUDIO_CPU_ROM) 1mbit
-	picorom reset cpu_low z
+	picorom reset cpu_high z
 
 mister: $(BUILD_DIR)/$(TARGET).zip
 

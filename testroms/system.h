@@ -6,6 +6,7 @@
 #include "tc0200obj.h"
 #include "tc0360pri.h"
 #include "tc0430grw.h"
+#include "tc0480scp.h"
 
 #if GAME_FINALB
 #define HAS_TC0110PCR 1
@@ -79,6 +80,28 @@ static TC0200OBJ_Inst *TC0200OBJ = (TC0200OBJ_Inst *)0x900000;
 
 static volatile uint8_t *SYT_ADDR = (volatile uint8_t *)0x200000;
 static volatile uint8_t *SYT_DATA = (volatile uint8_t *)0x200002;
+
+#elif GAME_DEADCONX
+
+#define HAS_TC0260DAR 1
+#define HAS_TC0360PRI 1
+#define HAS_TC0480SCP 1
+
+static volatile uint16_t *TC0260DAR = (volatile uint16_t *)0x600000;
+
+static TC0480SCP_Layout *TC0480SCP = (TC0480SCP_Layout *)0x400000;
+static TC0480SCP_Control *TC0480SCP_Ctrl = (TC0480SCP_Control *)0x430000;
+
+static TC0430GRW_Control *TC0430GRW_Ctrl = (TC0430GRW_Control *)0x402000;
+static uint16_t *TC0430GRW = (uint16_t *)0x400000;
+
+static TC0220IOC_Control *TC0220IOC = (TC0220IOC_Control *)0xb00000;
+static TC0360PRI_Control *TC0360PRI = (TC0360PRI_Control *)0x500000;
+
+static TC0200OBJ_Inst *TC0200OBJ = (TC0200OBJ_Inst *)0x200000;
+
+static volatile uint8_t *SYT_ADDR = (volatile uint8_t *)0xa00000;
+static volatile uint8_t *SYT_DATA = (volatile uint8_t *)0xa00002;
 
 #else
 

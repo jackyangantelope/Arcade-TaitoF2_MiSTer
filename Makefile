@@ -79,6 +79,9 @@ sim/ninjak:
 sim/thundfox:
 	$(MAKE) -j8 -C sim run GAME=thundfox
 
+sim/deadconx:
+	$(MAKE) -j8 -C sim run GAME=deadconx
+
 
 
 sim/qjinsei_test:
@@ -89,13 +92,22 @@ sim/driftout_test:
 	$(MAKE) -j8 -C testroms TARGET=driftout_test
 	$(MAKE) -j8 -C sim run GAME=driftout_test
 
+sim/deadconx_test:
+	$(MAKE) -j8 -C testroms TARGET=deadconx_test
+	$(MAKE) -j8 -C sim run GAME=deadconx_test
 
-debug: debug/driftout_test
+
+
+debug: debug/deadconx_test
 debug/driftout_test:
 	$(MAKE) -j8 -C testroms debug TARGET=driftout_test
 
+debug/deadconx_test:
+	$(MAKE) -j8 -C testroms debug TARGET=deadconx_test
+
+
 picorom:
-	$(MAKE) -j8 -C testroms TARGET=driftout_test picorom
+	$(MAKE) -j8 -C testroms TARGET=deadconx_test picorom
 
 
 rtl/jt10_auto_ss.sv:

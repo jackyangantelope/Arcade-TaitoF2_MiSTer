@@ -5,7 +5,11 @@
 #include "tilemap.h"
 #include "system.h"
 
+#if HAS_TC0480SCP
+#define SCN TC0480SCP
+#else
 #define SCN TC0100SCN
+#endif
 
 Layer cur_layer;
 uint16_t cur_x, cur_y;
@@ -63,9 +67,11 @@ static void print_string(const char *str)
                     SCN->fg0[ofs].code = *str;
                     break;
 
+#if HAS_TC0430GRW
                 case ROZ:
                     TC0430GRW[ofs] = (cur_color << 14) | *str;
                     break;
+#endif //HAS_TC0430GRW
                 default:
                     break;
             }
@@ -126,7 +132,9 @@ void sym_at(int x, int y, uint16_t sym)
             break;
         
         case ROZ:
+#if HAS_TC0430GRW
             TC0430GRW[ofs] = (cur_color << 14) | sym;
+#endif // HAS_TC0430GRW
             break;
 
         default:
@@ -134,6 +142,38 @@ void sym_at(int x, int y, uint16_t sym)
     }
 }
 
+#if HAS_TC0480SCP
+uint32_t *fg0_ptr = NULL;
+
+void fg0_gfx(int ch)
+{
+    fg0_ptr = SCN->fg0_gfx + (8 * ch);
+}
+
+void fg0_row(uint8_t x0, uint8_t x1, uint8_t x2, uint8_t x3, uint8_t x4, uint8_t x5, uint8_t x6, uint8_t x7)
+{
+    uint32_t gfx;
+    gfx  = (x0&0xf) << 16 | (x1&0xf) << 20 | (x2&0xf) << 24 | (x3&0xf) << 28;
+    gfx |= (x4&0xf) <<  0 | (x5&0xf) <<  4 | (x6&0xf) <<  8 | (x7&0xf) << 12;
+    *fg0_ptr = gfx;
+    fg0_ptr++;
+}
+
+void fg0_row_2bpp(uint16_t r)
+{
+    fg0_row(
+        ((r >> 7) & 1) | ((r >> 14) & 2),
+        ((r >> 6) & 1) | ((r >> 13) & 2),
+        ((r >> 5) & 1) | ((r >> 12) & 2),
+        ((r >> 4) & 1) | ((r >> 11) & 2),
+        ((r >> 3) & 1) | ((r >> 10) & 2),
+        ((r >> 2) & 1) | ((r >>  9) & 2),
+        ((r >> 1) & 1) | ((r >>  8) & 2),
+        ((r >> 0) & 1) | ((r >>  7) & 2)
+    );
+}
+
+#else
 uint16_t *fg0_ptr = NULL;
 
 void fg0_gfx(int ch)
@@ -149,4 +189,12 @@ void fg0_row(uint8_t x0, uint8_t x1, uint8_t x2, uint8_t x3, uint8_t x4, uint8_t
     *fg0_ptr = gfx;
     fg0_ptr++;
 }
+
+void fg0_row_2bpp(uint16_t r)
+{
+    *fg0_ptr = r;
+    fg0_ptr++;
+}
+
+#endif
 

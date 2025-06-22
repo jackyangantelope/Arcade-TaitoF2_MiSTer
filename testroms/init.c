@@ -19,6 +19,37 @@ int main(void);
 
 static void reset_handler(void)
 {
+    /*__asm__(
+        "ori     #0x700, %SR\n\t"
+        "move.b  #0, (0x700007)\n\t"
+        "move.w  #0, (0x800000)\n\t"
+        "lea     (0x700000), %A0\n\t"
+        "move.w  #0, (0x6,%A0)\n\t"
+        "move.w  #0, (0x8,%A0)\n\t"
+        "move.w  #0xff, (0x12,%A0)\n\t"
+        "move.w  #0xff, (0x14,%A0)\n\t"
+        "move.w  #0xe7, (0x16,%A0)\n\t"
+        "move.w  #0xff, (0x18,%A0)\n\t"
+        "move.w  #0, (0x900000)\n\t"
+        "move.w  %D0, (0x500002)\n\t"
+        "lea     (0x700000), %A0\n\t"
+        "move.w  #0, (0x6,%A0)\n\t"
+        "move.w  #0, (0x8,%A0)\n\t"
+        "move.w  #0xff, (0x12,%A0)\n\t"
+        "move.w  #0xff, (0x14,%A0)\n\t"
+        "move.w  #0xe7, (0x16,%A0)\n\t"
+        "move.w  #0xff, (0x18,%A0)\n\t"
+        "move.w  #0, (0x900000)\n\t"
+        "move.w  %D0, (0x500002)\n\t"
+     );
+
+#if GAME_DEADCONX
+    //*(volatile uint16_t *)0x800000 = 0;
+    //*(volatile uint8_t *)0x700007 = 0;
+#endif
+
+*/
+    
     /* Copy init values from text to data */
     uint16_t *init_values_ptr = &_etext;
     uint16_t *data_ptr = &_sdata;
@@ -36,6 +67,10 @@ static void reset_handler(void)
     {
         *bss_ptr++ = 0;
     }
+
+#if GAME_DEADCONX
+    *(volatile uint16_t *)0x800000 = 0;
+#endif
 
     /* Branch to main function */
     main();

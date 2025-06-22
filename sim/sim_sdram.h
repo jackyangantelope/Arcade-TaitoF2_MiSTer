@@ -130,7 +130,7 @@ public:
         return true;
     }
 
-    bool load_data16be(const char *name, int offset)
+    bool load_data16be(const char *name, int offset, int stride)
     {
         std::vector<uint8_t> buffer;
         if (!g_fs.loadFile(name, buffer))
@@ -151,7 +151,7 @@ public:
             // Store in big-endian format (swapping bytes)
             data[addr & mask] = buffer[i + 1];
             data[(addr + 1) & mask] = buffer[i];
-            addr += 2;
+            addr += stride;
         }
         
         printf("Loaded %zu bytes (16-bit BE) from %s at offset 0x%08X\n", 

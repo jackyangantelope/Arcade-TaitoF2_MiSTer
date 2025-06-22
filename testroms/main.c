@@ -22,6 +22,9 @@ void level5_handler()
     tc0360pri_vblank();
 #endif
     TC0220IOC->watchdog = 0;
+#if GAME_DEADCONX
+    *(volatile uint16_t *)0x800000 = 0;
+#endif
 }
 
 void level6_handler()
@@ -94,7 +97,11 @@ static uint32_t frame_count;
 
 void reset_screen()
 {
+#if HAS_TC0480SCP
+    memset(TC0480SCP, 0, sizeof(TC0480SCP_Layout));
+#else
     memset(TC0100SCN, 0, sizeof(TC0100SCN_Layout));
+#endif
     int16_t base_x;
     int16_t base_y;
     uint16_t system_flags;
@@ -115,6 +122,33 @@ void reset_screen()
     }
 
 
+#if HAS_TC0480SCP
+    TC0480SCP_Ctrl->bg1_y = base_y;
+    TC0480SCP_Ctrl->bg1_x = base_x;
+    TC0480SCP_Ctrl->fg0_y = base_y;
+    TC0480SCP_Ctrl->fg0_x = base_x;
+    TC0480SCP_Ctrl->system_flags = TC0480SCP_SYSTEM_EXT_SYNC;
+    TC0480SCP_Ctrl->bg0_y = base_y;
+    TC0480SCP_Ctrl->bg0_x = base_x;
+    TC0480SCP_Ctrl->bg0_zoom = 0x7f;
+    TC0480SCP_Ctrl->bg1_zoom = 0x7f;
+    TC0480SCP_Ctrl->bg2_zoom = 0x7f;
+    TC0480SCP_Ctrl->bg3_zoom = 0x7f;
+
+    fg0_gfx(0x20);
+    uint16_t *fgptr = (uint16_t *)_binary_font_chr_start;
+    while( fgptr != (uint16_t *)_binary_font_chr_end )
+    {
+        fg0_row_2bpp(*fgptr);
+        fgptr++;
+    }
+
+    fg0_gfx(1);
+    for( int i = 0; i < 8; i++ )
+    {
+        fg0_row(1,1,1,1,1,1,1,1);
+    }
+#else
     TC0100SCN_Ctrl->bg1_y = base_y;
     TC0100SCN_Ctrl->bg1_x = base_x;
     TC0100SCN_Ctrl->fg0_y = base_y;
@@ -133,15 +167,15 @@ void reset_screen()
     {
         TC0100SCN->fg0_gfx[8 + i] = 0xffff;
     }
-
+#endif
     memsetw(TC0200OBJ, 0, 0x8000);
 
     set_default_palette();
 
 #if HAS_TC0360PRI
     tc0360pri_set_obj_prio(5, 5, 7, 9);
-    tc0360pri_set_tile_prio(2, 0, 0);
-    tc0360pri_set_roz_prio(1, 1, 1, 1);
+    tc0360pri_set_tile_prio(2, 2, 2);
+    tc0360pri_set_roz_prio(3, 3, 3, 3);
     tc0360pri_set_roz(0, 0);
 #endif
 
@@ -308,10 +342,12 @@ void init_scn_align()
         print_at(10, 10 + y, "%d SCROLL", y);
     }
 
+#if HAS_TC0100SCN
     for( int y = 0; y < 10 * 8; y++ )
     {
         TC0100SCN->bg0_rowscroll[(8 * 10) + y] = y - 39;
     }
+#endif
 
     frame_count = 0;
     invalid_read_count = 0;
@@ -340,6 +376,7 @@ void update_scn_align()
         system_flags = 0;
     }
 
+#if HAS_TC0100SCN
     TC0100SCN_Ctrl->bg1_y = base_y;
     TC0100SCN_Ctrl->bg1_x = base_x;
     TC0100SCN_Ctrl->fg0_y = base_y;
@@ -348,6 +385,7 @@ void update_scn_align()
     TC0100SCN_Ctrl->layer_flags = 0;
     TC0100SCN_Ctrl->bg0_y = base_y;
     TC0100SCN_Ctrl->bg0_x = base_x;
+#endif
 
     TC0200OBJ_Inst *obj_ptr = TC0200OBJ;
     TC0200OBJ_Inst work;
@@ -471,8 +509,10 @@ void update_scn_control_access()
         changed = true;
     }
 
+#if HAS_TC0100SCN
     TC0100SCN_Ctrl->system_flags = system_flags;
     TC0100SCN_Ctrl->layer_flags = layer_flags;
+#endif
 
     if (changed || frame_count == 0)
     {
@@ -1008,10 +1048,17 @@ void update_basic_timing()
     uint32_t dar_write = 0;
     uint32_t roz_write = 0;
 
+#if HAS_TC0480SCP
+    volatile uint16_t *scn_addr = &TC0480SCP->bg0[0].code;
+#else
     volatile uint16_t *scn_addr = &TC0100SCN->bg0[0].code;
+#endif    
     volatile uint16_t *obj_addr = &TC0200OBJ[64].pos0;
     volatile uint8_t *dar_addr = (uint8_t *)&TC0260DAR[128];
+
+#if HAS_TC0430GRW
     volatile uint16_t *roz_addr = &TC0430GRW[128];
+#endif
 
     uint32_t vb = vblank_count;
     while( vb == vblank_count ) {}
@@ -1044,12 +1091,14 @@ void update_basic_timing()
     }
     vb = vblank_count;
 
+#if HAS_TC0430GRW
     while( vb == vblank_count )
     {
         *roz_addr = 0x0000;
         roz_write++;
     }
     vb = vblank_count;
+#endif 
 
     pen_color(0);
     on_layer(FG0);
@@ -1174,6 +1223,7 @@ void update_360pri()
     static uint8_t white_out = 0;
 
     static uint8_t blend_mode = 0;
+    static uint8_t dar_flag = 0;
 
     wait_vblank();
 
@@ -1197,10 +1247,12 @@ void update_360pri()
     move_to(24,15);
     print("%c BLACK: %02X\n", sel == 14 ? '*' : ' ', black_out);
     print("%c WHITE: %02X\n", sel == 15 ? '*' : ' ', white_out);
+    print("%c DAR: %X\n", sel == 16 ? '*' : ' ', dar_flag);
 
 
     int adj = 0;
     bool color_change = false;
+    bool dar_change = false;
     if (input_pressed(LEFT)) adj = -1;
     if (input_pressed(RIGHT)) adj = 1;
 
@@ -1214,6 +1266,7 @@ void update_360pri()
         case 5: roz_prio += adj; break;
         case 14: black_out += adj; color_change = adj != 0; break;
         case 15: white_out += adj; color_change = adj != 0; break;
+        case 16: dar_flag += adj; dar_change = adj != 0; break;
         default: break;
     }
 
@@ -1225,19 +1278,25 @@ void update_360pri()
     if (input_pressed(DOWN)) sel++;
     if (input_pressed(UP)) sel--;
 
-    WRAP(sel, 15);
+    WRAP(sel, 16);
     WRAP(fg_prio, 15);
     WRAP(obj0_prio, 15);
     WRAP(obj1_prio, 15);
     WRAP(obj2_prio, 15);
     WRAP(obj3_prio, 15);
     WRAP(roz_prio, 15);
+    WRAP(dar_flag, 1);
 
     if (color_change)
     {
         set_default_palette();
         set_gradient2(white_out, 255, 255, 255, 255, 255, 255);
         set_gradient2(black_out, 0, 0, 0, 0, 0, 0);
+    }
+
+    if (dar_change)
+    {
+        *(uint16_t *)0x500000 = dar_flag ? 0x0100 : 0x0000;
     }
 
     tc0360pri_set_roz_prio(roz_prio, roz_prio, roz_prio, roz_prio);
@@ -1302,14 +1361,14 @@ int main(int argc, char *argv[])
     
     while(1)
     {
-        input_update();
+        //input_update();
 
         // 0x0200 // ACC MODE
         // 0x0100 // Brightness? 
         // 0x0002 // Z4
         // 0x0001 // Z3
         //
-        //*(uint16_t*)0x500000 = 0x0000;
+        //*(uint16_t*)0x500000 = 0x0100;
 
         if (input_pressed(START))
         {

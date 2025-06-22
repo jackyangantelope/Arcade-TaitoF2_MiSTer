@@ -336,6 +336,28 @@ static void load_thundfox()
     top->game = GAME_THUNDFOX;
 }
 
+static void load_deadconx()
+{
+    g_fs.addSearchPath("../roms/deadconx.zip");
+
+    load_audio("d28-10.6");
+
+    sdram.load_data("d28-06.3", CPU_ROM_SDR_BASE + 1, 2);
+    sdram.load_data("d28-12.5", CPU_ROM_SDR_BASE + 0, 2);
+    sdram.load_data("d28-09.2", CPU_ROM_SDR_BASE + 0x80001, 2);
+    sdram.load_data("d28-08.4", CPU_ROM_SDR_BASE + 0x80000, 2);
+		
+    sdram.load_data("d28-04.16",  SCN1_ROM_SDR_BASE, 4);
+    sdram.load_data("d28-05.17",  SCN1_ROM_SDR_BASE + 0x2, 4);
+
+    sdram.load_data("d28-03.10",  ADPCMA_ROM_SDR_BASE, 1);
+
+    ddr_memory.load_data("d28-01.8", OBJ_DATA_DDR_BASE, 1);
+    ddr_memory.load_data("d28-02.9", OBJ_DATA_DDR_BASE + 0x100000, 1);
+
+    top->game = GAME_DEADCONX;
+}
+
 
 bool game_init(game_t game)
 {
@@ -357,6 +379,7 @@ bool game_init(game_t game)
         case GAME_PULIRULA: load_pulirula(); break;
         case GAME_NINJAK: load_ninjak(); break;
         case GAME_THUNDFOX: load_thundfox(); break;
+        case GAME_DEADCONX: load_deadconx(); break;
         default: return false;
     }
 

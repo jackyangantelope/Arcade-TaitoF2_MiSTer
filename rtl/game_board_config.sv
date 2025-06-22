@@ -69,6 +69,7 @@ always @(posedge clk) begin
         GAME_DINOREX:  c = 17'b01_01_0_0_01_0_0_0_0_0_0_0_1_1;
         GAME_QJINSEI:  c = 17'b01_01_0_0_01_0_0_0_0_0_0_0_1_1;
 
+        GAME_DEADCONX: c = 17'b01_11_0_1_00_0_1_0_0_0_1_0_1_1;
         GAME_DRIFTOUT: c = 17'b11_01_0_0_00_0_0_0_0_1_0_0_1_0;
         default:       c = 17'b00_00_1_0_00_0_0_0_0_0_0_0_0_0;
     endcase
@@ -377,8 +378,8 @@ always_ff @(posedge clk) begin
         cfg_addr_rom      <= {8'h00, 8'hF0}; // 0x000000 - 0x0FFFFF
         cfg_addr_work_ram      <= {8'h10, 8'hFF}; // 0x100000 - 0x10FFFF
         cfg_addr_obj    <= {8'h20, 8'hFF}; // 0x200000 - 0x20FFFF
-        //cfg_addr_spritebank_sel<= {8'h30, 8'hFF}; // 0x300000 - 0x30000F
-        cfg_addr_screen0  <= {8'h40, 8'hF0}; // 0x40xxxx TC0480SCP RAM, 0x43xxxx TC0480SCP CTRL
+        cfg_addr_extension <= {8'h30, 8'hFF}; // 0x300000 - 0x30000F
+        cfg_addr_screen1  <= {8'h40, 8'hF0}; // 0x40xxxx TC0480SCP RAM, 0x43xxxx TC0480SCP CTRL
         cfg_addr_priority <= {8'h50, 8'hFF}; // 0x500000 - 0x50001F (TC0360PRI)
         cfg_addr_color       <= {8'h60, 8'hFF}; // 0x600000 - 0x601FFF (Palette RAM)
         cfg_addr_io0       <= {8'h70, 8'hFF}; // 0x700000 - 0x70001F (TE7750)
