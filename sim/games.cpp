@@ -43,6 +43,7 @@ static const char *game_names[N_GAMES] =
     "finalb_test",
     "qjinsei_test",
     "driftout_test",
+    "deadconx_test",
 };
 
 
@@ -338,6 +339,7 @@ static void load_thundfox()
 
 static void load_deadconx()
 {
+    g_fs.addSearchPath("../roms/deadconxj.zip");
     g_fs.addSearchPath("../roms/deadconx.zip");
 
     load_audio("d28-10.6");
@@ -358,6 +360,11 @@ static void load_deadconx()
     top->game = GAME_DEADCONX;
 }
 
+static void load_deadconx_test()
+{
+    g_fs.addSearchPath("../testroms/build/deadconx_test/deadconx/");
+    load_deadconx();
+}
 
 bool game_init(game_t game)
 {
@@ -380,6 +387,7 @@ bool game_init(game_t game)
         case GAME_NINJAK: load_ninjak(); break;
         case GAME_THUNDFOX: load_thundfox(); break;
         case GAME_DEADCONX: load_deadconx(); break;
+        case GAME_DEADCONX_TEST: load_deadconx_test(); break;
         default: return false;
     }
 

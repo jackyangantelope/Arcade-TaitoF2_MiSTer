@@ -21,7 +21,11 @@ void level5_handler()
 #if HAS_TC0360PRI
     tc0360pri_vblank();
 #endif
+
+#if HAS_TC0220IOC
     TC0220IOC->watchdog = 0;
+#endif
+
 #if GAME_DEADCONX
     *(volatile uint16_t *)0x800000 = 0;
 #endif
@@ -91,7 +95,7 @@ uint8_t sine_wave[256] =
 extern char _binary_font_chr_start[];
 extern char _binary_font_chr_end[];
 
-#define NUM_SCREENS 10
+#define NUM_SCREENS 11
 
 static uint32_t frame_count;
 
@@ -102,6 +106,36 @@ void reset_screen()
 #else
     memset(TC0100SCN, 0, sizeof(TC0100SCN_Layout));
 #endif
+
+    *(uint16_t *)0x300006 = 2;
+
+#if HAS_TC0480SCP
+    int16_t base_x = 0x31;
+    int16_t base_y = 13;
+    TC0480SCP_Ctrl->fg0_y = base_y;
+    TC0480SCP_Ctrl->fg0_x = base_x;
+    TC0480SCP_Ctrl->bg0_y = 8 - base_y;
+    TC0480SCP_Ctrl->bg0_x = base_x - 10;
+    TC0480SCP_Ctrl->bg1_y = 8 - base_y;
+    TC0480SCP_Ctrl->bg1_x = base_x - 14;
+    TC0480SCP_Ctrl->bg2_y = 8 - base_y;
+    TC0480SCP_Ctrl->bg2_x = base_x - 14;
+    TC0480SCP_Ctrl->bg3_y = 8 - base_y;
+    TC0480SCP_Ctrl->bg3_x = base_x - 14;
+    TC0480SCP_Ctrl->system_flags = TC0480SCP_SYSTEM_EXT_SYNC;
+    TC0480SCP_Ctrl->bg0_zoom = 0x7f;
+    TC0480SCP_Ctrl->bg1_zoom = 0x7f;
+    TC0480SCP_Ctrl->bg2_zoom = 0x7f;
+    TC0480SCP_Ctrl->bg3_zoom = 0x7f;
+    TC0480SCP_Ctrl->bg0_dx = 0;
+    TC0480SCP_Ctrl->bg0_dy = 0;
+    TC0480SCP_Ctrl->bg1_dx = 0;
+    TC0480SCP_Ctrl->bg1_dy = 0;
+    TC0480SCP_Ctrl->bg2_dx = 0;
+    TC0480SCP_Ctrl->bg2_dy = 0;
+    TC0480SCP_Ctrl->bg3_dx = 0;
+    TC0480SCP_Ctrl->bg3_dy = 0;
+#else
     int16_t base_x;
     int16_t base_y;
     uint16_t system_flags;
@@ -121,34 +155,6 @@ void reset_screen()
         system_flags = 0;
     }
 
-
-#if HAS_TC0480SCP
-    TC0480SCP_Ctrl->bg1_y = base_y;
-    TC0480SCP_Ctrl->bg1_x = base_x;
-    TC0480SCP_Ctrl->fg0_y = base_y;
-    TC0480SCP_Ctrl->fg0_x = base_x;
-    TC0480SCP_Ctrl->system_flags = TC0480SCP_SYSTEM_EXT_SYNC;
-    TC0480SCP_Ctrl->bg0_y = base_y;
-    TC0480SCP_Ctrl->bg0_x = base_x;
-    TC0480SCP_Ctrl->bg0_zoom = 0x7f;
-    TC0480SCP_Ctrl->bg1_zoom = 0x7f;
-    TC0480SCP_Ctrl->bg2_zoom = 0x7f;
-    TC0480SCP_Ctrl->bg3_zoom = 0x7f;
-
-    fg0_gfx(0x20);
-    uint16_t *fgptr = (uint16_t *)_binary_font_chr_start;
-    while( fgptr != (uint16_t *)_binary_font_chr_end )
-    {
-        fg0_row_2bpp(*fgptr);
-        fgptr++;
-    }
-
-    fg0_gfx(1);
-    for( int i = 0; i < 8; i++ )
-    {
-        fg0_row(1,1,1,1,1,1,1,1);
-    }
-#else
     TC0100SCN_Ctrl->bg1_y = base_y;
     TC0100SCN_Ctrl->bg1_x = base_x;
     TC0100SCN_Ctrl->fg0_y = base_y;
@@ -161,13 +167,22 @@ void reset_screen()
 #endif    
     TC0100SCN_Ctrl->bg0_y = base_y;
     TC0100SCN_Ctrl->bg0_x = base_x;
-    memcpy(TC0100SCN->fg0_gfx + ( 0x20 * 8 ), _binary_font_chr_start, _binary_font_chr_end - _binary_font_chr_start);
+#endif
 
+    fg0_gfx(0x20);
+    uint16_t *fgptr = (uint16_t *)_binary_font_chr_start;
+    while( fgptr != (uint16_t *)_binary_font_chr_end )
+    {
+        fg0_row_2bpp(*fgptr);
+        fgptr++;
+    }
+
+    fg0_gfx(1);
+    
     for( int i = 0; i < 8; i++ )
     {
-        TC0100SCN->fg0_gfx[8 + i] = 0xffff;
+        fg0_row(1,1,1,1,1,1,1,1);
     }
-#endif
     memsetw(TC0200OBJ, 0, 0x8000);
 
     set_default_palette();
@@ -282,17 +297,6 @@ void update_scn_general()
     pen_color(0);
     move_to(3, 2);
     print("VBL: %05X  FRAME: %05X\n", vblank_count, frame_count);
-    print("%02X %02X %02X %02X\n",
-          TC0220IOC->unk4,
-          TC0220IOC->unk5,
-          TC0220IOC->unk6,
-          TC0220IOC->unk7
-          );
-    
-
-    //TC0220IOC->coin_count |= 0xC0;
-    if (frame_count % 100 == 0)
-        TC0220IOC->coin_count ^= 0xC0;
 
     frame_count++;
 }
@@ -1305,6 +1309,87 @@ void update_360pri()
     tc0360pri_set_blendmode(blend_mode);
 }
 
+void init_480scp()
+{
+    reset_screen();
+
+    tc0360pri_set_roz_prio(4, 4, 4, 4);
+    tc0360pri_set_roz(0, 0);
+    
+    TC0200OBJ_Inst *obj_ptr = TC0200OBJ;
+    TC0200OBJ_Inst work;
+    TC0200OBJ_Inst *o = &work;
+    uint16_t cmd_base = 0;
+    obj_reset(o);
+    obj_cmd(o, cmd_base); obj_commit_reset(o, &obj_ptr);
+    obj_master_xy(o, 128, 23); obj_commit_reset(o, &obj_ptr);
+ 
+    GridOptions opt;
+    memset(&opt, 0, sizeof(opt));
+    opt.w = 1; opt.h = 1;
+    opt.extra = opt.zoom = 0b1;
+    opt.tile = (0x1186 & 0x7ff) | ( 1 << 11 );
+    
+    opt.color = 24;
+    obj_grid(2 * 24, 2 * 24, &opt, &obj_ptr);
+
+    on_layer(FG0);
+
+    for( int y = 0; y < 8; y++ )
+    {
+        pen_color(24 + y);
+        sym_at(31, y+2, 0x1);
+    }
+
+    pen_color(9);
+    sym_at(1,0,1);
+    sym_at(0,1,1);
+    sym_at(52,28,1);
+    sym_at(51,29,1);
+
+    pen_color(8);
+    sym_at(1,1,1);
+    sym_at(51,28,1);
+
+
+    on_layer(BG0);
+    pen_color(9);
+    sym_at(1,15,1);
+    sym_at(0,14,1);
+    sym_at(20,0,1);
+    sym_at(21,1,1);
+
+    pen_color(8);
+    sym_at(1, 14, 1);
+    sym_at(20, 1, 1);
+
+    pen_color(25);
+    on_layer(BG0);
+    sym_at(3, 4, 1);
+    sym_at(13, 4, 1);
+
+    pen_color(26);
+    on_layer(BG1);
+    sym_at(3, 5, 1);
+    sym_at(13, 5, 1);
+
+    pen_color(27);
+    on_layer(BG1);
+    sym_at(3, 6, 1);
+    sym_at(13, 6, 1);
+
+    pen_color(28);
+    on_layer(BG1);
+    sym_at(3, 7, 1);
+    sym_at(13, 7, 1);
+}
+
+void update_480scp()
+{
+    wait_vblank();
+}
+
+
 void init_screen(int screen)
 {
     switch(screen)
@@ -1319,6 +1404,7 @@ void init_screen(int screen)
         case 7: init_scn_align(); break;
         case 8: init_basic_timing(); break;
         case 9: init_360pri(); break;
+        case 10: init_480scp(); break;
         default: break;
     }
 }
@@ -1337,6 +1423,7 @@ void update_screen(int screen)
         case 7: update_scn_align(); break;
         case 8: update_basic_timing(); break;
         case 9: update_360pri(); break;
+        case 10: update_480scp(); break;
         default: break;
     }
 }
@@ -1353,15 +1440,17 @@ int main(int argc, char *argv[])
 {
     enable_interrupts();
 
+    input_init();
+
     uint32_t system_flags = 0;
 
-    int current_screen = 9;
+    int current_screen = 10;
 
     init_screen(current_screen);
     
     while(1)
     {
-        //input_update();
+        input_update();
 
         // 0x0200 // ACC MODE
         // 0x0100 // Brightness? 

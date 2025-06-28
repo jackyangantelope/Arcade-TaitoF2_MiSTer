@@ -16,6 +16,7 @@ typedef enum
     START = 0x0080,
 } InputKey;
 
+void input_init();
 void input_update();
 uint16_t input_state();
 bool input_down(InputKey key);

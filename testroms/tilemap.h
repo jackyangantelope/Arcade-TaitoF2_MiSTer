@@ -7,6 +7,8 @@ typedef enum
 {
     BG0 = 0,
     BG1,
+    BG2,
+    BG3,
     FG0,
     ROZ,
 } Layer;

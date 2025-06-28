@@ -5,15 +5,26 @@
 #include "tilemap.h"
 #include "system.h"
 
-#if HAS_TC0480SCP
-#define SCN TC0480SCP
-#else
-#define SCN TC0100SCN
-#endif
-
 Layer cur_layer;
 uint16_t cur_x, cur_y;
 uint16_t cur_color;
+
+
+#if HAS_TC0480SCP
+#define SCN TC0480SCP
+static inline int width()
+{
+    switch(cur_layer)
+    {
+        case FG0: return 64;
+        case ROZ: return 64;
+        default: return 32;
+    }
+}
+#else
+#define SCN TC0100SCN
+static inline int width() { return 64; }
+#endif
 
 void on_layer(Layer layer)
 {
@@ -36,7 +47,7 @@ static void print_string(const char *str)
     uint16_t x = cur_x;
     uint16_t y = cur_y;
 
-    uint16_t ofs = ( y * 64 ) + x;
+    uint16_t ofs = ( y * width() ) + x;
 
     uint16_t attr_color = (0 << 8) | (cur_color & 0xff);
 
@@ -46,7 +57,7 @@ static void print_string(const char *str)
         {
             y++;
             x = cur_x;
-            ofs = (y * 64) + x;
+            ofs = (y * width()) + x;
         }
         else
         {
@@ -61,6 +72,19 @@ static void print_string(const char *str)
                     SCN->bg1[ofs].attr_color = attr_color;
                     SCN->bg1[ofs].code = *str;
                     break;
+
+#if HAS_TC0480SCP
+                case BG2:
+                    SCN->bg2[ofs].attr_color = attr_color;
+                    SCN->bg2[ofs].code = *str;
+                    break;
+
+                case BG3:
+                    SCN->bg3[ofs].attr_color = attr_color;
+                    SCN->bg3[ofs].code = *str;
+                    break;
+#endif // HAS_TC0480SCP
+
 
                 case FG0:
                     SCN->fg0[ofs].attr = cur_color & 0x3f;
@@ -111,7 +135,7 @@ void print_at(int x, int y, const char *fmt, ...)
 
 void sym_at(int x, int y, uint16_t sym)
 {
-    uint16_t ofs = ( y * 64 ) + x;
+    uint16_t ofs = ( y * width() ) + x;
     uint16_t attr_color = ( 0 << 8 ) | ( cur_color & 0xff );
     
     switch(cur_layer)
@@ -125,6 +149,18 @@ void sym_at(int x, int y, uint16_t sym)
             SCN->bg1[ofs].attr_color = attr_color;
             SCN->bg1[ofs].code = sym;
             break;
+
+#if HAS_TC0480SCP
+        case BG2:
+            SCN->bg2[ofs].attr_color = attr_color;
+            SCN->bg2[ofs].code = sym;
+            break;
+
+        case BG3:
+            SCN->bg3[ofs].attr_color = attr_color;
+            SCN->bg3[ofs].code = sym;
+            break;
+#endif
 
         case FG0:
             SCN->fg0[ofs].attr = cur_color & 0x3f;

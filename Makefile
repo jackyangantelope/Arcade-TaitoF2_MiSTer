@@ -53,7 +53,7 @@ sim:
 	$(MAKE) -j8 -C sim sim
 
 sim/run: sim/driftout
-sim/test: sim/driftout_test
+sim/test: sim/deadconx_test
 
 sim/dinorex:
 	$(MAKE) -j8 -C sim run GAME=dinorex
