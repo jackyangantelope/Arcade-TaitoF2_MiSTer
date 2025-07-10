@@ -40,10 +40,10 @@ module F2(
     output reg        sdr_scn0_req,
     input             sdr_scn0_ack,
 
-    output reg [26:0] sdr_scn_pivot_addr,
-    input      [31:0] sdr_scn_pivot_q,
-    output reg        sdr_scn_pivot_req,
-    input             sdr_scn_pivot_ack,
+    output reg [26:0] sdr_scn_mux_addr,
+    input      [63:0] sdr_scn_mux_q,
+    output reg        sdr_scn_mux_req,
+    input             sdr_scn_mux_ack,
 
     output reg [26:0] sdr_audio_addr,
     input      [15:0] sdr_audio_q,
@@ -160,10 +160,13 @@ ddr_mux ddr_mux(
     .b(ddr_obj)
 );
 
-wire [26:0] sdr_scn1_addr, sdr_pivot_addr;
-wire sdr_pivot_req, sdr_scn1_req;
-assign sdr_scn_pivot_addr = cfg_100scn ? sdr_scn1_addr : sdr_pivot_addr;
-assign sdr_scn_pivot_req = cfg_100scn ? sdr_scn1_req : sdr_pivot_req;
+
+wire [26:0] sdr_scn1_addr, sdr_pivot_addr, sdr_scp_addr;
+wire sdr_pivot_req, sdr_scn1_req, sdr_scp_req;
+assign sdr_scn_mux_addr = cfg_100scn ? sdr_scn1_addr :
+                          cfg_480scp ? sdr_scp_addr : sdr_pivot_addr;
+assign sdr_scn_mux_req = cfg_100scn ? sdr_scn1_req :
+                         cfg_480scp ? sdr_scp_req : sdr_pivot_req;
 
 reg [31:0] ss_saved_ssp;
 reg [31:0] ss_restore_ssp;
@@ -409,7 +412,7 @@ logic CCHIPn;
 logic PIVOTn;
 logic GROWL_HACKn;
 
-wire SDTACK0n, SDTACK1n, CDTACKn, CPUENn, dar_dtack_n, pivot_dtack_n;
+wire SDTACK0n, SDTACK1n, VDTACKn, CDTACKn, CPUENn, dar_dtack_n, pivot_dtack_n;
 
 //wire sdr_dtack_n = sdr_cpu_req != sdr_cpu_ack;
 wire sdr_dtack_n;
@@ -418,6 +421,7 @@ wire dtack_n = sdr_dtack_n
              | pre_sdr_dtack_n
              | SDTACK0n
              | SDTACK1n
+             | VDTACKn
              | (cfg_260dar ? dar_dtack_n : CDTACKn)
              | CPUENn
              | pivot_dtack_n;
@@ -860,42 +864,43 @@ TC0100SCN #(.SS_IDX(SSIDX_SCN_0)) scn0(
 //// SCREEN 1 TC0100SCN
 wire [14:0] scn1_ram_addr;
 wire [15:0] scn1_data_out;
-wire [15:0] scn1_ram_din;
-wire [15:0] scn1_ram_dout;
+wire [15:0] scn1_ram_data;
 wire scn1_ram_we_up_n, scn1_ram_we_lo_n;
 wire scn1_ram_ce_0_n, scn1_ram_ce_1_n;
 
-wire [14:0] scn1_dot_color;
 
-wire [14:0] scn_ram_1_addr;
-wire [15:0] scn_ram_1_data;
-wire scn_ram_1_lds_n, scn_ram_1_uds_n;
+wire [14:0] scn_mux_ram_addr;
+wire [15:0] scn_mux_ram_data;
+wire [15:0] scn_mux_ram_q;
+wire scn_mux_ram_lds_n, scn_mux_ram_uds_n;
 
-m68k_ram #(.WIDTHAD(15)) scn_ram_1(
+m68k_ram #(.WIDTHAD(15)) scn_mux_ram(
     .clock(clk),
-    .address(scn_ram_1_addr),
-    .we_lds_n(scn_ram_1_lds_n),
-    .we_uds_n(scn_ram_1_uds_n),
-    .data(scn_ram_1_data),
-    .q(scn1_ram_din)
+    .address(scn_mux_ram_addr),
+    .we_lds_n(scn_mux_ram_lds_n),
+    .we_uds_n(scn_mux_ram_uds_n),
+    .data(scn_mux_ram_data),
+    .q(scn_mux_ram_q)
 );
 
-m68k_ram_ss_adaptor #(.WIDTHAD(15), .SS_IDX(SSIDX_SCN_RAM_1)) scn_ram_1_ss(
+m68k_ram_ss_adaptor #(.WIDTHAD(15), .SS_IDX(SSIDX_SCN_MUX_RAM)) scn_mux_ram_ss(
     .clk,
-    .addr_in(scn1_ram_addr),
-    .lds_n_in(scn1_ram_ce_0_n | scn1_ram_we_lo_n),
-    .uds_n_in(scn1_ram_ce_0_n | scn1_ram_we_up_n),
-    .data_in(scn1_ram_dout),
+    .addr_in(cfg_100scn ? scn1_ram_addr : scp_ram_addr),
+    .lds_n_in(cfg_100scn ? (scn1_ram_ce_0_n | scn1_ram_we_lo_n) : (scp_ram_ce_n | scp_ram_we_lo_n)),
+    .uds_n_in(cfg_100scn ? (scn1_ram_ce_0_n | scn1_ram_we_up_n) : (scp_ram_ce_n | scp_ram_we_up_n)),
+    .data_in(cfg_100scn ? scn1_ram_data : scp_ram_data),
 
-    .q(scn1_ram_din),
+    .q(scn_mux_ram_q),
 
-    .addr_out(scn_ram_1_addr),
-    .lds_n_out(scn_ram_1_lds_n),
-    .uds_n_out(scn_ram_1_uds_n),
-    .data_out(scn_ram_1_data),
+    .addr_out(scn_mux_ram_addr),
+    .lds_n_out(scn_mux_ram_lds_n),
+    .uds_n_out(scn_mux_ram_uds_n),
+    .data_out(scn_mux_ram_data),
 
     .ssbus(ssb[16])
 );
+
+wire [14:0] scn1_dot_color;
 
 wire [20:0] scn1_rom_address;
 assign sdr_scn1_addr = SCN1_ROM_SDR_BASE[26:0] + { 6'b0, scn1_rom_address[20:0] };
@@ -919,8 +924,8 @@ TC0100SCN #(.SS_IDX(SSIDX_SCN_1)) scn1(
 
     // RAM interface
     .SA(scn1_ram_addr),
-    .SDin(scn1_ram_din),
-    .SDout(scn1_ram_dout),
+    .SDin(scn_mux_ram_q),
+    .SDout(scn1_ram_data),
     .WEUPn(scn1_ram_we_up_n),
     .WELOn(scn1_ram_we_lo_n),
     .SCE0n(scn1_ram_ce_0_n),
@@ -929,8 +934,8 @@ TC0100SCN #(.SS_IDX(SSIDX_SCN_1)) scn1(
     // ROM interface
     .rom_address(scn1_rom_address),
     .rom_req(sdr_scn1_req),
-    .rom_ack(sdr_scn_pivot_ack),
-    .rom_data(sdr_scn_pivot_q),
+    .rom_ack(sdr_scn_mux_ack),
+    .rom_data(sdr_scn_mux_q[31:0]),
 
     // Video interface
     .SC(scn1_dot_color),
@@ -945,6 +950,64 @@ TC0100SCN #(.SS_IDX(SSIDX_SCN_1)) scn1(
 
     .ssbus(ssb[17])
 );
+
+//////////////////////////////////
+//// SCREEN 1 TC0480SCP
+wire [14:0] scp_ram_addr;
+wire [15:0] scp_data_out;
+wire [15:0] scp_ram_data;
+wire [15:0] scp_ram_q;
+wire scp_ram_we_up_n, scp_ram_we_lo_n;
+wire scp_ram_ce_n;
+
+wire [15:0] scp_dot_color;
+
+wire [20:0] scp_rom_address;
+
+TC0480SCP #(.SS_IDX(SSIDX_480SCP)) tc0480scp(
+    .clk(clk),
+    .ce(ce_pixel), // FIXME: scn0 should be authorative here
+
+    .reset,
+
+    // CPU interface
+    .VA(cpu_word_addr[17:0]),
+    .VDin(cpu_data_out),
+    .VDout(scp_data_out),
+    .LDSn(cpu_ds_n[0]),
+    .UDSn(cpu_ds_n[1]),
+    .CSn(SCREEN1n),
+    .RW(cpu_rw),
+    .VDTACKn(VDTACKn),
+
+    // RAM interface
+    .RA(scp_ram_addr),
+    .RADOEn(scp_ram_ce_n),
+    .RADin(scp_ram_q),
+    .RADout(scp_ram_data),
+    .RWAHn(scp_ram_we_up_n),
+    .RWALn(scp_ram_we_lo_n),
+
+    // ROM interface
+    .rom_address(scp_rom_address),
+    .rom_req(sdr_scp_req),
+    .rom_ack(sdr_scn_mux_ack),
+    .rom_data(sdr_scn_mux_q),
+
+    // Video interface
+    .SD(scp_dot_color),
+    .HSYNn(),
+    .HBLNn(),
+    .VSYNn(),
+    .VBLNn(),
+    .HLDn(),
+    .VLDn(),
+    .OUHLDn(0), // FIXME - confirm inputs
+    .OUVLDn(0),
+
+    .ssbus(ssb[17])
+);
+
 
 
 wire [11:0] pivot_ram_addr;
@@ -1011,9 +1074,9 @@ TC0430GRW #(.SS_IDX(SSIDX_PIVOT_CTRL)) tc0430grw(
     .WELOn(pivot_ram_we_lo_n),
 
     .rom_address(sdr_pivot_addr),
-    .rom_data(sdr_scn_pivot_q[15:0]),
+    .rom_data(sdr_scn_mux_q[15:0]),
     .rom_req(sdr_pivot_req),
-    .rom_ack(sdr_scn_pivot_ack),
+    .rom_ack(sdr_scn_mux_ack),
 
     .SC(pivot_dot),
 

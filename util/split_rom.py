@@ -23,14 +23,14 @@ if pow2_len > length:
     sys.exit(-1)
 
 print(f"{outfile}: {real_len:#x} bytes of real data.")
-if real_len < pow2_len:
-    delta = pow2_len - real_len
+if real_len < length:
+    delta = length - real_len
     split_data += bytes([0xff] * delta)
-    print(f"{outfile}: padding to {pow2_len:#x} bytes.")
+    print(f"{outfile}: padding to {length:#x} bytes.")
 
-if pow2_len < length:
-    split_data = split_data * int( length / pow2_len )
-    print(f"{outfile}: duplicating to {length:#x} bytes.")
+#if pow2_len < length:
+#    split_data = split_data * int( length / pow2_len )
+#    print(f"{outfile}: duplicating to {length:#x} bytes.")
 
 with open(outfile, "wb") as fp:
     fp.write(split_data)

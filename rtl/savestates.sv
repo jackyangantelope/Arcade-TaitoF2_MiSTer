@@ -162,7 +162,7 @@ reg [COUNT_WIDTH - 1:0] addr;
 reg [(DEVICE_WIDTH + STATE_WIDTH - 1):0] idx_map[2**COUNT_WIDTH];
 
 always @(posedge clk) begin
-    ssbus.setup(SS_IDX, count, 2);
+    ssbus.setup(SS_IDX, 32'(count), 2);
 
     case(state)
         ST_INIT: begin
@@ -203,11 +203,11 @@ always @(posedge clk) begin
             wr <= 0;
             if (ssbus.access(SS_IDX)) begin
                 if (ssbus.write) begin
-                    addr <= ssbus.addr;
+                    addr <= ssbus.addr[COUNT_WIDTH-1:0];
                     state <= ST_PREPARE_WRITE;
                     wr_data <= ssbus.data[31:0];
                 end else if (ssbus.read) begin
-                    addr <= ssbus.addr;
+                    addr <= ssbus.addr[COUNT_WIDTH-1:0];
                     state <= ST_PREPARE_READ;
                 end
             end

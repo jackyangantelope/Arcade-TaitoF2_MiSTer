@@ -15,6 +15,7 @@ void input_init()
     TE7750->CR1 = 0xff;
     TE7750->CR2 = 0xe7;
     TE7750->CR3 = 0xff;
+    *(uint16_t *)0x900000 = 0;
 #endif
 }
 

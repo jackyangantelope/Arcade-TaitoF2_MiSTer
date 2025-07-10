@@ -10,7 +10,7 @@ MISTER_HOSTNAME=mister-dev
 
 TARGET = deadconx_test
 SRCS = init.c main.c interrupts_default.c comms.c tilemap.c input.c color.c printf/printf.c
-SRCS += obj_test.c audio_240p.c tc0360pri.c
+SRCS += obj_test.c audio_240p.c tc0360pri.c crc16.c
 CHR = font.chr 
 ASM = savestate.s
 

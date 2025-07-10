@@ -72,7 +72,7 @@ void sim_tick(int count = 1)
         
         sdram.update_channel_64(top->sdr_cpu_addr, top->sdr_cpu_req, 1, 0, 0, &top->sdr_cpu_q, &top->sdr_cpu_ack);
         sdram.update_channel_32(top->sdr_scn0_addr, top->sdr_scn0_req, 1, 0, 0, &top->sdr_scn0_q, &top->sdr_scn0_ack);
-        sdram.update_channel_32(top->sdr_scn_pivot_addr, top->sdr_scn_pivot_req, 1, 0, 0, &top->sdr_scn_pivot_q, &top->sdr_scn_pivot_ack);
+        sdram.update_channel_64(top->sdr_scn_mux_addr, top->sdr_scn_mux_req, 1, 0, 0, &top->sdr_scn_mux_q, &top->sdr_scn_mux_ack);
         sdram.update_channel_16(top->sdr_audio_addr, top->sdr_audio_req, 1, 0, 0, &top->sdr_audio_q, &top->sdr_audio_ack);
         video.clock(top->ce_pixel != 0, top->hblank != 0, top->vblank != 0, top->red, top->green, top->blue);
         
@@ -151,6 +151,7 @@ public: \
 instance##_Editor instance;
 
 blockram_16_rw(scn_ram_0, 64 * 1024);
+blockram_16_rw(scn_mux_ram, 64 * 1024);
 blockram_16_rw(color_ram, 8 * 1024);
 blockram_16_rw(obj_ram, 64 * 1024);
 blockram_16_rw(work_ram, 64 * 1024);
@@ -394,6 +395,13 @@ int main(int argc, char **argv)
                     scn_ram_0.DrawContents();
                     ImGui::EndTabItem();
                 }
+
+                if (ImGui::BeginTabItem("Screen MUX RAM"))
+                {
+                    scn_mux_ram.DrawContents();
+                    ImGui::EndTabItem();
+                }
+
 
                 if (ImGui::BeginTabItem("Color RAM"))
                 {

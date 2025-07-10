@@ -104,7 +104,7 @@ assign color_out = { 2'b0, color_final };
 always_ff @(posedge clk) begin
     if (ce_pixel) begin
         color_final <= 12'd0;
-        if (prio0 && prio0 > prio1 && prio0 > prio2) begin
+        if (|prio0 && prio0 > prio1 && prio0 > prio2) begin
             color_final <= color0;
             if (prio1 == (prio0 - 4'd1)) begin
                 color_final <= blend(blend0, color0, color1);
@@ -112,7 +112,7 @@ always_ff @(posedge clk) begin
             if (prio2 == (prio0 - 4'd1)) begin
                 color_final <= blend(blend0, color0, color2);
             end
-        end else if (prio1 && prio1 > prio0 && prio1 > prio2) begin
+        end else if (|prio1 && prio1 > prio0 && prio1 > prio2) begin
             color_final <= color1;
             if (prio0 == (prio1 - 4'd1)) begin
                 color_final <= blend(blend1, color1, color0);
@@ -120,7 +120,7 @@ always_ff @(posedge clk) begin
             if (prio2 == (prio1 - 4'd1)) begin
                 color_final <= blend(blend1, color1, color2);
             end
-        end else if (prio2 && prio2 > prio0 && prio2 > prio1) begin
+        end else if (|prio2 && prio2 > prio0 && prio2 > prio1) begin
             color_final <= color2;
             if (prio0 == (prio2 - 4'd1)) begin
                 color_final <= blend(blend2, color2, color0);

@@ -14,8 +14,9 @@ package system_consts;
     parameter int SSIDX_CCHIP_RAM = 12;
     parameter int SSIDX_PIVOT_CTRL = 13;
     parameter int SSIDX_PIVOT_RAM = 14;
-    parameter int SSIDX_SCN_RAM_1 = 15;
+    parameter int SSIDX_SCN_MUX_RAM = 15;
     parameter int SSIDX_SCN_1 = 16;
+    parameter int SSIDX_480SCP = 17;
 
 
 `ifdef VERILATOR

@@ -105,6 +105,10 @@ debug/driftout_test:
 debug/deadconx_test:
 	$(MAKE) -j8 -C testroms debug TARGET=deadconx_test
 
+debug/finalb_test:
+	$(MAKE) -j8 -C testroms debug TARGET=finalb_test
+
+
 
 picorom:
 	$(MAKE) -j8 -C testroms TARGET=deadconx_test picorom
