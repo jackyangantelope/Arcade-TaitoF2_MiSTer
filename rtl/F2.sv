@@ -918,7 +918,7 @@ TC0100SCN #(.SS_IDX(SSIDX_SCN_1)) scn1(
     .Dout(scn1_data_out),
     .LDSn(cpu_ds_n[0]),
     .UDSn(cpu_ds_n[1]),
-    .SCCSn(SCREEN1n),
+    .SCCSn(cfg_100scn ? SCREEN1n : 1'b1),
     .RW(cpu_rw),
     .DACKn(SDTACK1n),
 
@@ -976,7 +976,7 @@ TC0480SCP #(.SS_IDX(SSIDX_480SCP)) tc0480scp(
     .VDout(scp_data_out),
     .LDSn(cpu_ds_n[0]),
     .UDSn(cpu_ds_n[1]),
-    .CSn(SCREEN1n),
+    .CSn(cfg_480scp ? SCREEN1n : 1'b1),
     .RW(cpu_rw),
     .VDTACKn(VDTACKn),
 

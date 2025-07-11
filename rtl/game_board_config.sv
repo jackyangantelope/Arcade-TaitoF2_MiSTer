@@ -89,7 +89,7 @@ always_ff @(posedge clk) begin
     cfg_addr_io1       <= 16'hff00;
     cfg_addr_sound     <= 16'hff00;
     cfg_addr_screen0    <= 16'hff00;
-    cfg_addr_screen0    <= 16'hff00;
+    cfg_addr_screen1    <= 16'hff00;
     cfg_addr_obj       <= 16'hff00;
     cfg_addr_priority  <= 16'hff00;
     cfg_addr_extension <= 16'hff00;
