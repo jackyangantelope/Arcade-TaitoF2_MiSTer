@@ -52,7 +52,7 @@ rbf: $(OUTDIR)/$(CONFIG).rbf
 sim:
 	$(MAKE) -j8 -C sim sim
 
-sim/run: sim/driftout
+sim/run: sim/deadconx
 sim/test: sim/deadconx_test
 
 sim/dinorex:

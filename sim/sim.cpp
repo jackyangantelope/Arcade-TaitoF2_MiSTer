@@ -12,6 +12,7 @@
 #include "sim_state.h"
 #include "tc0200obj.h"
 #include "tc0360pri.h"
+#include "tc0480scp.h"
 #include "dis68k/dis68k.h"
 #include "games.h"
 
@@ -373,19 +374,6 @@ int main(int argc, char **argv)
         }
         ImGui::End();
 
-        if (ImGui::Begin("Audio"))
-        {
-            if (ImGui::Button("Save Audio"))
-            {
-                FILE *fout = fopen("audio.raw", "wb");
-                fwrite(audio_samples, sizeof(int16_t) * NUM_SAMPLES, 1, fout);
-                fclose(fout);
-            }
-
-            ImGui::Text("Idx: %u", audio_sample_index);
-        }
-        ImGui::End();
-
         if (ImGui::Begin("Memory"))
         {
             if (ImGui::BeginTabBar("memory_tabs"))
@@ -503,6 +491,7 @@ int main(int argc, char **argv)
         draw_obj_window();
         draw_obj_preview_window();
         draw_pri_window();
+        draw_480scp_window();
         video.draw();
 
         ImGui::Begin("68000");

@@ -173,7 +173,7 @@ reg ram_pending = 0;
 reg ram_access = 0;
 reg [15:0] ram_addr;
 
-reg [15:0] ctrl[16];
+reg [15:0] ctrl[32];
 
 reg [4:0] access_cycle;
 logic [4:0] next_access_cycle;
@@ -257,10 +257,10 @@ always @(posedge clk) begin
         if (~CSn & prev_cs_n) begin // CS edge
             if (VA[17]) begin // control access
                 if (RW) begin
-                    VDout <= ctrl[VA[4:1]];
+                    VDout <= ctrl[VA[5:1]];
                 end else begin
-                    if (~UDSn) ctrl[VA[4:1]][15:8] <= VDin[15:8];
-                    if (~LDSn) ctrl[VA[4:1]][7:0]  <= VDin[7:0];
+                    if (~UDSn) ctrl[VA[5:1]][15:8] <= VDin[15:8];
+                    if (~LDSn) ctrl[VA[5:1]][7:0]  <= VDin[7:0];
                 end
                 dtack_n <= 0;
             end else begin // ram access
@@ -298,13 +298,13 @@ always @(posedge clk) begin
         endcase
     end
 
-    ssbus.setup(SS_IDX, 16, 1);
+    ssbus.setup(SS_IDX, 32, 1);
     if (ssbus.access(SS_IDX)) begin
         if (ssbus.write) begin
-            ctrl[ssbus.addr[3:0]] <= ssbus.data[15:0];
+            ctrl[ssbus.addr[4:0]] <= ssbus.data[15:0];
             ssbus.write_ack(SS_IDX);
         end else if (ssbus.read) begin
-            ssbus.read_response(SS_IDX, { 48'b0, ctrl[ssbus.addr[3:0]] });
+            ssbus.read_response(SS_IDX, { 48'b0, ctrl[ssbus.addr[4:0]] });
         end
     end
 end

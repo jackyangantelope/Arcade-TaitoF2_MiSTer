@@ -34,6 +34,7 @@ SRCS = imgui/imgui.cpp \
 		imgui_wrap.cpp \
 		tc0200obj.cpp \
 		tc0360pri.cpp \
+		tc0480scp.cpp \
 		miniz.cpp \
 		file_search.cpp
 

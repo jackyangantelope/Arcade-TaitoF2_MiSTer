@@ -69,7 +69,7 @@ always @(posedge clk) begin
         GAME_DINOREX:  c = 17'b01_01_0_0_01_0_0_0_0_0_0_0_1_1;
         GAME_QJINSEI:  c = 17'b01_01_0_0_01_0_0_0_0_0_0_0_1_1;
 
-        GAME_DEADCONX: c = 17'b11_11_0_1_00_0_1_0_0_0_1_0_1_1;
+        GAME_DEADCONX: c = 17'b01_11_0_1_00_0_1_0_0_0_1_0_1_1;
         GAME_DRIFTOUT: c = 17'b11_01_0_0_00_0_0_0_0_1_0_0_1_0;
         default:       c = 17'b00_00_1_0_00_0_0_0_0_0_0_0_0_0;
     endcase
