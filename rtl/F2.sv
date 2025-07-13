@@ -956,7 +956,6 @@ TC0100SCN #(.SS_IDX(SSIDX_SCN_1)) scn1(
 wire [14:0] scp_ram_addr;
 wire [15:0] scp_data_out;
 wire [15:0] scp_ram_data;
-wire [15:0] scp_ram_q;
 wire scp_ram_we_up_n, scp_ram_we_lo_n;
 wire scp_ram_ce_n;
 
@@ -983,7 +982,7 @@ TC0480SCP #(.SS_IDX(SSIDX_480SCP)) tc0480scp(
     // RAM interface
     .RA(scp_ram_addr),
     .RADOEn(scp_ram_ce_n),
-    .RADin(scp_ram_q),
+    .RADin(scn_mux_ram_q),
     .RADout(scp_ram_data),
     .RWAHn(scp_ram_we_up_n),
     .RWALn(scp_ram_we_lo_n),
@@ -1002,8 +1001,8 @@ TC0480SCP #(.SS_IDX(SSIDX_480SCP)) tc0480scp(
     .VBLNn(),
     .HLDn(),
     .VLDn(),
-    .OUHLDn(0), // FIXME - confirm inputs
-    .OUVLDn(0),
+    .OUHLDn(HBLOn),
+    .OUVLDn(VBLOn),
 
     .ssbus(ssb[17])
 );
@@ -1169,9 +1168,9 @@ TC0360PRI #(.SS_IDX(SSIDX_PRIORITY)) tc0360pri(
     .reset,
 
     .cpu_addr(cpu_addr[3:0]),
-    .cpu_din(cfg_360pri_high ? cpu_data_out[15:8] : cpu_data_out[7:0]),
+    .cpu_din(cpu_data_out[7:0]),
     .cpu_dout(pri360_data_out),
-    .cpu_ds_n(cfg_360pri_high ? cpu_ds_n[1] : cpu_ds_n[0]),
+    .cpu_ds_n(cpu_ds_n[1] & cpu_ds_n[0]),
     .cpu_rw,
     .cs(~PRIORITYn),
 

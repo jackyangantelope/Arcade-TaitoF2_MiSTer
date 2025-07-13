@@ -120,6 +120,52 @@ end
 
 endmodule
 
+module tc0480scp_counter #(
+    parameter TILE_BIT=4
+    )
+(
+    input clk,
+    input ce,
+
+    input line_strobe,
+    input frame_strobe,
+
+    input [15:0] xofs,
+    input [15:0] yofs,
+
+    output [8:0] x,
+    output [8:0] y,
+    output       next_pixel,
+    output       next_tile
+);
+
+reg [8:0] xcnt;
+reg [8:0] ycnt;
+
+assign next_tile = 0;
+assign next_pixel = 0;
+
+assign x = xcnt + xofs[8:0];
+assign y = ycnt + yofs[8:0];
+
+always_ff @(posedge clk) begin
+    if (ce) begin
+        xcnt <= xcnt + 9'd1;
+        if (frame_strobe) begin
+            xcnt <= 0;
+            ycnt <= 0;
+        end
+
+        if (line_strobe) begin
+            xcnt <= 0;
+            ycnt <= ycnt + 9'd1;
+        end
+    end
+end
+
+endmodule
+
+
 module TC0480SCP #(parameter SS_IDX=-1) (
     input clk,
     input ce,
@@ -160,11 +206,43 @@ module TC0480SCP #(parameter SS_IDX=-1) (
 
     output HLDn,
     output VLDn,
-    input OUHLDn, // FIXME - confirm inputs
+    input OUHLDn,
     input OUVLDn,
 
     ssbus_if.slave ssbus
 );
+
+wire [8:0] dispx, dispy;
+wire [8:0] fg0_xcnt, fg0_ycnt;
+
+reg line_strobe, frame_strobe;
+tc0480scp_counter raw_counter(
+    .clk,
+    .ce,
+    .line_strobe,
+    .frame_strobe,
+    .xofs(0),
+    .yofs(0),
+    .x(dispx),
+    .y(dispy),
+    .next_tile(),
+    .next_pixel()
+);
+
+tc0480scp_counter fg0_counter(
+    .clk,
+    .ce,
+    .line_strobe,
+    .frame_strobe,
+    .xofs(0),
+    .yofs(0),
+    .x(fg0_xcnt),
+    .y(fg0_ycnt),
+    .next_tile(),
+    .next_pixel()
+);
+
+
 
 reg dtack_n;
 reg prev_cs_n;
@@ -174,6 +252,10 @@ reg ram_access = 0;
 reg [15:0] ram_addr;
 
 reg [15:0] ctrl[32];
+
+
+reg [15:0] fg0_attrib;
+reg [31:0] fg0_gfx;
 
 reg [4:0] access_cycle;
 logic [4:0] next_access_cycle;
@@ -188,7 +270,12 @@ always_comb begin
     RADOEn = 0;
     RADout = 16'd0;
 
-    next_access_cycle = access_cycle + 5'd1;
+
+    if (access_cycle == BG3_ATTRIB1) begin
+        next_access_cycle = CPU_ACCESS_0;
+    end else begin
+        next_access_cycle = access_cycle + 5'd1;
+    end
 
     unique case (access_cycle)
         WAIT0,
@@ -222,15 +309,17 @@ always_comb begin
         end
 
         FG0_ATTRIB_0,
-        FG0_ATTRIB_1: ram_addr = 16'd0;
+        FG0_ATTRIB_1: begin
+            ram_addr = 16'hc000 + { 3'b0, fg0_ycnt[8:3], fg0_xcnt[8:3], 1'b0 };
+        end
 
         BG0_ATTRIB0: ram_addr = 16'd0;
         BG0_ATTRIB1: ram_addr = 16'd0;
 
         FG0_GFX0_0,
-        FG0_GFX0_1: ram_addr = 16'd0;
+        FG0_GFX0_1: ram_addr = 16'he000 + { 3'b0, fg0_attrib[7:0], fg0_ycnt[2:0], 1'b0, 1'b0 };
         FG0_GFX1_0,
-        FG0_GFX1_1: ram_addr = 16'd0;
+        FG0_GFX1_1: ram_addr = 16'he000 + { 3'b0, fg0_attrib[7:0], fg0_ycnt[2:0], 1'b1, 1'b0 };
 
         BG1_ATTRIB0: ram_addr = 16'd0;
         BG1_ATTRIB1: ram_addr = 16'd0;
@@ -242,6 +331,8 @@ always_comb begin
         BG3_ATTRIB1: ram_addr = 16'd0;
     endcase
 end
+
+reg prev_hld_n, prev_vld_n;
 
 always @(posedge clk) begin
     bit [8:0] v;
@@ -270,7 +361,12 @@ always @(posedge clk) begin
             dtack_n <= 1;
         end
 
-        access_cycle <= next_access_cycle;
+        prev_hld_n <= OUHLDn;
+        prev_vld_n <= OUVLDn;
+
+        line_strobe <= prev_hld_n & ~OUHLDn;
+        frame_strobe <= prev_vld_n & ~OUVLDn;
+
 
         case(access_cycle)
             CPU_ACCESS_0,
@@ -283,19 +379,33 @@ always @(posedge clk) begin
                 end
             end
 
+            FG0_ATTRIB_0,
+            FG0_ATTRIB_1: fg0_attrib <= RADin;
+
+            FG0_GFX0_0,
+            FG0_GFX0_1: fg0_gfx[15:0] <= RADin;
+            FG0_GFX1_0,
+            FG0_GFX1_1: fg0_gfx[31:16] <= RADin;
+
+
             default: begin
             end
         endcase
 
-        case(next_access_cycle)
-            CPU_ACCESS_0,
-            CPU_ACCESS_1: begin
-                ram_access <= ram_pending;
-            end
+        if (line_strobe) begin
+            access_cycle <= WAIT0;
+        end else begin
+            access_cycle <= next_access_cycle;
+            case(next_access_cycle)
+                CPU_ACCESS_0,
+                CPU_ACCESS_1: begin
+                    ram_access <= ram_pending;
+                end
 
-            default: begin
-            end
-        endcase
+                default: begin
+                end
+            endcase
+        end
     end
 
     ssbus.setup(SS_IDX, 32, 1);
