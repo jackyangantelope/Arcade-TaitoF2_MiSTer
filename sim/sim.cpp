@@ -200,7 +200,7 @@ int main(int argc, char **argv)
     top->joystick_p2 = 0;
 
     // Create state manager
-    state_manager = new SimState(top, &ddr_memory, 0, 256 * 1024);
+    state_manager = new SimState(top, &ddr_memory, 0, 512 * 1024);
 
     //memset(&ddr_memory.memory[0x100000 + 8192], 0x01, 8192);
 
@@ -365,12 +365,12 @@ int main(int argc, char **argv)
 
         if (ImGui::Begin("Debug"))
         {
-            int x = top->rootp->F2__DOT__tc0200obj__DOT__flip_x_origin;
-            int y = top->rootp->F2__DOT__tc0200obj__DOT__flip_y_origin;
+            int x = (int16_t)top->rootp->F2__DOT__tc0480scp__DOT__base_xofs;
+            int y = (int16_t)top->rootp->F2__DOT__tc0480scp__DOT__base_yofs;
             ImGui::InputInt("X", &x);
             ImGui::InputInt("Y", &y);
-            top->rootp->F2__DOT__tc0200obj__DOT__flip_x_origin = x;
-            top->rootp->F2__DOT__tc0200obj__DOT__flip_y_origin = y;
+            top->rootp->F2__DOT__tc0480scp__DOT__base_xofs = x;
+            top->rootp->F2__DOT__tc0480scp__DOT__base_yofs = y;
         }
         ImGui::End();
 

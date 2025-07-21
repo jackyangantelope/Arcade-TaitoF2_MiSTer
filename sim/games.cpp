@@ -345,7 +345,7 @@ static void load_deadconx()
     load_audio("d28-10.6");
 
     sdram.load_data("d28-06.3", CPU_ROM_SDR_BASE + 1, 2);
-    sdram.load_data("d28-12.5", CPU_ROM_SDR_BASE + 0, 2);
+    sdram.load_data("d28-07.5", CPU_ROM_SDR_BASE + 0, 2);
     sdram.load_data("d28-09.2", CPU_ROM_SDR_BASE + 0x80001, 2);
     sdram.load_data("d28-08.4", CPU_ROM_SDR_BASE + 0x80000, 2);
 		
@@ -362,7 +362,7 @@ static void load_deadconx()
 
 static void load_deadconx_test()
 {
-    g_fs.addSearchPath("../testroms/build/deadconx_test/deadconx/");
+    g_fs.addSearchPath("../testroms/build/deadconx_test/deadconxj/");
     load_deadconx();
 }
 

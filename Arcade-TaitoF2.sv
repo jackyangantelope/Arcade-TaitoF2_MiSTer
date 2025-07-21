@@ -197,7 +197,7 @@ assign BUTTONS = 0;
 
 `include "build_id.v"
 localparam CONF_STR = {
-    "TaitoF2;SS3E000000:200000;",
+    "TaitoF2;SS3E000000:400000;",
     "-;",
     "P1,Video Settings;",
     "P1O[2:1],Aspect ratio,Original,Full Screen,[ARC1],[ARC2];",

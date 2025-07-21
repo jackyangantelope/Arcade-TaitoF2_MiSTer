@@ -277,8 +277,8 @@ memory_stream memory_stream (
     .write_req(ssbus.write),
     .write_data(ssbus.data),
 
-    .start_addr(SS_DDR_BASE + (index * 32'h00200000)),
-    .length(32'h00200000),
+    .start_addr(SS_DDR_BASE + (index * 32'h00400000)),
+    .length(32'h00400000),
     .read_start(read_start),
     .write_start(write_start),
     .busy(busy),

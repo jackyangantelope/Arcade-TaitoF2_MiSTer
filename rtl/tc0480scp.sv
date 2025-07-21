@@ -39,6 +39,54 @@ BG3
 
 */
 
+module tc0480scp_shifter2 #(
+    parameter TILE_WIDTH=8,
+    parameter LENGTH=2
+    )
+(
+    input                                         clk,
+    input                                         ce,
+
+    input                                         load,
+    input [$clog2(LENGTH)-1:0]                    load_index,
+    input [7:0]                                   load_color,
+    input [(TILE_WIDTH*4)-1:0]                    load_data,
+    input                                         load_flip,
+
+    input [$clog2(LENGTH)+$clog2(TILE_WIDTH)-1:0] tap,
+    output reg [11:0]                             dot_out
+);
+
+reg [7:0] color_buf[LENGTH];
+reg [(TILE_WIDTH*4)-1:0] pixel_buf[LENGTH];
+
+wire [$clog2(LENGTH)-1:0] tap_index = tap[$left(tap):$clog(TILE_WIDTH)];
+wire [$clog2(TILE_WIDTH)-1:0] tap_pixel = tap[$clog(TILE_WIDTH)-1:0];
+
+assign dot_out = shifter[(SHIFT_END - (DOT_WIDTH * tap)) -: DOT_WIDTH];
+
+always_ff @(posedge clk) begin
+    if (load) begin
+
+        color_buf[load_index] <= load_color;
+        if (load_flip) begin
+            int i;
+            for( i = 0; i < TILE_WIDTH; i = i + 1 ) begin
+                pixel_buf[load_index][(4 * ((TILE_WIDTH-1) - i)) +: 4] <= load_data[(4 * i) +: 4];
+            end
+        end else begin
+            pixel_buf[load_index] <= load_data;
+        end
+    end
+
+    if (ce) begin
+        dot_out <= { color_buf[tap_index], pixel_buf[tap_index][(4 * tap_pixel) +: 4] };
+    end
+end
+
+endmodule
+
+
 typedef enum [4:0]
 {
     WAIT0 = 5'd0,
@@ -83,8 +131,9 @@ module tc0480scp_shifter #(
     )
 (
     input clk,
-    input ce_pixel,
+    input ce,
     input load,
+    input shift,
 
     input [$clog2(DATA_WIDTH)-1:0] tap,
     input [(PIXEL_WIDTH * DATA_WIDTH) - 1:0] gfx_in,
@@ -94,24 +143,27 @@ module tc0480scp_shifter #(
 );
 
 localparam DOT_WIDTH = (PALETTE_WIDTH + PIXEL_WIDTH);
-localparam SHIFT_END = (DOT_WIDTH * DATA_WIDTH * 2) - 1;
+localparam SHIFT_END = (DOT_WIDTH * DATA_WIDTH * 3) - 1;
 
-reg [SHIFT_END:0] shift;
+reg [SHIFT_END:0] shifter;
 
-assign dot_out = shift[(SHIFT_END - (DOT_WIDTH * tap)) -: DOT_WIDTH];
+assign dot_out = shifter[(SHIFT_END - (DOT_WIDTH * tap)) -: DOT_WIDTH];
 
 always_ff @(posedge clk) begin
-    if (ce_pixel) begin
-        shift[SHIFT_END:DOT_WIDTH] <= shift[SHIFT_END-DOT_WIDTH:0];
+    if (ce) begin
+        if (shift) begin
+            shifter[SHIFT_END:DOT_WIDTH] <= shifter[SHIFT_END-DOT_WIDTH:0];
+        end
+
         if (load) begin
             int i;
             if (flip_x) begin
                 for( i = 0; i < DATA_WIDTH; i = i + 1 ) begin
-                    shift[(DOT_WIDTH * ((DATA_WIDTH-1) - i)) +: DOT_WIDTH] <= { palette_in, gfx_in[(PIXEL_WIDTH * i) +: PIXEL_WIDTH] };
+                    shifter[(DOT_WIDTH * ((DATA_WIDTH-1) - i)) +: DOT_WIDTH] <= { palette_in, gfx_in[(PIXEL_WIDTH * i) +: PIXEL_WIDTH] };
                 end
             end else begin
                 for( i = 0; i < DATA_WIDTH; i = i + 1 ) begin
-                    shift[(DOT_WIDTH * i) +: DOT_WIDTH] <= { palette_in, gfx_in[(PIXEL_WIDTH * i) +: PIXEL_WIDTH] };
+                    shifter[(DOT_WIDTH * i) +: DOT_WIDTH] <= { palette_in, gfx_in[(PIXEL_WIDTH * i) +: PIXEL_WIDTH] };
                 end
             end
         end
@@ -121,7 +173,7 @@ end
 endmodule
 
 module tc0480scp_counter #(
-    parameter TILE_BIT=4
+    parameter TILE_BITS=3
     )
 (
     input clk,
@@ -130,35 +182,51 @@ module tc0480scp_counter #(
     input line_strobe,
     input frame_strobe,
 
+    input [15:0] xbase,
+    input [15:0] ybase,
+
     input [15:0] xofs,
     input [15:0] yofs,
 
     output [8:0] x,
     output [8:0] y,
-    output       next_pixel,
+
+    output reg next_pixel,
     output       next_tile
 );
 
 reg [8:0] xcnt;
 reg [8:0] ycnt;
+reg [TILE_BITS-1:0] pre_shift;
 
 assign next_tile = 0;
-assign next_pixel = 0;
 
-assign x = xcnt + xofs[8:0];
-assign y = ycnt + yofs[8:0];
+assign x = xcnt;
+assign y = ycnt;
+
+wire [8:0] xstart = xbase[8:0] - xofs[8:0];
+wire [8:0] ystart = ybase[8:0] - yofs[8:0];
 
 always_ff @(posedge clk) begin
     if (ce) begin
         xcnt <= xcnt + 9'd1;
         if (frame_strobe) begin
-            xcnt <= 0;
-            ycnt <= 0;
+            xcnt <= {xstart[8:TILE_BITS], {TILE_BITS{1'b0}}};
+            ycnt <= ystart;
         end
 
         if (line_strobe) begin
-            xcnt <= 0;
+            xcnt <= {xstart[8:TILE_BITS], {TILE_BITS{1'b0}}};
             ycnt <= ycnt + 9'd1;
+            next_pixel <= 0;
+            pre_shift <= xstart[TILE_BITS-1:0];
+        end else begin
+            if (|pre_shift) begin
+                pre_shift <= pre_shift - 1;
+                next_pixel <= 0;
+            end else begin
+                next_pixel <= 1;
+            end
         end
     end
 end
@@ -215,12 +283,17 @@ module TC0480SCP #(parameter SS_IDX=-1) (
 wire [8:0] dispx, dispy;
 wire [8:0] fg0_xcnt, fg0_ycnt;
 
+reg [15:0] base_xofs;
+reg [15:0] base_yofs;
+
 reg line_strobe, frame_strobe;
 tc0480scp_counter raw_counter(
     .clk,
     .ce,
     .line_strobe,
     .frame_strobe,
+    .xbase(0),
+    .ybase(0),
     .xofs(0),
     .yofs(0),
     .x(dispx),
@@ -229,20 +302,42 @@ tc0480scp_counter raw_counter(
     .next_pixel()
 );
 
+wire fg0_shift;
 tc0480scp_counter fg0_counter(
     .clk,
     .ce,
     .line_strobe,
     .frame_strobe,
-    .xofs(0),
-    .yofs(0),
+    .xbase(base_xofs),
+    .ybase(base_yofs),
+    .xofs(ctrl[12]),
+    .yofs(ctrl[13]),
     .x(fg0_xcnt),
     .y(fg0_ycnt),
     .next_tile(),
-    .next_pixel()
+    .next_pixel(fg0_shift)
 );
 
 
+reg [15:0] fg0_attrib;
+reg [31:0] fg0_gfx;
+
+reg fg0_load;
+wire [11:0] fg0_dot;
+
+tc0480scp_shifter fg0_shifter(
+    .clk, .ce,
+    .tap(0),
+    .shift(fg0_shift),
+    .gfx_in(fg0_gfx),
+    .palette_in({2'b0, fg0_attrib[13:8]}),
+    .flip_x(0),
+    .dot_out(fg0_dot),
+    .load(fg0_load)
+);
+
+
+assign SD = { 4'b0, fg0_dot };
 
 reg dtack_n;
 reg prev_cs_n;
@@ -252,10 +347,6 @@ reg ram_access = 0;
 reg [15:0] ram_addr;
 
 reg [15:0] ctrl[32];
-
-
-reg [15:0] fg0_attrib;
-reg [31:0] fg0_gfx;
 
 reg [4:0] access_cycle;
 logic [4:0] next_access_cycle;
@@ -333,6 +424,7 @@ always_comb begin
 end
 
 reg prev_hld_n, prev_vld_n;
+reg end_line;
 
 always @(posedge clk) begin
     bit [8:0] v;
@@ -364,9 +456,10 @@ always @(posedge clk) begin
         prev_hld_n <= OUHLDn;
         prev_vld_n <= OUVLDn;
 
-        line_strobe <= prev_hld_n & ~OUHLDn;
+        line_strobe <= 0;
+        end_line <= prev_hld_n & ~OUHLDn;
         frame_strobe <= prev_vld_n & ~OUVLDn;
-
+        fg0_load <= 0;
 
         case(access_cycle)
             CPU_ACCESS_0,
@@ -383,16 +476,23 @@ always @(posedge clk) begin
             FG0_ATTRIB_1: fg0_attrib <= RADin;
 
             FG0_GFX0_0,
-            FG0_GFX0_1: fg0_gfx[15:0] <= RADin;
-            FG0_GFX1_0,
-            FG0_GFX1_1: fg0_gfx[31:16] <= RADin;
+            FG0_GFX0_1: fg0_gfx[31:16] <= {RADin[3:0], RADin[7:4], RADin[11:8], RADin[15:12]};
 
+            FG0_GFX1_0,
+            FG0_GFX1_1: begin
+                fg0_gfx[15:0] <= {RADin[3:0], RADin[7:4], RADin[11:8], RADin[15:12]};
+                fg0_load <= 1;
+            end
+
+            BG3_ROW_SCROLL2: begin
+                line_strobe <= 1;
+            end
 
             default: begin
             end
         endcase
 
-        if (line_strobe) begin
+        if (end_line) begin
             access_cycle <= WAIT0;
         end else begin
             access_cycle <= next_access_cycle;

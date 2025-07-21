@@ -175,9 +175,9 @@ reg ss_read = 0;
 wire ss_busy;
 
 ssbus_if ssbus();
-ssbus_if ssb[18]();
+ssbus_if ssb[19]();
 
-ssbus_mux #(.COUNT(18)) ssmux(
+ssbus_mux #(.COUNT(19)) ssmux(
     .clk,
     .slave(ssbus),
     .masters(ssb)
@@ -1004,7 +1004,7 @@ TC0480SCP #(.SS_IDX(SSIDX_480SCP)) tc0480scp(
     .OUHLDn(HBLOn),
     .OUVLDn(VBLOn),
 
-    .ssbus(ssb[17])
+    .ssbus(ssb[18])
 );
 
 
@@ -1162,6 +1162,25 @@ TC0110PR tc0110pr(
 wire [13:0] pri360_color;
 wire [7:0] pri360_data_out;
 
+logic [13:0] color0_pri, color1_pri, color2_pri;
+
+always_comb begin
+    color1_pri = {obj_dot[11:10], obj_dot[11:0]};
+    if (cfg_480scp) begin
+        color0_pri = {scp_dot_color[15:14], scp_dot_color[11:0]};
+        color2_pri = {scp_dot_color[15:14], scp_dot_color[11:0]};
+    end else begin
+        color0_pri = {scn0_dot_color[14:13], scn0_dot_color[11:0]};
+        if (cfg_100scn) begin
+            color2_pri = {scn1_dot_color[14:13], scn1_dot_color[11:0]};
+        end else if (cfg_430grw | cfg_280grd) begin
+            color2_pri = { 8'd0, pivot_dot };
+        end else begin
+            color2_pri = 14'd0;
+        end
+    end
+end
+
 TC0360PRI #(.SS_IDX(SSIDX_PRIORITY)) tc0360pri(
     .clk,
     .ce_pixel,
@@ -1174,11 +1193,11 @@ TC0360PRI #(.SS_IDX(SSIDX_PRIORITY)) tc0360pri(
     .cpu_rw,
     .cs(~PRIORITYn),
 
-    .fullwidth(cfg_100scn),
+    .fullwidth(cfg_100scn | cfg_480scp),
 
-    .color_in0({scn0_dot_color[14:13], scn0_dot_color[11:0]}),
-    .color_in1({obj_dot[11:10], obj_dot[11:0]}),
-    .color_in2(cfg_100scn ? {scn1_dot_color[14:13], scn1_dot_color[11:0]} : {8'd0, pivot_dot}),
+    .color_in0(color0_pri),
+    .color_in1(color1_pri),
+    .color_in2(color2_pri),
     .color_out(pri360_color),
 
     .ssbus(ssb[11])
