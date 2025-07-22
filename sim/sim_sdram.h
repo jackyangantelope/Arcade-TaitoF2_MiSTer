@@ -150,7 +150,7 @@ public:
         {
             // Store in big-endian format (swapping bytes)
             data[addr & mask] = buffer[i + 1];
-            data[(addr + 1) & mask] = buffer[i];
+            data[(addr + 1) & mask] = buffer[i + 0];
             addr += stride;
         }
         

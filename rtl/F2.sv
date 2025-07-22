@@ -961,7 +961,9 @@ wire scp_ram_ce_n;
 
 wire [15:0] scp_dot_color;
 
-wire [20:0] scp_rom_address;
+wire [21:0] scp_rom_address;
+
+assign sdr_scp_addr = SCN1_ROM_SDR_BASE[26:0] + { 5'b0, scp_rom_address[21:0] };
 
 TC0480SCP #(.SS_IDX(SSIDX_480SCP)) tc0480scp(
     .clk(clk),

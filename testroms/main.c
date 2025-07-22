@@ -131,9 +131,9 @@ void reset_screen()
     TC0480SCP_Ctrl->bg1_y = 8 - base_y;
     TC0480SCP_Ctrl->bg1_x = base_x - 14;
     TC0480SCP_Ctrl->bg2_y = 8 - base_y;
-    TC0480SCP_Ctrl->bg2_x = base_x - 14;
+    TC0480SCP_Ctrl->bg2_x = base_x - 18;
     TC0480SCP_Ctrl->bg3_y = 8 - base_y;
-    TC0480SCP_Ctrl->bg3_x = base_x - 14;
+    TC0480SCP_Ctrl->bg3_x = base_x - 22;
     TC0480SCP_Ctrl->system_flags = TC0480SCP_SYSTEM_EXT_SYNC;
     TC0480SCP_Ctrl->bg0_zoom = 0x7f;
     TC0480SCP_Ctrl->bg1_zoom = 0x7f;
@@ -1391,12 +1391,12 @@ void init_480scp()
     sym_at(13, 5, 1);
 
     pen_color(27);
-    on_layer(BG1);
+    on_layer(BG2);
     sym_at(3, 6, 1);
     sym_at(13, 6, 1);
 
     pen_color(28);
-    on_layer(BG1);
+    on_layer(BG3);
     sym_at(3, 7, 1);
     sym_at(13, 7, 1);
 }
