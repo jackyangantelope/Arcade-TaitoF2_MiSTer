@@ -1350,6 +1350,12 @@ void init_480scp()
     opt.color = 24;
     obj_grid(2 * 24, 2 * 24, &opt, &obj_ptr);
 
+    // BG0 = 0010
+    // BG1 = 0100
+    // BG2 = 0110
+    // BG3 = 1000
+    // FG0 = 1010
+
     on_layer(FG0);
 
     for( int y = 0; y < 8; y++ )
@@ -1404,7 +1410,6 @@ void init_480scp()
 void update_480scp()
 {
     wait_vblank();
-
     on_layer(FG0);
     sym_at(10,10,1);
     

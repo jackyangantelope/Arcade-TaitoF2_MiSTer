@@ -227,13 +227,20 @@ module TC0480SCP #(parameter SS_IDX=-1) (
     ssbus_if.slave ssbus
 );
 
+
+reg [15:0] ctrl[32];
+
+wire [2:0] ctrl_prio     = ctrl[15][4:2];
+wire       ctrl_wide     = ctrl[15][7];
+wire       ctrl_flip     = ctrl[15][6];
+wire       ctrl_sync     = ctrl[15][5];
+wire       ctrl_bg3_zoom = ctrl[15][1];
+wire       ctrl_bg2_zoom = ctrl[15][0];
+
 wire [8:0] dispx, dispy;
 
 wire [8:0] fg0_xcnt, fg0_ycnt;
 wire [5:0] fg0_xtile;
-
-wire [8:0] bg_xcnt[4], bg_ycnt[4];
-wire [4:0] bg_xtile[4];
 
 reg [15:0] base_xofs;
 reg [15:0] base_yofs;
@@ -267,61 +274,43 @@ tc0480scp_counter fg0_counter(
     .xtile(fg0_xtile)
 );
 
-tc0480scp_counter #(.TILE_BITS(4)) bg0_counter(
-    .clk,
-    .ce,
-    .line_strobe,
-    .frame_strobe,
-    .xbase(base_xofs-31),
-    .ybase(base_yofs-33),
-    .xofs(ctrl[0]),
-    .yofs(ctrl[4]),
-    .x(bg_xcnt[0]),
-    .y(bg_ycnt[0]),
-    .xtile(bg_xtile[0])
-);
 
-tc0480scp_counter #(.TILE_BITS(4)) bg1_counter(
-    .clk,
-    .ce,
-    .line_strobe,
-    .frame_strobe,
-    .xbase(base_xofs-31),
-    .ybase(base_yofs-33),
-    .xofs(ctrl[1]),
-    .yofs(ctrl[5]),
-    .x(bg_xcnt[1]),
-    .y(bg_ycnt[1]),
-    .xtile(bg_xtile[1])
-);
+wire [8:0] bg_xcnt[4], bg_ycnt[4];
+wire [4:0] bg_xtile[4];
+wire [11:0] bg_dot[4];
+reg [31:0] bg_attrib[4];
+genvar bg_index;
 
-tc0480scp_counter #(.TILE_BITS(4)) bg2_counter(
-    .clk,
-    .ce,
-    .line_strobe,
-    .frame_strobe,
-    .xbase(base_xofs-31),
-    .ybase(base_yofs-33),
-    .xofs(ctrl[2]),
-    .yofs(ctrl[6]),
-    .x(bg_xcnt[2]),
-    .y(bg_ycnt[2]),
-    .xtile(bg_xtile[2])
-);
+generate
+for (bg_index = 0; bg_index < 4; bg_index = bg_index + 1) begin
+    tc0480scp_counter #(.TILE_BITS(4)) bg_counter(
+        .clk,
+        .ce,
+        .line_strobe,
+        .frame_strobe,
+        .xbase(base_xofs-31),
+        .ybase(base_yofs-33),
+        .xofs(ctrl[0+bg_index]),
+        .yofs(ctrl[4+bg_index]),
+        .x(bg_xcnt[bg_index]),
+        .y(bg_ycnt[bg_index]),
+        .xtile(bg_xtile[bg_index])
+    );
 
-tc0480scp_counter #(.TILE_BITS(4)) bg3_counter(
-    .clk,
-    .ce,
-    .line_strobe,
-    .frame_strobe,
-    .xbase(base_xofs-31),
-    .ybase(base_yofs-33),
-    .xofs(ctrl[3]),
-    .yofs(ctrl[7]),
-    .x(bg_xcnt[3]),
-    .y(bg_ycnt[3]),
-    .xtile(bg_xtile[3])
-);
+    tc0480scp_shifter #(.TILE_WIDTH(16)) bg_shifter(
+        .clk, .ce,
+
+        .tap(bg_xcnt[bg_index][5:0]),
+        .dot_out(bg_dot[bg_index]),
+
+        .load(bg_load[bg_index]),
+        .load_data(rom_data),
+        .load_flip(0),
+        .load_color(bg_attrib[bg_index][23:16]),
+        .load_index(bg_xtile[bg_index][1:0])
+    );
+end
+endgenerate
 
 
 reg [15:0] fg0_attrib;
@@ -329,9 +318,6 @@ reg [31:0] fg0_gfx;
 
 reg fg0_load;
 wire [11:0] fg0_dot;
-
-wire [11:0] bg_dot[4];
-reg [31:0] bg_attrib[4];
 
 tc0480scp_shifter fg0_shifter(
     .clk, .ce,
@@ -346,65 +332,25 @@ tc0480scp_shifter fg0_shifter(
     .load_index(fg0_xtile[1:0])
 );
 
-tc0480scp_shifter #(.TILE_WIDTH(16)) bg0_shifter(
-    .clk, .ce,
+wire [1:0] bg_idx0 = (ctrl_prio[1:0] - 2'd0) ^ ~{2{ctrl_prio[2]}};
+wire [1:0] bg_idx1 = (ctrl_prio[1:0] - 2'd1) ^ ~{2{ctrl_prio[2]}};
+wire [1:0] bg_idx2 = (ctrl_prio[1:0] - 2'd2) ^ ~{2{ctrl_prio[2]}};
+wire [1:0] bg_idx3 = (ctrl_prio[1:0] - 2'd3) ^ ~{2{ctrl_prio[2]}};
 
-    .tap(bg_xcnt[0][5:0]),
-    .dot_out(bg_dot[0]),
+logic [15:0] bg_prio_dot[4];
 
-    .load(bg_load[0]),
-    .load_data(rom_data),
-    .load_flip(0),
-    .load_color(bg_attrib[0][23:16]),
-    .load_index(bg_xtile[0][1:0])
-);
+always_comb begin
+    bg_prio_dot[bg_idx0] = { 4'b0010, bg_dot[0] };
+    bg_prio_dot[bg_idx1] = { 4'b0100, bg_dot[1] };
+    bg_prio_dot[bg_idx2] = { 4'b0110, bg_dot[2] };
+    bg_prio_dot[bg_idx3] = { 4'b1000, bg_dot[3] };
+end
 
-tc0480scp_shifter #(.TILE_WIDTH(16)) bg1_shifter(
-    .clk, .ce,
-
-    .tap(bg_xcnt[1][5:0]),
-    .dot_out(bg_dot[1]),
-
-    .load(bg_load[1]),
-    .load_data(rom_data),
-    .load_flip(0),
-    .load_color(bg_attrib[1][23:16]),
-    .load_index(bg_xtile[1][1:0])
-);
-
-tc0480scp_shifter #(.TILE_WIDTH(16)) bg2_shifter(
-    .clk, .ce,
-
-    .tap(bg_xcnt[2][5:0]),
-    .dot_out(bg_dot[2]),
-
-    .load(bg_load[2]),
-    .load_data(rom_data),
-    .load_flip(0),
-    .load_color(bg_attrib[2][23:16]),
-    .load_index(bg_xtile[2][1:0])
-);
-
-tc0480scp_shifter #(.TILE_WIDTH(16)) bg3_shifter(
-    .clk, .ce,
-
-    .tap(bg_xcnt[3][5:0]),
-    .dot_out(bg_dot[3]),
-
-    .load(bg_load[3]),
-    .load_data(rom_data),
-    .load_flip(0),
-    .load_color(bg_attrib[3][23:16]),
-    .load_index(bg_xtile[3][1:0])
-);
-
-
-assign SD = |fg0_dot[3:0] ? { 4'd0, fg0_dot } :
-            |bg_dot[0][3:0] ? { 4'd1, bg_dot[0] } :
-            |bg_dot[1][3:0] ? { 4'd1, bg_dot[1] } :
-            |bg_dot[2][3:0] ? { 4'd1, bg_dot[2] } :
-            |bg_dot[3][3:0] ? { 4'd1, bg_dot[3] } :
-            16'd0;
+assign SD = |fg0_dot[3:0] ? { 4'b1010, fg0_dot } :
+            |bg_prio_dot[0][3:0] ? bg_prio_dot[0] :
+            |bg_prio_dot[1][3:0] ? bg_prio_dot[1] :
+            |bg_prio_dot[2][3:0] ? bg_prio_dot[2] :
+            bg_prio_dot[3];
 
 reg dtack_n;
 reg prev_cs_n;
@@ -413,7 +359,6 @@ reg ram_pending = 0;
 reg ram_access = 0;
 reg [15:0] ram_addr;
 
-reg [15:0] ctrl[32];
 
 reg [4:0] access_cycle;
 logic [4:0] next_access_cycle;
