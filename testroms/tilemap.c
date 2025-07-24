@@ -137,7 +137,7 @@ void sym_at(int x, int y, uint16_t sym)
 {
     static uint16_t attr = 0;
     uint16_t ofs = ( y * width() ) + x;
-    uint16_t attr_color = ( 0 << 8 ) | ( cur_color & 0xff );
+    uint16_t attr_color = cur_color;
 
     switch(cur_layer)
     {

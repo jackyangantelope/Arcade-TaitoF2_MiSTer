@@ -349,8 +349,8 @@ static void load_deadconx()
     sdram.load_data("d28-09.2", CPU_ROM_SDR_BASE + 0x80001, 2);
     sdram.load_data("d28-08.4", CPU_ROM_SDR_BASE + 0x80000, 2);
 		
-    sdram.load_data16be("d28-04.16",  SCN1_ROM_SDR_BASE + 2, 4);
-    sdram.load_data16be("d28-05.17",  SCN1_ROM_SDR_BASE + 0, 4);
+    sdram.load_data16be("d28-04.16",  SCN1_ROM_SDR_BASE + 0x2, 4);
+    sdram.load_data16be("d28-05.17",  SCN1_ROM_SDR_BASE, 4);
 
     sdram.load_data("d28-03.10",  ADPCMA_ROM_SDR_BASE, 1);
 

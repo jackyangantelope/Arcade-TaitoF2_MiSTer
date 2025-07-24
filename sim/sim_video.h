@@ -23,7 +23,7 @@ public:
         texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBX8888, SDL_TEXTUREACCESS_STREAMING, width, height);
         x = 0;
         y = 0;
-        rotated = true;
+        rotated = false;
         in_vsync = false;
         in_hsync = false;
         in_ce = false;

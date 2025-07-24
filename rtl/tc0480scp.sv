@@ -152,7 +152,7 @@ assign x = xcnt;
 assign y = ycnt;
 
 wire [8:0] xstart = xbase[8:0] - xofs[8:0];
-wire [8:0] ystart = ybase[8:0] - yofs[8:0];
+wire [8:0] ystart = ybase[8:0] + yofs[8:0];
 
 always_ff @(posedge clk) begin
     if (ce) begin
@@ -266,7 +266,7 @@ tc0480scp_counter fg0_counter(
     .line_strobe,
     .frame_strobe,
     .xbase(base_xofs-30),
-    .ybase(base_yofs-23),
+    .ybase(base_yofs-49),
     .xofs(ctrl[12]),
     .yofs(ctrl[13]),
     .x(fg0_xcnt),
@@ -277,9 +277,33 @@ tc0480scp_counter fg0_counter(
 
 wire [8:0] bg_xcnt[4], bg_ycnt[4];
 wire [4:0] bg_xtile[4];
+reg [4:0] bg_xtile2[4];
 wire [11:0] bg_dot[4];
 reg [31:0] bg_attrib[4];
 genvar bg_index;
+
+reg [63:0] rom_data_reg;
+
+wire [63:0] rom_data_deswizzle =
+{
+    rom_data_reg[( 9 * 4) +: 4],
+    rom_data_reg[( 8 * 4) +: 4],
+    rom_data_reg[(11 * 4) +: 4],
+    rom_data_reg[(10 * 4) +: 4],
+    rom_data_reg[(13 * 4) +: 4],
+    rom_data_reg[(12 * 4) +: 4],
+    rom_data_reg[(15 * 4) +: 4],
+    rom_data_reg[(14 * 4) +: 4],
+
+    rom_data_reg[( 1 * 4) +: 4],
+    rom_data_reg[( 0 * 4) +: 4],
+    rom_data_reg[( 3 * 4) +: 4],
+    rom_data_reg[( 2 * 4) +: 4],
+    rom_data_reg[( 5 * 4) +: 4],
+    rom_data_reg[( 4 * 4) +: 4],
+    rom_data_reg[( 7 * 4) +: 4],
+    rom_data_reg[( 6 * 4) +: 4]
+};
 
 generate
 for (bg_index = 0; bg_index < 4; bg_index = bg_index + 1) begin
@@ -288,8 +312,8 @@ for (bg_index = 0; bg_index < 4; bg_index = bg_index + 1) begin
         .ce,
         .line_strobe,
         .frame_strobe,
-        .xbase(base_xofs-31),
-        .ybase(base_yofs-33),
+        .xbase(base_xofs-(31 + (bg_index * 4))),
+        .ybase(base_yofs-23),
         .xofs(ctrl[0+bg_index]),
         .yofs(ctrl[4+bg_index]),
         .x(bg_xcnt[bg_index]),
@@ -304,10 +328,10 @@ for (bg_index = 0; bg_index < 4; bg_index = bg_index + 1) begin
         .dot_out(bg_dot[bg_index]),
 
         .load(bg_load[bg_index]),
-        .load_data(rom_data),
-        .load_flip(0),
+        .load_data(rom_data_deswizzle),
+        .load_flip(bg_attrib[bg_index][30]),
         .load_color(bg_attrib[bg_index][23:16]),
-        .load_index(bg_xtile[bg_index][1:0])
+        .load_index(bg_xtile2[bg_index][1:0])
     );
 end
 endgenerate
@@ -332,10 +356,10 @@ tc0480scp_shifter fg0_shifter(
     .load_index(fg0_xtile[1:0])
 );
 
-wire [1:0] bg_idx0 = (ctrl_prio[1:0] - 2'd0) ^ ~{2{ctrl_prio[2]}};
-wire [1:0] bg_idx1 = (ctrl_prio[1:0] - 2'd1) ^ ~{2{ctrl_prio[2]}};
-wire [1:0] bg_idx2 = (ctrl_prio[1:0] - 2'd2) ^ ~{2{ctrl_prio[2]}};
-wire [1:0] bg_idx3 = (ctrl_prio[1:0] - 2'd3) ^ ~{2{ctrl_prio[2]}};
+wire [1:0] bg_idx0 = (ctrl_prio[1:0] + 2'd0) ^ ~{2{ctrl_prio[2]}};
+wire [1:0] bg_idx1 = (ctrl_prio[1:0] + 2'd1) ^ ~{2{ctrl_prio[2]}};
+wire [1:0] bg_idx2 = (ctrl_prio[1:0] + 2'd2) ^ ~{2{ctrl_prio[2]}};
+wire [1:0] bg_idx3 = (ctrl_prio[1:0] + 2'd3) ^ ~{2{ctrl_prio[2]}};
 
 logic [15:0] bg_prio_dot[4];
 
@@ -488,24 +512,28 @@ always @(posedge clk) begin
             BG0_ATTRIB1: begin
                 bg_attrib[0][15:0]  <= RADin;
                 bg_req[0] <= ~bg_req[0];
+                bg_xtile2[0] <= bg_xtile[0];
             end
 
             BG1_ATTRIB0: bg_attrib[1][31:16] <= RADin;
             BG1_ATTRIB1: begin
                 bg_attrib[1][15:0]  <= RADin;
                 bg_req[1] <= ~bg_req[1];
+                bg_xtile2[1] <= bg_xtile[1];
             end
 
             BG2_ATTRIB0: bg_attrib[2][31:16] <= RADin;
             BG2_ATTRIB1: begin
                 bg_attrib[2][15:0]  <= RADin;
                 bg_req[2] <= ~bg_req[2];
+                bg_xtile2[2] <= bg_xtile[2];
             end
 
             BG3_ATTRIB0: bg_attrib[3][31:16] <= RADin;
             BG3_ATTRIB1: begin
                 bg_attrib[3][15:0]  <= RADin;
                 bg_req[3] <= ~bg_req[3];
+                bg_xtile2[3] <= bg_xtile[3];
             end
 
             FG0_ATTRIB_0,
@@ -570,30 +598,25 @@ always_ff @(posedge clk) begin
     if (req_active) begin
         if (rom_req == rom_ack) begin
             bg_load[req_index] <= 1;
+            rom_data_reg <= rom_data;
             bg_ack[req_index] <= bg_req[req_index];
             req_active <= 0;
         end
     end else begin
-        if (bg_req[0] != bg_ack[0]) begin
-            rom_address <= {bg_attrib[0][14:0], bg_ycnt[0][3:0], 3'b0 };
-            rom_req <= ~rom_req;
-            req_active <= 1;
-            req_index <= 0;
-        end else if (bg_req[3] != bg_ack[3]) begin
-            rom_address <= {bg_attrib[3][14:0], bg_ycnt[3][3:0], 3'b0 };
-            rom_req <= ~rom_req;
-            req_active <= 1;
-            req_index <= 3;
-        end else if (bg_req[1] != bg_ack[1]) begin
-            rom_address <= {bg_attrib[1][14:0], bg_ycnt[1][3:0], 3'b0 };
-            rom_req <= ~rom_req;
-            req_active <= 1;
-            req_index <= 1;
-        end else if (bg_req[2] != bg_ack[2]) begin
-            rom_address <= {bg_attrib[2][14:0], bg_ycnt[2][3:0], 3'b0 };
-            rom_req <= ~rom_req;
-            req_active <= 1;
-            req_index <= 2;
+        int i;
+        for( i = 0; i < 4; i = i + 1 ) begin
+            if (bg_req[i] != bg_ack[i]) begin
+                if (|bg_attrib[i][14:0]) begin
+                    rom_address <= {bg_attrib[i][14:0], bg_ycnt[i][3:0], 3'b0 };
+                    rom_req <= ~rom_req;
+                    req_active <= 1;
+                    req_index <= 2'(i);
+                end else begin
+                    bg_ack[i] <= bg_req[i];
+                    bg_load[i] <= 1;
+                    rom_data_reg <= 64'd0;
+                end
+            end
         end
     end
 end

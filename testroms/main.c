@@ -1388,23 +1388,31 @@ void init_480scp()
 
     pen_color(25);
     on_layer(BG0);
-    sym_at(3, 4, 1);
-    sym_at(13, 4, 1);
+    sym_at(3, 4, 0x10);
+    sym_at(13, 4, 0x10);
 
     pen_color(26);
     on_layer(BG1);
-    sym_at(3, 5, 1);
-    sym_at(13, 5, 1);
+    sym_at(3, 5, 0x10);
+    sym_at(13, 5, 0x10);
 
-    pen_color(27);
+    pen_color(27 | 0x4000);
     on_layer(BG2);
-    sym_at(3, 6, 1);
-    sym_at(13, 6, 1);
+    sym_at(3, 6, 0x10);
+    sym_at(13, 6, 0x10);
 
     pen_color(28);
     on_layer(BG3);
-    sym_at(3, 7, 1);
-    sym_at(13, 7, 1);
+    sym_at(3, 7, 0x10);
+    sym_at(13, 7, 0x10);
+
+    pen_color(8);
+    on_layer(BG0);
+    for( int y = 0; y < 16; y++ )
+    {
+        sym_at(8, y, 0x20 + y);
+    }
+
 }
 
 void update_480scp()
