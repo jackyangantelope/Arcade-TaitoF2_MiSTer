@@ -61,6 +61,7 @@ void tc0360pri_vblank();
 void tc0360pri_set_blendmode(uint8_t bm);
 void tc0360pri_set_roz(uint8_t priority, uint8_t color);
 void tc0360pri_set_tile_prio(uint8_t fg0, uint8_t bg0, uint8_t bg1);
+void tc0360pri_set_tile_prio2(uint8_t p00, uint8_t p01, uint8_t p10, uint8_t p11);
 void tc0360pri_set_obj_prio(uint8_t p00, uint8_t p01, uint8_t p10, uint8_t p11);
 void tc0360pri_set_roz_prio(uint8_t p00, uint8_t p01, uint8_t p10, uint8_t p11);
 

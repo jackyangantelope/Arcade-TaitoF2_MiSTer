@@ -961,9 +961,9 @@ wire scp_ram_ce_n;
 
 wire [15:0] scp_dot_color;
 
-wire [21:0] scp_rom_address;
+wire [22:0] scp_rom_address;
 
-assign sdr_scp_addr = SCN1_ROM_SDR_BASE[26:0] + { 5'b0, scp_rom_address[21:0] };
+assign sdr_scp_addr = SCN1_ROM_SDR_BASE[26:0] + { 4'b0, scp_rom_address[22:0] };
 
 TC0480SCP #(.SS_IDX(SSIDX_480SCP)) tc0480scp(
     .clk(clk),
@@ -1169,8 +1169,8 @@ logic [13:0] color0_pri, color1_pri, color2_pri;
 always_comb begin
     color1_pri = {obj_dot[11:10], obj_dot[11:0]};
     if (cfg_480scp) begin
-        color0_pri = {scp_dot_color[15:14], scp_dot_color[11:0]};
-        color2_pri = {scp_dot_color[15:14], scp_dot_color[11:0]};
+        color0_pri = {scp_dot_color[14], scp_dot_color[13], scp_dot_color[11:0]};
+        color2_pri = {scp_dot_color[15], scp_dot_color[13], scp_dot_color[11:0]};
     end else begin
         color0_pri = {scn0_dot_color[14:13], scn0_dot_color[11:0]};
         if (cfg_100scn) begin

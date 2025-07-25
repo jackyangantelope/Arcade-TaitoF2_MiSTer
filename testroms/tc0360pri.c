@@ -31,6 +31,15 @@ void tc0360pri_set_tile_prio(uint8_t fg0, uint8_t bg0, uint8_t bg1)
 #endif
 }
 
+void tc0360pri_set_tile_prio2(uint8_t p00, uint8_t p01, uint8_t p10, uint8_t p11)
+{
+#if HAS_TC0260DAR
+    TC0360PRI->prio_fg1_fg0 = (p01 << 4) | (p00 & 0x0f);
+    TC0360PRI->prio_bg1_bg0 = (p11 << 4) | (p10 & 0x0f);
+#endif
+}
+
+
 void tc0360pri_set_obj_prio(uint8_t p00, uint8_t p01, uint8_t p10, uint8_t p11)
 {
 #if HAS_TC0260DAR

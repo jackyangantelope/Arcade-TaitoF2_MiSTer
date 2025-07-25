@@ -1330,7 +1330,17 @@ void init_480scp()
 {
     reset_screen();
 
-    tc0360pri_set_roz_prio(4, 4, 4, 4);
+    // 0 - BG3
+    // 1 - FG0 / BG0
+    // 2 - BG1
+    // 3 - BG2
+    tc0360pri_set_tile_prio2(0, 0, 0, 0);
+
+    // 0 - BG1
+    // 1 - BG0 / BG2
+    // 2 - BG3
+    // 3 - FG0
+    tc0360pri_set_roz_prio(0, 1, 0, 0);
     tc0360pri_set_roz(0, 0);
     
     TC0200OBJ_Inst *obj_ptr = TC0200OBJ;
@@ -1406,18 +1416,25 @@ void init_480scp()
     sym_at(3, 7, 0x10);
     sym_at(13, 7, 0x10);
 
-    pen_color(8);
-    on_layer(BG0);
-    for( int y = 0; y < 16; y++ )
+    /*
+    on_layer(BG3);
+    uint16_t flags = 0;
+    for( int y = 0; y < 8; y++ )
     {
-        sym_at(8, y, 0x20 + y);
-    }
+        for (int x = 0; x < 8; x++ )
+        {
+            pen_color(255 | (flags << 8));
+            sym_at(x + 4, y + 4, 0x8025);
+            flags++;
+        }
+    }*/
 
 }
 
 void update_480scp()
 {
     wait_vblank();
+    pen_color(8);
     on_layer(FG0);
     sym_at(10,10,1);
     
