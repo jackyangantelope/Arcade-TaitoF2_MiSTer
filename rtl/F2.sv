@@ -1003,8 +1003,8 @@ TC0480SCP #(.SS_IDX(SSIDX_480SCP)) tc0480scp(
     .VBLNn(),
     .HLDn(),
     .VLDn(),
-    .OUHLDn(HBLOn),
-    .OUVLDn(VBLOn),
+    .OUHLDn(HBLn),
+    .OUVLDn(VBLn),
 
     .ssbus(ssb[18])
 );
