@@ -85,7 +85,7 @@ end
 endmodule
 
 
-typedef enum [4:0]
+typedef enum bit [4:0]
 {
     WAIT0 = 5'd0,
     WAIT1,
@@ -306,7 +306,7 @@ wire [63:0] rom_data_deswizzle =
 };
 
 generate
-for (bg_index = 0; bg_index < 4; bg_index = bg_index + 1) begin
+for (bg_index = 0; bg_index < 4; bg_index = bg_index + 1) begin:bg_layers
     tc0480scp_counter #(.TILE_BITS(4)) bg_counter(
         .clk,
         .ce,

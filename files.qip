@@ -20,6 +20,7 @@ set_global_assignment -name SYSTEMVERILOG_FILE rtl/tc0200obj.sv
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/tc0200obj_extender.sv
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/tc0260dar.sv
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/tc0360pri.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/tc0480scp.sv
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/tc0140syt.sv
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/tc0030cmd.sv
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/tc0430grw.sv
