@@ -351,7 +351,7 @@ tc0480scp_shifter fg0_shifter(
 
     .load(fg0_load),
     .load_data(fg0_gfx),
-    .load_flip(0),
+    .load_flip(fg0_attrib[14]),
     .load_color({2'b0, fg0_attrib[13:8]}),
     .load_index(fg0_xtile[1:0])
 );
@@ -451,9 +451,9 @@ always_comb begin
 
 
         FG0_GFX0_0,
-        FG0_GFX0_1: ram_addr = 16'he000 + { 3'b0, fg0_attrib[7:0], fg0_ycnt[2:0], 1'b0, 1'b0 };
+        FG0_GFX0_1: ram_addr = 16'he000 + { 3'b0, fg0_attrib[7:0], fg0_ycnt[2:0] ^ {3{fg0_attrib[15]}}, 1'b0, 1'b0 };
         FG0_GFX1_0,
-        FG0_GFX1_1: ram_addr = 16'he000 + { 3'b0, fg0_attrib[7:0], fg0_ycnt[2:0], 1'b1, 1'b0 };
+        FG0_GFX1_1: ram_addr = 16'he000 + { 3'b0, fg0_attrib[7:0], fg0_ycnt[2:0] ^ {3{fg0_attrib[15]}}, 1'b1, 1'b0 };
 
 
     endcase
@@ -607,7 +607,7 @@ always_ff @(posedge clk) begin
         for( i = 0; i < 4; i = i + 1 ) begin
             if (bg_req[i] != bg_ack[i]) begin
                 if (|bg_attrib[i][14:0]) begin
-                    rom_address <= {bg_attrib[i][15:0], bg_ycnt[i][3:0], 3'b0 };
+                    rom_address <= {bg_attrib[i][15:0], bg_ycnt[i][3:0] ^ {4{bg_attrib[i][31]}}, 3'b0 };
                     rom_req <= ~rom_req;
                     req_active <= 1;
                     req_index <= 2'(i);

@@ -164,7 +164,7 @@ void sym_at(int x, int y, uint16_t sym)
 #endif
 
         case FG0:
-            SCN->fg0[ofs].attr = cur_color & 0x3f;
+            SCN->fg0[ofs].attr = cur_color;
             SCN->fg0[ofs].code = sym;
             break;
         

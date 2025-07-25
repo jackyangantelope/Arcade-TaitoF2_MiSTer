@@ -1334,13 +1334,13 @@ void init_480scp()
     // 1 - FG0 / BG0
     // 2 - BG1
     // 3 - BG2
-    tc0360pri_set_tile_prio2(0, 0, 0, 0);
+    tc0360pri_set_tile_prio2(4, 4, 4, 4);
 
     // 0 - BG1
     // 1 - BG0 / BG2
     // 2 - BG3
     // 3 - FG0
-    tc0360pri_set_roz_prio(0, 1, 0, 0);
+    tc0360pri_set_roz_prio(5, 5, 5, 5);
     tc0360pri_set_roz(0, 0);
     
     TC0200OBJ_Inst *obj_ptr = TC0200OBJ;
@@ -1406,7 +1406,7 @@ void init_480scp()
     sym_at(3, 5, 0x10);
     sym_at(13, 5, 0x10);
 
-    pen_color(27 | 0x4000);
+    pen_color(27 | 0x8000);
     on_layer(BG2);
     sym_at(3, 6, 0x10);
     sym_at(13, 6, 0x10);
@@ -1415,6 +1415,16 @@ void init_480scp()
     on_layer(BG3);
     sym_at(3, 7, 0x10);
     sym_at(13, 7, 0x10);
+
+    on_layer(FG0);
+    pen_color(0x08);
+    sym_at(5, 5, 'F');
+    pen_color(0x88);
+    sym_at(5, 6, 'F');
+    pen_color(0x48);
+    sym_at(6, 5, 'F');
+    pen_color(0xC8);
+    sym_at(6, 6, 'F');
 
     /*
     on_layer(BG3);
