@@ -688,8 +688,38 @@ class MRAGenerator:
             while i < len(region_roms):
                 rom = region_roms[i]
                 
-                # Check if this ROM and the next one are interleaved (offsets differ by 1)
+                # Check if this ROM and the next one are interleaved (offsets differ by 2)
                 if (i + 1 < len(region_roms) and 
+                    rom.offset is not None and 
+                    region_roms[i + 1].offset is not None and 
+                    abs(rom.offset - region_roms[i + 1].offset) == 2):
+                    
+                    # Create 32-bit interleave tag
+                    interleave = ET.SubElement(roms_elem, "interleave")
+                    interleave.set("output", "32")
+                    
+                    # First ROM gets map="1200", second ROM gets map="0012"
+                    first_rom = rom
+                    second_rom = region_roms[i + 1]
+                    
+                    # Add first part
+                    first_part = ET.SubElement(interleave, "part")
+                    if first_rom.crc:
+                        first_part.set("crc", first_rom.crc)
+                    first_part.set("name", first_rom.name)
+                    first_part.set("map", "1200")
+                    
+                    # Add second part
+                    second_part = ET.SubElement(interleave, "part")
+                    if second_rom.crc:
+                        second_part.set("crc", second_rom.crc)
+                    second_part.set("name", second_rom.name)
+                    second_part.set("map", "0012")
+                    
+                    # Skip the next ROM as we've already processed it
+                    i += 2
+                # Check if this ROM and the next one are interleaved (offsets differ by 1)
+                elif (i + 1 < len(region_roms) and 
                     rom.offset is not None and 
                     region_roms[i + 1].offset is not None and 
                     abs(rom.offset - region_roms[i + 1].offset) == 1):
