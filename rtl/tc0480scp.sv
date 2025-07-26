@@ -211,6 +211,8 @@ module TC0480SCP #(parameter SS_IDX=-1) (
     output reg        rom_req,
     input             rom_ack,
 
+    // Set bit 13 of the color output
+    input devils_bit,
 
     // Video interface
     output [15:0] SD,
@@ -364,13 +366,13 @@ wire [1:0] bg_idx3 = (ctrl_prio[1:0] + 2'd3) ^ ~{2{ctrl_prio[2]}};
 logic [15:0] bg_prio_dot[4];
 
 always_comb begin
-    bg_prio_dot[bg_idx0] = { 4'b0010, bg_dot[0] };
-    bg_prio_dot[bg_idx1] = { 4'b0100, bg_dot[1] };
-    bg_prio_dot[bg_idx2] = { 4'b0110, bg_dot[2] };
-    bg_prio_dot[bg_idx3] = { 4'b1000, bg_dot[3] };
+    bg_prio_dot[bg_idx0] = { 3'b001, devils_bit, bg_dot[0] };
+    bg_prio_dot[bg_idx1] = { 3'b010, devils_bit, bg_dot[1] };
+    bg_prio_dot[bg_idx2] = { 3'b011, devils_bit, bg_dot[2] };
+    bg_prio_dot[bg_idx3] = { 3'b100, devils_bit, bg_dot[3] };
 end
 
-assign SD = |fg0_dot[3:0] ? { 4'b1010, fg0_dot } :
+assign SD = |fg0_dot[3:0] ? { 3'b101, devils_bit, fg0_dot } :
             |bg_prio_dot[0][3:0] ? bg_prio_dot[0] :
             |bg_prio_dot[1][3:0] ? bg_prio_dot[1] :
             |bg_prio_dot[2][3:0] ? bg_prio_dot[2] :

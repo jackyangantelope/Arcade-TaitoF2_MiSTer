@@ -366,6 +366,28 @@ static void load_deadconx_test()
     load_deadconx();
 }
 
+static void load_metalb()
+{
+    g_fs.addSearchPath("../roms/metalb.zip");
+
+    load_audio("d12-13.5");
+
+    sdram.load_data("d16-16.8", CPU_ROM_SDR_BASE + 1, 2);
+    sdram.load_data("d16-18.7", CPU_ROM_SDR_BASE + 0, 2);
+    sdram.load_data("d12-07.9", CPU_ROM_SDR_BASE + 0x80001, 2);
+    sdram.load_data("d12-06.6", CPU_ROM_SDR_BASE + 0x80000, 2);
+    
+    sdram.load_data16be("d12-03.14", SCN1_ROM_SDR_BASE + 0x2, 4);
+    sdram.load_data16be("d12-04.13", SCN1_ROM_SDR_BASE, 4);
+    
+    sdram.load_data("d12-02.10", ADPCMA_ROM_SDR_BASE, 1);
+    sdram.load_data("d12-05.16", ADPCMB_ROM_SDR_BASE, 1);
+
+    ddr_memory.load_data("d12-01.20", OBJ_DATA_DDR_BASE, 1);
+
+    top->game = GAME_METALB;
+}
+
 bool game_init(game_t game)
 {
     g_fs.clearSearchPaths();
@@ -388,6 +410,7 @@ bool game_init(game_t game)
         case GAME_THUNDFOX: load_thundfox(); break;
         case GAME_DEADCONX: load_deadconx(); break;
         case GAME_DEADCONX_TEST: load_deadconx_test(); break;
+        case GAME_METALB: load_metalb(); break;
         default: return false;
     }
 

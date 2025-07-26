@@ -995,6 +995,8 @@ TC0480SCP #(.SS_IDX(SSIDX_480SCP)) tc0480scp(
     .rom_ack(sdr_scn_mux_ack),
     .rom_data(sdr_scn_mux_q),
 
+    .devils_bit(game == GAME_METALB),
+
     // Video interface
     .SD(scp_dot_color),
     .HSYNn(),
@@ -1161,24 +1163,24 @@ TC0110PR tc0110pr(
     .WEHn(pri_ram_we_h_n)
 );
 
-wire [13:0] pri360_color;
+wire [12:0] pri360_color;
 wire [7:0] pri360_data_out;
 
-logic [13:0] color0_pri, color1_pri, color2_pri;
+logic [14:0] color0_pri, color1_pri, color2_pri;
 
 always_comb begin
-    color1_pri = {obj_dot[11:10], obj_dot[11:0]};
+    color1_pri = {obj_dot[11:10], 1'b0, obj_dot[11:0]};
     if (cfg_480scp) begin
-        color0_pri = {scp_dot_color[14], scp_dot_color[13], scp_dot_color[11:0]};
-        color2_pri = {scp_dot_color[15], scp_dot_color[13], scp_dot_color[11:0]};
+        color0_pri = {scp_dot_color[14], scp_dot_color[13], scp_dot_color[12:0]};
+        color2_pri = {scp_dot_color[15], scp_dot_color[13], scp_dot_color[12:0]};
     end else begin
-        color0_pri = {scn0_dot_color[14:13], scn0_dot_color[11:0]};
+        color0_pri = {scn0_dot_color[14:13], scn0_dot_color[12:0]};
         if (cfg_100scn) begin
-            color2_pri = {scn1_dot_color[14:13], scn1_dot_color[11:0]};
+            color2_pri = {scn1_dot_color[14:13], scn1_dot_color[12:0]};
         end else if (cfg_430grw | cfg_280grd) begin
-            color2_pri = { 8'd0, pivot_dot };
+            color2_pri = { 9'd0, pivot_dot };
         end else begin
-            color2_pri = 14'd0;
+            color2_pri = 15'd0;
         end
     end
 end
@@ -1234,7 +1236,7 @@ TC0260DAR tc0260dar(
     .OHBLANKn(dar_hblank_n),
     .OVBLANKn(dar_vblank_n),
 
-    .IM({2'b00, cfg_360pri ? pri360_color[11:0] : obj_dot}),
+    .IM(cfg_360pri ? { 1'b0, pri360_color[12:0] } : { 2'b00, obj_dot }),
 
     .VIDEOR(dar_red),
     .VIDEOG(dar_green),
