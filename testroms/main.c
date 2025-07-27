@@ -107,7 +107,7 @@ uint8_t sine_wave[256] =
 extern char _binary_font_chr_start[];
 extern char _binary_font_chr_end[];
 
-#define NUM_SCREENS 12
+#define NUM_SCREENS 13
 
 static uint32_t frame_count;
 
@@ -1451,6 +1451,113 @@ void update_480scp()
     print_at(2,3,"VBLANK: %04X", vblank_count);
 }
 
+void init_480scp_zoom()
+{
+    reset_screen();
+
+    tc0360pri_set_tile_prio2(4, 4, 4, 4);
+    tc0360pri_set_roz_prio(5, 5, 5, 5);
+    tc0360pri_set_roz(0, 0);
+    
+
+    on_layer(BG0);
+    pen_color(8);
+    for( int x = 0; x < 8; x++ )
+    {
+        for( int y = 0; y < 8; y++ )
+        {
+            sym_at(4+x,4+y,2);
+        }
+    }
+    on_layer(FG0);
+    for( int y = 0; y < 16; y++ )
+    {
+        pen_color(0x18 + (y&1));
+        sym_at(10, 7 + y, 1);
+    }
+
+    on_layer(BG1);
+    pen_color(9);
+    sym_at(6,5,1);
+    TC0480SCP_Ctrl->bg1_zoom = 0x00be;
+    TC0480SCP_Ctrl->bg1_y = 29;
+
+}
+
+typedef struct
+{
+    uint32_t modified;
+    uint32_t zoom;
+    uint32_t dy;
+    uint32_t y;
+} SimDebug;
+
+volatile SimDebug *DEBUG = (volatile SimDebug *)0x080000;
+
+// Zoom Notes
+// Y
+// dy has 7-bit precision
+// Zoom 0 = 50%, 7F = 100% BF = 200%
+//      SIM  =  HW
+// BF Y 0x35     - 0x2D    = 8
+// 7f Y 0x0b     - 0x0b
+// 00 Y 0xffb6   - 0xffc8  = -18
+void update_480scp_zoom()
+{
+    static uint8_t zoom = 0x7f;
+    static uint16_t y = 0;
+    static uint8_t sel = 0;
+    static uint8_t d0 = 0;
+    static uint8_t d1 = 0;
+
+    static uint32_t dbg_modifed = 0;
+
+    if (dbg_modifed == 0)
+        dbg_modifed = DEBUG->modified;
+
+    wait_vblank();
+    pen_color(8);
+    on_layer(FG0);
+    print_at(2,3,"VBLANK: %04X", DEBUG->zoom);
+
+    print_at(28, 8,  "  Y:%04X  ", y);
+    print_at(28, 9,  "  Z:  %02X  ", zoom);
+    print_at(28, 10, "  D0: %02X  ", d0);
+    print_at(28, 11, "  D1: %02X  ", d1);
+    sym_at(28, 8 + sel, '>');
+    sym_at(37, 8 + sel, '<');
+ 
+    TC0480SCP_Ctrl->bg1_zoom = zoom & 0xff;
+    TC0480SCP_Ctrl->bg1_y = y;
+    TC0480SCP_Ctrl->bg1_dy = (d1 << 8) | d0;
+
+    int dir = 0;
+    if (input_pressed(DOWN)) sel++;
+    if (input_pressed(UP)) sel--;
+    if (input_pressed(LEFT)) dir = -1;
+    if (input_pressed(RIGHT)) dir = 1;
+    if (input_down(BTN1)) dir *= 8;
+
+    switch(sel)
+    {
+        case 0: y += dir; break;
+        case 1: zoom += dir; break;
+        case 2: d0 += dir; break;
+        case 3: d1 += dir; break;
+        case 4: sel = 0; break;
+        default: sel = 3; break;
+    }
+
+    if (DEBUG->modified != dbg_modifed)
+    {
+        dbg_modifed = DEBUG->modified;
+        y = DEBUG->y;
+        zoom = DEBUG->zoom;
+        d0 = DEBUG->dy;
+    }
+}
+
+
 static int fail_index = 0;
 
 void init_romtest()
@@ -1521,7 +1628,8 @@ void init_screen(int screen)
         case 8: init_basic_timing(); break;
         case 9: init_360pri(); break;
         case 10: init_480scp(); break;
-        case 11: init_romtest(); break;
+        case 11: init_480scp_zoom(); break;
+        case 12: init_romtest(); break;
         default: break;
     }
 }
@@ -1541,7 +1649,8 @@ void update_screen(int screen)
         case 8: update_basic_timing(); break;
         case 9: update_360pri(); break;
         case 10: update_480scp(); break;
-        case 11: update_romtest(); break;
+        case 11: update_480scp_zoom(); break;
+        case 12: update_romtest(); break;
         default: break;
     }
 }
@@ -1562,7 +1671,7 @@ int main(int argc, char *argv[])
 
     uint32_t system_flags = 0;
 
-    int current_screen = 10;
+    int current_screen = 11;
 
     init_screen(current_screen);
     

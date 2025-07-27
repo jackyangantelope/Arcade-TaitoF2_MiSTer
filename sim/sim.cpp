@@ -23,6 +23,9 @@
 #include <algorithm>
 #include <cstring>
 
+
+#define SWAP32(x) (((x) & 0xff000000) >> 16) |(((x) & 0x00ff0000) >> 16) |(((x) & 0x0000ff00) << 16) |(((x) & 0x000000ff) << 16);
+
 VerilatedContext *contextp;
 F2 *top;
 std::unique_ptr<VerilatedFstC> tfp;
@@ -158,6 +161,16 @@ blockram_16_rw(obj_ram, 64 * 1024);
 blockram_16_rw(work_ram, 64 * 1024);
 blockram_16_rw(pivot_ram, 8 * 1024);
 
+struct SimDebug
+{
+    uint32_t modified;
+    uint32_t zoom;
+    uint32_t dy;
+    uint32_t y;
+};
+
+SimDebug *sim_debug_data = (SimDebug *)(sdram.data + 0x80000);
+
 int main(int argc, char **argv)
 {
     const char *game_name = "finalb";
@@ -201,6 +214,7 @@ int main(int argc, char **argv)
 
     // Create state manager
     state_manager = new SimState(top, &ddr_memory, 0, 512 * 1024);
+    state_manager->set_game_name(::game_name(game));
 
     //memset(&ddr_memory.memory[0x100000 + 8192], 0x01, 8192);
 
@@ -281,6 +295,16 @@ int main(int argc, char **argv)
             static std::vector<std::string> state_files = state_manager->get_f2state_files();
             static int selected_state_file = -1;
             
+            // Auto-generate filename when file list is loaded/updated
+            static bool first_load = true;
+            if (first_load)
+            {
+                std::string auto_name = state_manager->generate_next_state_name();
+                strncpy(state_filename, auto_name.c_str(), sizeof(state_filename) - 1);
+                state_filename[sizeof(state_filename) - 1] = '\0';
+                first_load = false;
+            }
+            
             if (ImGui::Button("Save State"))
             {
                 // Ensure filename has .f2state extension
@@ -305,6 +329,10 @@ int main(int argc, char **argv)
                             break;
                         }
                     }
+                    // Auto-generate next filename after successful save
+                    std::string auto_name = state_manager->generate_next_state_name();
+                    strncpy(state_filename, auto_name.c_str(), sizeof(state_filename) - 1);
+                    state_filename[sizeof(state_filename) - 1] = '\0';
                 }
             }
             
@@ -367,10 +395,38 @@ int main(int argc, char **argv)
         {
             int x = (int16_t)top->rootp->F2__DOT__tc0480scp__DOT__base_xofs;
             int y = (int16_t)top->rootp->F2__DOT__tc0480scp__DOT__base_yofs;
-            ImGui::InputInt("X", &x);
-            ImGui::InputInt("Y", &y);
+            ImGui::InputInt("Disp X", &x);
+            ImGui::InputInt("Disp Y", &y);
             top->rootp->F2__DOT__tc0480scp__DOT__base_xofs = x;
             top->rootp->F2__DOT__tc0480scp__DOT__base_yofs = y;
+
+            bool modified = false;
+            int v = SWAP32(sim_debug_data->y);
+            if (ImGui::InputInt("BG1 Y", &v))
+            {
+                sim_debug_data->y = SWAP32(v);
+                modified = true;
+            }
+
+            v = SWAP32(sim_debug_data->zoom);
+            if (ImGui::InputInt("BG1 Zoom", &v))
+            {
+                sim_debug_data->zoom = SWAP32(v);
+                modified = true;
+            }
+
+            v = SWAP32(sim_debug_data->dy);
+            if (ImGui::InputInt("BG1 DY", &v))
+            {
+                sim_debug_data->dy = SWAP32(v);
+                modified = true;
+            }
+
+            if (modified)
+            {
+                sim_debug_data->modified++;
+                top->rootp->F2__DOT__rom_cache__DOT__version++;
+            }
         }
         ImGui::End();
 

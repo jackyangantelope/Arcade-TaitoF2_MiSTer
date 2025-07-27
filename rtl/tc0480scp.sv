@@ -138,6 +138,11 @@ module tc0480scp_counter #(
     input [15:0] xofs,
     input [15:0] yofs,
 
+    input [6:0]  yfine,
+
+    input [7:0]  xzoom,
+    input [7:0]  yzoom,
+
     output [8:0] x,
     output [8:0] y,
 
@@ -145,11 +150,11 @@ module tc0480scp_counter #(
 );
 
 reg [8:0] xcnt;
-reg [8:0] ycnt;
+reg [15:0] ycnt;
 reg [TILE_BITS-1:0] tilecnt;
 
 assign x = xcnt;
-assign y = ycnt;
+assign y = ycnt[15:7];
 
 wire [8:0] xstart = xbase[8:0] - xofs[8:0];
 wire [8:0] ystart = ybase[8:0] + yofs[8:0];
@@ -166,14 +171,14 @@ always_ff @(posedge clk) begin
             tilecnt <= 0;
             xtile <= xstart[8:TILE_BITS] + 2;
             xcnt <= xstart[8:0];
-            ycnt <= ystart;
+            ycnt <= {ystart, yfine};
         end
 
         if (line_strobe) begin
             tilecnt <= 0;
             xtile <= xstart[8:TILE_BITS] + 2;
             xcnt <= xstart[8:0];
-            ycnt <= ycnt + 9'd1;
+            ycnt <= ycnt + ( 16'h100 - {8'd0, yzoom} );
         end
     end
 end
@@ -257,8 +262,11 @@ tc0480scp_counter raw_counter(
     .ybase(0),
     .xofs(0),
     .yofs(0),
+    .yfine(0),
     .x(dispx),
     .y(dispy),
+    .xzoom(0),
+    .yzoom(8'h7f),
     .xtile()
 );
 
@@ -271,8 +279,11 @@ tc0480scp_counter fg0_counter(
     .ybase(base_yofs-43),
     .xofs(ctrl[12]),
     .yofs(ctrl[13]),
+    .yfine(0),
     .x(fg0_xcnt),
     .y(fg0_ycnt),
+    .xzoom(0),
+    .yzoom(8'h7f),
     .xtile(fg0_xtile)
 );
 
@@ -318,6 +329,9 @@ for (bg_index = 0; bg_index < 4; bg_index = bg_index + 1) begin:bg_layers
         .ybase(base_yofs-17),
         .xofs(ctrl[0+bg_index]),
         .yofs(ctrl[4+bg_index]),
+        .yfine(ctrl[20+bg_index][6:0]),
+        .xzoom(ctrl[8+bg_index][15:8]),
+        .yzoom(ctrl[8+bg_index][7:0]),
         .x(bg_xcnt[bg_index]),
         .y(bg_ycnt[bg_index]),
         .xtile(bg_xtile[bg_index])
