@@ -1,7 +1,5 @@
 #include <SDL.h>
 
-#include "imgui.h"
-#include "imgui_internal.h"
 #include "imgui_wrap.h"
 
 #include "F2.h"
