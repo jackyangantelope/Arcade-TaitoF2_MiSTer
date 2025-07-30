@@ -21,7 +21,7 @@ extern SimDDR ddr_memory;
 extern SimSDRAM sdram;
 extern F2 *top;
 
-SimState* state_manager = nullptr;
+SimState *state_manager = nullptr;
 
 uint32_t dipswitch_a = 0;
 uint32_t dipswitch_b = 0;
@@ -40,20 +40,20 @@ struct SimDebug
     uint32_t y;
 };
 
-SimDebug *sim_debug_data = nullptr; 
+SimDebug *sim_debug_data = nullptr;
 
 int main(int argc, char **argv)
 {
     const char *game_name = "finalb";
     char title[64];
 
-    if (argc == 2)
+    if(argc == 2)
     {
         game_name = argv[1];
     }
 
     const game_t game = game_find(game_name);
-    if (game == GAME_INVALID)
+    if(game == GAME_INVALID)
     {
         printf("Game '%s' is not found.\n", game_name);
         return -1;
@@ -99,9 +99,9 @@ int main(int argc, char **argv)
 
         top->joystick_p1 = imgui_get_buttons();
 
-        if (simulation_run || simulation_step)
+        if(simulation_run || simulation_step)
         {
-            if (simulation_step_vblank)
+            if(simulation_step_vblank)
             {
                 sim_tick_until([&] { return top->vblank == 0; });
                 sim_tick_until([&] { return top->vblank != 0; });
@@ -123,7 +123,6 @@ int main(int argc, char **argv)
 
     sim_shutdown();
     video.deinit();
-    
 
     delete state_manager;
     return 0;

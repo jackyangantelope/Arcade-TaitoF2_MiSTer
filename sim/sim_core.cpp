@@ -32,7 +32,8 @@ bool system_pause = false;
 bool simulation_wp_set = false;
 int simulation_wp_addr = 0;
 
-void sim_init() {
+void sim_init()
+{
     contextp = new VerilatedContext;
     top = new F2{contextp};
     tfp = nullptr;
@@ -41,11 +42,11 @@ void sim_init() {
 
 void sim_tick(int count)
 {
-    for( int i = 0; i < count; i++ )
+    for(int i = 0; i < count; i++)
     {
         total_ticks++;
 
-        if (total_ticks < simulation_reset_until)
+        if(total_ticks < simulation_reset_until)
         {
             top->reset = 1;
         }
@@ -53,28 +54,40 @@ void sim_tick(int count)
         {
             top->reset = 0;
         }
-        
-        sdram.update_channel_64(top->sdr_cpu_addr, top->sdr_cpu_req, 1, 0, 0, &top->sdr_cpu_q, &top->sdr_cpu_ack);
-        sdram.update_channel_32(top->sdr_scn0_addr, top->sdr_scn0_req, 1, 0, 0, &top->sdr_scn0_q, &top->sdr_scn0_ack);
-        sdram.update_channel_64(top->sdr_scn_mux_addr, top->sdr_scn_mux_req, 1, 0, 0, &top->sdr_scn_mux_q, &top->sdr_scn_mux_ack);
-        sdram.update_channel_16(top->sdr_audio_addr, top->sdr_audio_req, 1, 0, 0, &top->sdr_audio_q, &top->sdr_audio_ack);
-        video.clock(top->ce_pixel != 0, top->hblank != 0, top->vblank != 0, top->red, top->green, top->blue);
-        
-        ddr_memory.clock(top->ddr_addr, top->ddr_wdata, top->ddr_rdata, top->ddr_read, top->ddr_write, top->ddr_busy, top->ddr_read_complete, top->ddr_burstcnt, top->ddr_byteenable);
+
+        sdram.update_channel_64(top->sdr_cpu_addr, top->sdr_cpu_req, 1, 0, 0,
+                                &top->sdr_cpu_q, &top->sdr_cpu_ack);
+        sdram.update_channel_32(top->sdr_scn0_addr, top->sdr_scn0_req, 1, 0, 0,
+                                &top->sdr_scn0_q, &top->sdr_scn0_ack);
+        sdram.update_channel_64(top->sdr_scn_mux_addr, top->sdr_scn_mux_req, 1,
+                                0, 0, &top->sdr_scn_mux_q,
+                                &top->sdr_scn_mux_ack);
+        sdram.update_channel_16(top->sdr_audio_addr, top->sdr_audio_req, 1, 0,
+                                0, &top->sdr_audio_q, &top->sdr_audio_ack);
+        video.clock(top->ce_pixel != 0, top->hblank != 0, top->vblank != 0,
+                    top->red, top->green, top->blue);
+
+        ddr_memory.clock(top->ddr_addr, top->ddr_wdata, top->ddr_rdata,
+                         top->ddr_read, top->ddr_write, top->ddr_busy,
+                         top->ddr_read_complete, top->ddr_burstcnt,
+                         top->ddr_byteenable);
 
         contextp->timeInc(1);
         top->clk = 0;
 
         top->eval();
-        if (tfp) tfp->dump(contextp->time());
+        if(tfp)
+            tfp->dump(contextp->time());
 
         contextp->timeInc(1);
         top->clk = 1;
 
         top->eval();
-        if (tfp) tfp->dump(contextp->time());
+        if(tfp)
+            tfp->dump(contextp->time());
 
-        if (simulation_wp_set && top->rootp->F2__DOT__cpu_word_addr == simulation_wp_addr)
+        if(simulation_wp_set &&
+           top->rootp->F2__DOT__cpu_word_addr == simulation_wp_addr)
         {
             simulation_run = false;
             simulation_step = false;
@@ -91,8 +104,9 @@ void sim_tick_until(std::function<bool()> until)
     }
 }
 
-void sim_shutdown() {
-    if (tfp)
+void sim_shutdown()
+{
+    if(tfp)
     {
         tfp->close();
         tfp.reset();

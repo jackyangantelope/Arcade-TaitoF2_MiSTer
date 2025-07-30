@@ -1,4 +1,3 @@
-
 UNAME=$(shell uname -s)
 ifeq ($(UNAME),Linux)
 	OS := Linux
@@ -112,7 +111,10 @@ sim: $(OBJS) $(VERILATOR_OBJS) $(VERILATED_DIR)/F2__ALL.a | microrom.mem nanorom
 run: sim
 	./sim $(GAME)
 
-.PHONY: clean all run
+.PHONY: clean all run format
+
+format:
+	find . -name "*.cpp" -o -name "*.h" | grep -v "imgui_memory_editor.h" | xargs clang-format -i
 
 clean:
 	rm -r $(OBJ_DIR) $(VERILATED_DIR)

@@ -12,7 +12,9 @@
 extern F2 *top;
 extern SimSDRAM sdram;
 
-#define SWAP32(x) (((x) & 0xff000000) >> 16) |(((x) & 0x00ff0000) >> 16) |(((x) & 0x0000ff00) << 16) |(((x) & 0x000000ff) << 16)
+#define SWAP32(x)                                                              \
+    (((x) & 0xff000000) >> 16) | (((x) & 0x00ff0000) >> 16) |                  \
+        (((x) & 0x0000ff00) << 16) | (((x) & 0x000000ff) << 16)
 
 struct SimDebug
 {
@@ -24,8 +26,9 @@ struct SimDebug
 
 extern SimDebug *sim_debug_data;
 
-void hw_ui_draw() {
-    if (ImGui::Begin("Debug"))
+void hw_ui_draw()
+{
+    if(ImGui::Begin("Debug"))
     {
         int x = (int16_t)top->rootp->F2__DOT__tc0480scp__DOT__base_xofs;
         int y = (int16_t)top->rootp->F2__DOT__tc0480scp__DOT__base_yofs;
@@ -38,27 +41,32 @@ void hw_ui_draw() {
         int step_fast = 16;
         bool modified = false;
         int v = SWAP32(sim_debug_data->y) & 0xffff;
-        if (ImGui::InputScalar("BG1 Y", ImGuiDataType_U32, &v, &step, &step_fast, "%04X", ImGuiInputTextFlags_CharsHexadecimal))
+        if(ImGui::InputScalar("BG1 Y", ImGuiDataType_U32, &v, &step, &step_fast,
+                              "%04X", ImGuiInputTextFlags_CharsHexadecimal))
         {
             sim_debug_data->y = SWAP32(v);
             modified = true;
         }
 
         v = SWAP32(sim_debug_data->zoom) & 0xff;
-        if (ImGui::InputScalar("BG1 Zoom", ImGuiDataType_U32, &v, &step, &step_fast, "%02X", ImGuiInputTextFlags_CharsHexadecimal))
+        if(ImGui::InputScalar("BG1 Zoom", ImGuiDataType_U32, &v, &step,
+                              &step_fast, "%02X",
+                              ImGuiInputTextFlags_CharsHexadecimal))
         {
             sim_debug_data->zoom = SWAP32(v);
             modified = true;
         }
 
         v = SWAP32(sim_debug_data->dy) & 0xff;
-        if (ImGui::InputScalar("BG1 DY", ImGuiDataType_U32, &v, &step, &step_fast, "%02X", ImGuiInputTextFlags_CharsHexadecimal))
+        if(ImGui::InputScalar("BG1 DY", ImGuiDataType_U32, &v, &step,
+                              &step_fast, "%02X",
+                              ImGuiInputTextFlags_CharsHexadecimal))
         {
             sim_debug_data->dy = SWAP32(v);
             modified = true;
         }
 
-        if (modified)
+        if(modified)
         {
             sim_debug_data->modified++;
             top->rootp->F2__DOT__rom_cache__DOT__version++;
@@ -71,9 +79,10 @@ void hw_ui_draw() {
     draw_pri_window();
     draw_480scp_window();
 
-    if( ImGui::Begin("68000") )
+    if(ImGui::Begin("68000"))
     {
-        uint32_t pc = top->rootp->F2__DOT__m68000__DOT__excUnit__DOT__PcL |
+        uint32_t pc =
+            top->rootp->F2__DOT__m68000__DOT__excUnit__DOT__PcL |
             (top->rootp->F2__DOT__m68000__DOT__excUnit__DOT__PcH << 16);
         ImGui::LabelText("PC", "%08X", pc);
         Dis68k dis(sdram.data + pc, sdram.data + pc + 64, pc);
