@@ -29,7 +29,10 @@ SRCS = imgui/imgui.cpp \
 		imgui/backends/imgui_impl_sdlrenderer2.cpp \
 		dis68k/dis68k.cpp \
 		sim_state.cpp \
-		sim.cpp \
+		sim_main.cpp \
+		sim_core.cpp \
+		sim_ui.cpp \
+		sim_hw_ui.cpp \
 		games.cpp \
 		imgui_wrap.cpp \
 		tc0200obj.cpp \
