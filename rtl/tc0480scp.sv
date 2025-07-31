@@ -178,7 +178,7 @@ always_ff @(posedge clk) begin
             tilecnt <= 0;
             xtile <= xstart[8:TILE_BITS] + 2;
             xcnt <= xstart[8:0];
-            ycnt <= ycnt + ( 16'h100 - {8'd0, yzoom} );
+            ycnt <= ycnt + {8'd0, ~yzoom};
         end
     end
 end
@@ -276,7 +276,7 @@ tc0480scp_counter fg0_counter(
     .line_strobe,
     .frame_strobe,
     .xbase(base_xofs-28),
-    .ybase(base_yofs-25),
+    .ybase(base_yofs-26),
     .xofs(ctrl[12]),
     .yofs(ctrl[13]),
     .yfine(0),
@@ -326,7 +326,7 @@ for (bg_index = 0; bg_index < 4; bg_index = bg_index + 1) begin:bg_layers
         .line_strobe,
         .frame_strobe,
         .xbase(base_xofs-(29 + (bg_index * 4))),
-        .ybase(base_yofs+1),
+        .ybase(base_xofs),
         .xofs(ctrl[0+bg_index]),
         .yofs(ctrl[4+bg_index]),
         .yfine(ctrl[20+bg_index][6:0]),

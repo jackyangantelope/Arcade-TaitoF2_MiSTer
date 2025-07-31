@@ -26,6 +26,13 @@ struct SimDebug
 
 extern SimDebug *sim_debug_data;
 
+struct PresetZoom
+{
+    uint16_t y;
+    uint8_t zoom;
+    uint8_t dy;
+};
+
 void hw_ui_draw()
 {
     if (ImGui::Begin("Debug"))
@@ -65,6 +72,30 @@ void hw_ui_draw()
         {
             sim_debug_data->dy = SWAP32(v);
             modified = true;
+        }
+
+        const char *names[] = { "", "Shrink", "Normal", "Zoom" };
+        const PresetZoom presets[IM_ARRAYSIZE(names) - 1] = {
+            { 0xfed7, 0x00, 0xff },
+            { 0xfed7, 0x00, 0x00 },
+            { 0xfed9, 0x00, 0x00 },
+        };
+
+        if (ImGui::BeginCombo("Preset", "Select Preset", 0))
+        {
+            for (int n = 0; n < IM_ARRAYSIZE(presets); n++)
+            {
+                char label[64];
+                snprintf(label, sizeof(label), "%04X,%02X,%02X", presets[n].y, presets[n].zoom, presets[n].dy);
+                if (ImGui::Selectable(label, false))
+                {
+                    sim_debug_data->zoom = SWAP32(presets[n].zoom);
+                    sim_debug_data->dy = SWAP32(presets[n].dy);
+                    sim_debug_data->y = SWAP32(presets[n].y);
+                    modified = true;
+                }
+            }
+            ImGui::EndCombo();
         }
 
         if (modified)
