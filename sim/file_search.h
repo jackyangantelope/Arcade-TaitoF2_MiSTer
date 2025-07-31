@@ -5,7 +5,7 @@
 #include <vector>
 #include <filesystem>
 #include <unordered_map>
-#include "miniz.h"
+#include "third_party/miniz.h"
 
 /**
  * Class for searching and loading files from various paths.

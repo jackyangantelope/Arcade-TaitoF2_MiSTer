@@ -1,7 +1,7 @@
 #include "imgui_wrap.h"
 #include "sim_ui.h"
 #include "imgui_wrap.h"
-#include "imgui_memory_editor.h"
+#include "third_party/imgui_memory_editor.h"
 #include "sim_core.h"
 #include "sim_state.h"
 #include "games.h"

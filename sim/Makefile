@@ -37,7 +37,7 @@ SRCS = imgui/imgui.cpp \
 		tc0200obj.cpp \
 		tc0360pri.cpp \
 		tc0480scp.cpp \
-		miniz.cpp \
+		third_party/miniz.cpp \
 		file_search.cpp
 
 OBJS = $(patsubst %.cpp, $(OBJ_DIR)/%.o, $(SRCS))
@@ -114,7 +114,7 @@ run: sim
 .PHONY: clean all run format
 
 format:
-	find . -name "*.cpp" -o -name "*.h" | grep -v "imgui_memory_editor.h" | xargs clang-format -i
+	clang-format -i *.cpp *.h
 
 clean:
 	rm -r $(OBJ_DIR) $(VERILATED_DIR)

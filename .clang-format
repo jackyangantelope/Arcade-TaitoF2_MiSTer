@@ -4,5 +4,5 @@ UseTab: Never
 BreakBeforeBraces: Allman
 AllowShortFunctionsOnASingleLine: None
 PointerAlignment: Right
-SpaceBeforeParens: Never
+SpaceBeforeParens: ControlStatements
 SortIncludes: false
