@@ -16,7 +16,7 @@ FileSearch::FileSearch()
 FileSearch::~FileSearch()
 {
     // Clean up any open zip archives
-    for(auto &[path, zipInfo] : m_zipFiles)
+    for (auto &[path, zipInfo] : m_zipFiles)
     {
         delete zipInfo;
     }
@@ -25,13 +25,13 @@ FileSearch::~FileSearch()
 
 bool FileSearch::addSearchPath(const std::string &path)
 {
-    if(!fs::exists(path))
+    if (!fs::exists(path))
     {
         std::cerr << "Search path does not exist: " << path << std::endl;
         return false;
     }
 
-    if(fs::is_directory(path))
+    if (fs::is_directory(path))
     {
         // Add directory to the search list
         SearchPath searchPath;
@@ -41,16 +41,16 @@ bool FileSearch::addSearchPath(const std::string &path)
         std::cout << "Added directory to search path: " << path << std::endl;
         return true;
     }
-    else if(fs::is_regular_file(path))
+    else if (fs::is_regular_file(path))
     {
         // Check if it's a zip file by extension
-        if(path.size() > 4 && path.substr(path.size() - 4) == ".zip")
+        if (path.size() > 4 && path.substr(path.size() - 4) == ".zip")
         {
             // Create and initialize the zip archive
             ZipInfo *zipInfo = new ZipInfo();
 
             // Try to open the zip file
-            if(!mz_zip_reader_init_file(&zipInfo->archive, path.c_str(), 0))
+            if (!mz_zip_reader_init_file(&zipInfo->archive, path.c_str(), 0))
             {
                 std::cerr << "Failed to open zip file: " << path << std::endl;
                 delete zipInfo;
@@ -86,7 +86,7 @@ void FileSearch::clearSearchPaths()
     m_searchPaths.clear();
 
     // Clean up and clear zip files
-    for(auto &[path, zipInfo] : m_zipFiles)
+    for (auto &[path, zipInfo] : m_zipFiles)
     {
         delete zipInfo;
     }
@@ -97,18 +97,18 @@ bool FileSearch::loadFile(const std::string &filename,
                           std::vector<uint8_t> &buffer)
 {
     // Search all paths in the order they were added
-    for(const auto &searchPath : m_searchPaths)
+    for (const auto &searchPath : m_searchPaths)
     {
-        if(searchPath.type == PathType::Directory)
+        if (searchPath.type == PathType::Directory)
         {
-            if(loadFromDirectory(searchPath.path, filename, buffer))
+            if (loadFromDirectory(searchPath.path, filename, buffer))
             {
                 return true;
             }
         }
-        else if(searchPath.type == PathType::ZipFile)
+        else if (searchPath.type == PathType::ZipFile)
         {
-            if(loadFromZip(searchPath.path, filename, buffer))
+            if (loadFromZip(searchPath.path, filename, buffer))
             {
                 return true;
             }
@@ -126,14 +126,14 @@ bool FileSearch::loadFromDirectory(const std::string &dirPath,
     fs::path filePath = fs::path(dirPath) / filename;
 
     // Check if file exists
-    if(!fs::exists(filePath))
+    if (!fs::exists(filePath))
     {
         return false;
     }
 
     // Open the file
     std::ifstream file(filePath, std::ios::binary);
-    if(!file)
+    if (!file)
     {
         std::cerr << "Failed to open file: " << filePath << std::endl;
         return false;
@@ -146,7 +146,7 @@ bool FileSearch::loadFromDirectory(const std::string &dirPath,
 
     // Resize buffer and read file
     buffer.resize(size);
-    if(!file.read(reinterpret_cast<char *>(buffer.data()), size))
+    if (!file.read(reinterpret_cast<char *>(buffer.data()), size))
     {
         std::cerr << "Failed to read file: " << filePath << std::endl;
         return false;
@@ -161,7 +161,7 @@ bool FileSearch::loadFromZip(const std::string &zipPath,
                              std::vector<uint8_t> &buffer)
 {
     ZipInfo *zipInfo = m_zipFiles[zipPath];
-    if(!zipInfo || !zipInfo->valid)
+    if (!zipInfo || !zipInfo->valid)
     {
         return false;
     }
@@ -169,14 +169,14 @@ bool FileSearch::loadFromZip(const std::string &zipPath,
     // Find the file inside the zip archive
     int file_index = mz_zip_reader_locate_file(&zipInfo->archive,
                                                filename.c_str(), nullptr, 0);
-    if(file_index < 0)
+    if (file_index < 0)
     {
         return false;
     }
 
     // Get file info
     mz_zip_archive_file_stat file_stat;
-    if(!mz_zip_reader_file_stat(&zipInfo->archive, file_index, &file_stat))
+    if (!mz_zip_reader_file_stat(&zipInfo->archive, file_index, &file_stat))
     {
         std::cerr << "Failed to get file info from zip: " << zipPath << " -> "
                   << filename << std::endl;
@@ -187,8 +187,8 @@ bool FileSearch::loadFromZip(const std::string &zipPath,
     buffer.resize(file_stat.m_uncomp_size);
 
     // Extract file
-    if(!mz_zip_reader_extract_to_mem(&zipInfo->archive, file_index,
-                                     buffer.data(), buffer.size(), 0))
+    if (!mz_zip_reader_extract_to_mem(&zipInfo->archive, file_index,
+                                      buffer.data(), buffer.size(), 0))
     {
         std::cerr << "Failed to extract file from zip: " << zipPath << " -> "
                   << filename << std::endl;

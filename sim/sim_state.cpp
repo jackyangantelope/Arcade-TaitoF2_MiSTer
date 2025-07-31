@@ -79,14 +79,14 @@ std::vector<std::string> SimState::get_f2state_files()
 
     std::string game_dir = "states/" + m_game_name;
 
-    if((dir = opendir(game_dir.c_str())) != NULL)
+    if ((dir = opendir(game_dir.c_str())) != NULL)
     {
-        while((ent = readdir(dir)) != NULL)
+        while ((ent = readdir(dir)) != NULL)
         {
             std::string filename = ent->d_name;
             // Check if filename ends with .f2state
-            if(filename.size() > 8 &&
-               filename.substr(filename.size() - 8) == ".f2state")
+            if (filename.size() > 8 &&
+                filename.substr(filename.size() - 8) == ".f2state")
             {
                 files.push_back(filename);
             }
@@ -108,7 +108,7 @@ std::string SimState::generate_next_state_name()
     int next_num = 0;
     bool found = false;
 
-    while(!found && next_num < 1000)
+    while (!found && next_num < 1000)
     {
         // Generate filename with 3-digit zero-padded number
         std::stringstream ss;
@@ -117,16 +117,16 @@ std::string SimState::generate_next_state_name()
 
         // Check if this filename already exists
         bool exists = false;
-        for(const auto &file : existing_files)
+        for (const auto &file : existing_files)
         {
-            if(file.find(candidate.substr(0, 3)) == 0)
+            if (file.find(candidate.substr(0, 3)) == 0)
             {
                 exists = true;
                 break;
             }
         }
 
-        if(!exists)
+        if (!exists)
         {
             found = true;
             return candidate;

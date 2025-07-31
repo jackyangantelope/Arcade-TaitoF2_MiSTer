@@ -55,7 +55,7 @@ class FileSearch
 
         ~ZipInfo()
         {
-            if(valid)
+            if (valid)
             {
                 mz_zip_reader_end(&archive);
             }

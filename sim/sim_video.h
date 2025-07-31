@@ -31,9 +31,9 @@ class SimVideo
 
     void deinit()
     {
-        if(pixels)
+        if (pixels)
             delete[] pixels;
-        if(texture)
+        if (texture)
             SDL_DestroyTexture(texture);
 
         pixels = nullptr;
@@ -42,25 +42,25 @@ class SimVideo
 
     void clock(bool ce, bool hsync, bool vsync, uint8_t r, uint8_t g, uint8_t b)
     {
-        if(!ce)
+        if (!ce)
         {
             in_ce = false;
             return;
         }
 
-        if(in_ce)
+        if (in_ce)
             return;
 
-        if(hsync)
+        if (hsync)
         {
             x = 0;
-            if(!in_hsync)
+            if (!in_hsync)
                 y++;
         }
 
-        if(vsync)
+        if (vsync)
         {
-            if(!in_vsync)
+            if (!in_vsync)
                 x = 0;
             y = 0;
         }
@@ -69,10 +69,10 @@ class SimVideo
         in_vsync = vsync;
         in_ce = ce;
 
-        if(!hsync && !vsync)
+        if (!hsync && !vsync)
         {
             uint32_t c = r << 24 | g << 16 | b << 8;
-            if(x < width && y < height)
+            if (x < width && y < height)
                 pixels[(y * width) + x] = c;
             x++;
         }
@@ -94,11 +94,11 @@ class SimVideo
 
         SDL_LockTexture(texture, &region, &work, &pitch);
 
-        for(int line = 0; line < line_count; line++)
+        for (int line = 0; line < line_count; line++)
         {
             uint8_t *dest = ((uint8_t *)work) + (pitch * line);
             uint32_t *src = pixels + ((line + line_start) * width);
-            if(!in_vsync && ((line + line_start) == y))
+            if (!in_vsync && ((line + line_start) == y))
             {
                 memset(dest, 0x2f, pitch);
             }
@@ -124,18 +124,18 @@ class SimVideo
         int h = rotated ? ((w * 4) / 3) : ((w * 3) / 4);
 
         ImGuiWindow *window = ImGui::GetCurrentWindow();
-        if(!window->SkipItems)
+        if (!window->SkipItems)
         {
 
             const ImRect bb(window->DC.CursorPos,
                             window->DC.CursorPos + ImVec2(w, h));
             ImGui::ItemSize(bb);
-            if(ImGui::ItemAdd(bb, 0))
+            if (ImGui::ItemAdd(bb, 0))
             {
                 // Render
                 ImVec2 uv0, uv1, uv2, uv3;
 
-                if(rotated)
+                if (rotated)
                 {
                     uv0 = ImVec2(1, 0);
                     uv1 = ImVec2(1, 1);

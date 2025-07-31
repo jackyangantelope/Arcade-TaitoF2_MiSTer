@@ -9,7 +9,7 @@ extern F2 *top;
 
 void draw_pri_window()
 {
-    if(!ImGui::Begin("TC0360PRI"))
+    if (!ImGui::Begin("TC0360PRI"))
     {
         ImGui::End();
         return;
@@ -19,7 +19,7 @@ void draw_pri_window()
     uint16_t color_in1 = top->rootp->F2__DOT__tc0360pri__DOT__color_in1;
     uint16_t color_in2 = top->rootp->F2__DOT__tc0360pri__DOT__color_in2;
     uint8_t ctrl[16];
-    for(int i = 0; i < 16; i++)
+    for (int i = 0; i < 16; i++)
     {
         ctrl[i] = top->rootp->F2__DOT__tc0360pri__DOT__ctrl[i];
     }

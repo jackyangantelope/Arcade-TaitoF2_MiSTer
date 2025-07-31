@@ -10,14 +10,14 @@ extern F2 *top;
 
 void draw_480scp_window()
 {
-    if(!ImGui::Begin("TC0480SCP"))
+    if (!ImGui::Begin("TC0480SCP"))
     {
         ImGui::End();
         return;
     }
 
     int16_t ctrl[32];
-    for(int i = 0; i < 32; i++)
+    for (int i = 0; i < 32; i++)
     {
         ctrl[i] = top->rootp->F2__DOT__tc0480scp__DOT__ctrl[i];
     }

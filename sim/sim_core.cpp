@@ -42,11 +42,11 @@ void sim_init()
 
 void sim_tick(int count)
 {
-    for(int i = 0; i < count; i++)
+    for (int i = 0; i < count; i++)
     {
         total_ticks++;
 
-        if(total_ticks < simulation_reset_until)
+        if (total_ticks < simulation_reset_until)
         {
             top->reset = 1;
         }
@@ -76,18 +76,18 @@ void sim_tick(int count)
         top->clk = 0;
 
         top->eval();
-        if(tfp)
+        if (tfp)
             tfp->dump(contextp->time());
 
         contextp->timeInc(1);
         top->clk = 1;
 
         top->eval();
-        if(tfp)
+        if (tfp)
             tfp->dump(contextp->time());
 
-        if(simulation_wp_set &&
-           top->rootp->F2__DOT__cpu_word_addr == simulation_wp_addr)
+        if (simulation_wp_set &&
+            top->rootp->F2__DOT__cpu_word_addr == simulation_wp_addr)
         {
             simulation_run = false;
             simulation_step = false;
@@ -98,7 +98,7 @@ void sim_tick(int count)
 
 void sim_tick_until(std::function<bool()> until)
 {
-    while(!until())
+    while (!until())
     {
         sim_tick(1);
     }
@@ -106,7 +106,7 @@ void sim_tick_until(std::function<bool()> until)
 
 void sim_shutdown()
 {
-    if(tfp)
+    if (tfp)
     {
         tfp->close();
         tfp.reset();

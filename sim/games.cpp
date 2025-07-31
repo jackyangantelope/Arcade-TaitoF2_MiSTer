@@ -22,9 +22,9 @@ static const char *game_names[N_GAMES] = {
 
 game_t game_find(const char *name)
 {
-    for(int i = 0; i < N_GAMES; i++)
+    for (int i = 0; i < N_GAMES; i++)
     {
-        if(!strcasecmp(name, game_names[i]))
+        if (!strcasecmp(name, game_names[i]))
         {
             return (game_t)i;
         }
@@ -35,7 +35,7 @@ game_t game_find(const char *name)
 
 const char *game_name(game_t game)
 {
-    if(game == GAME_INVALID)
+    if (game == GAME_INVALID)
         return "INVALID";
     return game_names[game];
 }
@@ -43,7 +43,7 @@ const char *game_name(game_t game)
 static bool load_audio(const char *name)
 {
     std::vector<uint8_t> data;
-    if(!g_fs.loadFile(name, data))
+    if (!g_fs.loadFile(name, data))
     {
         printf("Could not open audio rom %s\n", name);
         return false;
@@ -363,7 +363,7 @@ bool game_init(game_t game)
 {
     g_fs.clearSearchPaths();
 
-    switch(game)
+    switch (game)
     {
     case GAME_FINALB:
         load_finalb();

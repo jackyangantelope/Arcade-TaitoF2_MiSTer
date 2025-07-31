@@ -37,7 +37,7 @@ extern uint32_t dipswitch_b;
     ImU8 instance##_read(const ImU8 *, size_t off, void *)                     \
     {                                                                          \
         size_t word_off = off >> 1;                                            \
-        if(off & 1)                                                            \
+        if (off & 1)                                                           \
             return top->rootp->F2__DOT__##instance##__DOT__ram_l[word_off];    \
         else                                                                   \
             return top->rootp->F2__DOT__##instance##__DOT__ram_h[word_off];    \
@@ -45,7 +45,7 @@ extern uint32_t dipswitch_b;
     void instance##_write(ImU8 *, size_t off, ImU8 d, void *)                  \
     {                                                                          \
         size_t word_off = off >> 1;                                            \
-        if(off & 1)                                                            \
+        if (off & 1)                                                           \
             top->rootp->F2__DOT__##instance##__DOT__ram_l[word_off] = d;       \
         else                                                                   \
             top->rootp->F2__DOT__##instance##__DOT__ram_h[word_off] = d;       \
@@ -96,11 +96,11 @@ void ui_end_frame()
 
 void ui_draw()
 {
-    if(ImGui::Begin("Simulation Control"))
+    if (ImGui::Begin("Simulation Control"))
     {
         ImGui::LabelText("Ticks", "%llu", total_ticks);
         ImGui::Checkbox("Run", &simulation_run);
-        if(ImGui::Button("Step"))
+        if (ImGui::Button("Step"))
         {
             simulation_step = true;
             simulation_run = false;
@@ -113,7 +113,7 @@ void ui_draw()
         ImGui::InputInt("##wpaddr", &simulation_wp_addr, 0, 0,
                         ImGuiInputTextFlags_CharsHexadecimal);
 
-        if(ImGui::Button("Reset"))
+        if (ImGui::Button("Reset"))
         {
             simulation_reset_until = total_ticks + 100;
         }
@@ -136,7 +136,7 @@ void ui_draw()
 
         // Auto-generate filename when file list is loaded/updated
         static bool first_load = true;
-        if(first_load)
+        if (first_load)
         {
             std::string auto_name = state_manager->generate_next_state_name();
             strncpy(state_filename, auto_name.c_str(),
@@ -145,12 +145,12 @@ void ui_draw()
             first_load = false;
         }
 
-        if(ImGui::Button("Save State"))
+        if (ImGui::Button("Save State"))
         {
             // Ensure filename has .f2state extension
             std::string filename = state_filename;
-            if(filename.size() < 8 ||
-               filename.substr(filename.size() - 8) != ".f2state")
+            if (filename.size() < 8 ||
+                filename.substr(filename.size() - 8) != ".f2state")
             {
                 filename += ".f2state";
                 strncpy(state_filename, filename.c_str(),
@@ -158,14 +158,14 @@ void ui_draw()
                 state_filename[sizeof(state_filename) - 1] = '\0';
             }
 
-            if(state_manager->save_state(state_filename))
+            if (state_manager->save_state(state_filename))
             {
                 // Update file list after successfully saving
                 state_files = state_manager->get_f2state_files();
                 // Try to select the newly saved file
-                for(size_t i = 0; i < state_files.size(); i++)
+                for (size_t i = 0; i < state_files.size(); i++)
                 {
-                    if(state_files[i] == state_filename)
+                    if (state_files[i] == state_filename)
                     {
                         selected_state_file = i;
                         break;
@@ -181,18 +181,18 @@ void ui_draw()
         }
 
         // Show list of state files
-        if(state_files.size() > 0)
+        if (state_files.size() > 0)
         {
             ImGui::Text("Available State Files:");
             ImGui::BeginChild("StateFiles", ImVec2(0, 100), true);
-            for(size_t i = 0; i < state_files.size(); i++)
+            for (size_t i = 0; i < state_files.size(); i++)
             {
-                if(ImGui::Selectable(state_files[i].c_str(),
-                                     selected_state_file == (int)i,
-                                     ImGuiSelectableFlags_AllowDoubleClick))
+                if (ImGui::Selectable(state_files[i].c_str(),
+                                      selected_state_file == (int)i,
+                                      ImGuiSelectableFlags_AllowDoubleClick))
                 {
                     selected_state_file = (int)i;
-                    if(ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+                    if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
                     {
                         state_manager->restore_state(state_files[i].c_str());
                     }
@@ -208,9 +208,9 @@ void ui_draw()
         ImGui::Separator();
 
         ImGui::PushItemWidth(100);
-        if(ImGui::InputInt("Trace Depth", &trace_depth, 1, 10,
-                           trace_active ? ImGuiInputTextFlags_ReadOnly
-                                        : ImGuiInputTextFlags_None))
+        if (ImGui::InputInt("Trace Depth", &trace_depth, 1, 10,
+                            trace_active ? ImGuiInputTextFlags_ReadOnly
+                                         : ImGuiInputTextFlags_None))
         {
             trace_depth = std::min(std::max(trace_depth, 1), 99);
         }
@@ -218,17 +218,17 @@ void ui_draw()
         ImGui::InputText("Filename", trace_filename, sizeof(trace_filename),
                          tfp ? ImGuiInputTextFlags_ReadOnly
                              : ImGuiInputTextFlags_None);
-        if(ImGui::Button(tfp ? "Stop Tracing###TraceBtn"
-                             : "Start Tracing###TraceBtn"))
+        if (ImGui::Button(tfp ? "Stop Tracing###TraceBtn"
+                              : "Start Tracing###TraceBtn"))
         {
-            if(tfp)
+            if (tfp)
             {
                 tfp->close();
                 tfp.reset();
             }
             else
             {
-                if(strlen(trace_filename) > 0)
+                if (strlen(trace_filename) > 0)
                 {
                     tfp = std::make_unique<VerilatedFstC>();
                     top->trace(tfp.get(), trace_depth);
@@ -240,35 +240,35 @@ void ui_draw()
 
     ImGui::End();
 
-    if(ImGui::Begin("Memory"))
+    if (ImGui::Begin("Memory"))
     {
-        if(ImGui::BeginTabBar("memory_tabs"))
+        if (ImGui::BeginTabBar("memory_tabs"))
         {
-            if(ImGui::BeginTabItem("Screen RAM"))
+            if (ImGui::BeginTabItem("Screen RAM"))
             {
                 scn_ram_0.DrawContents();
                 ImGui::EndTabItem();
             }
 
-            if(ImGui::BeginTabItem("Screen MUX RAM"))
+            if (ImGui::BeginTabItem("Screen MUX RAM"))
             {
                 scn_mux_ram.DrawContents();
                 ImGui::EndTabItem();
             }
 
-            if(ImGui::BeginTabItem("Color RAM"))
+            if (ImGui::BeginTabItem("Color RAM"))
             {
                 color_ram.DrawContents();
                 ImGui::EndTabItem();
             }
 
-            if(ImGui::BeginTabItem("OBJ RAM"))
+            if (ImGui::BeginTabItem("OBJ RAM"))
             {
                 obj_ram.DrawContents();
                 ImGui::EndTabItem();
             }
 
-            if(ImGui::BeginTabItem("Extension RAM"))
+            if (ImGui::BeginTabItem("Extension RAM"))
             {
                 extension_ram.DrawContents(
                     top->rootp
@@ -278,33 +278,33 @@ void ui_draw()
                 ImGui::EndTabItem();
             }
 
-            if(ImGui::BeginTabItem("CPU ROM"))
+            if (ImGui::BeginTabItem("CPU ROM"))
             {
                 rom_mem.DrawContents(sdram.data + CPU_ROM_SDR_BASE,
                                      1024 * 1024);
                 ImGui::EndTabItem();
             }
 
-            if(ImGui::BeginTabItem("Work RAM"))
+            if (ImGui::BeginTabItem("Work RAM"))
             {
                 work_ram.DrawContents();
                 ImGui::EndTabItem();
             }
 
-            if(ImGui::BeginTabItem("Pivot RAM"))
+            if (ImGui::BeginTabItem("Pivot RAM"))
             {
                 pivot_ram.DrawContents();
                 ImGui::EndTabItem();
             }
 
-            if(ImGui::BeginTabItem("DDR"))
+            if (ImGui::BeginTabItem("DDR"))
             {
                 ddr_mem_editor.DrawContents(ddr_memory.memory.data(),
                                             ddr_memory.size);
                 ImGui::EndTabItem();
             }
 
-            if(ImGui::BeginTabItem("Sound RAM"))
+            if (ImGui::BeginTabItem("Sound RAM"))
             {
                 sound_ram.DrawContents(
                     top->rootp->F2__DOT__sound_ram__DOT__ram.m_storage,
@@ -312,7 +312,7 @@ void ui_draw()
                 ImGui::EndTabItem();
             }
 
-            if(ImGui::BeginTabItem("Sound ROM"))
+            if (ImGui::BeginTabItem("Sound ROM"))
             {
                 sound_rom.DrawContents(
                     top->rootp->F2__DOT__sound_rom__DOT__ram.m_storage,
@@ -325,12 +325,12 @@ void ui_draw()
     }
     ImGui::End();
 
-    if(ImGui::Begin("Input"))
+    if (ImGui::Begin("Input"))
     {
-        if(ImGui::BeginTable("dipswitches", 9))
+        if (ImGui::BeginTable("dipswitches", 9))
         {
             ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthStretch);
-            for(int i = 0; i < 8; i++)
+            for (int i = 0; i < 8; i++)
             {
                 char n[2];
                 n[0] = '0' + i;
@@ -341,7 +341,7 @@ void ui_draw()
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
             ImGui::Text("DWSA");
-            for(int i = 0; i < 8; i++)
+            for (int i = 0; i < 8; i++)
             {
                 ImGui::TableNextColumn();
                 ImGui::PushID(i);
@@ -351,7 +351,7 @@ void ui_draw()
             }
             ImGui::TableNextColumn();
             ImGui::Text("DWSB");
-            for(int i = 0; i < 8; i++)
+            for (int i = 0; i < 8; i++)
             {
                 ImGui::TableNextColumn();
                 ImGui::PushID(i);
