@@ -19,9 +19,12 @@ extern SimSDRAM sdram;
 struct SimDebug
 {
     uint32_t modified;
-    uint32_t zoom;
+    uint32_t zoomy;
     uint32_t dy;
     uint32_t y;
+    uint32_t zoomx;
+    uint32_t dx;
+    uint32_t x;
 };
 
 extern SimDebug *sim_debug_data;
@@ -29,8 +32,11 @@ extern SimDebug *sim_debug_data;
 struct PresetZoom
 {
     uint16_t y;
-    uint8_t zoom;
+    uint8_t zoomy;
     uint8_t dy;
+    uint16_t x;
+    uint8_t zoomx;
+    uint8_t dx;
 };
 
 void hw_ui_draw()
@@ -47,6 +53,7 @@ void hw_ui_draw()
         int step = 1;
         int step_fast = 16;
         bool modified = false;
+
         int v = SWAP32(sim_debug_data->y) & 0xffff;
         if (ImGui::InputScalar("BG1 Y", ImGuiDataType_U32, &v, &step,
                                &step_fast, "%04X",
@@ -56,12 +63,12 @@ void hw_ui_draw()
             modified = true;
         }
 
-        v = SWAP32(sim_debug_data->zoom) & 0xff;
-        if (ImGui::InputScalar("BG1 Zoom", ImGuiDataType_U32, &v, &step,
+        v = SWAP32(sim_debug_data->zoomy) & 0xff;
+        if (ImGui::InputScalar("BG1 ZoomY", ImGuiDataType_U32, &v, &step,
                                &step_fast, "%02X",
                                ImGuiInputTextFlags_CharsHexadecimal))
         {
-            sim_debug_data->zoom = SWAP32(v);
+            sim_debug_data->zoomy = SWAP32(v);
             modified = true;
         }
 
@@ -74,11 +81,42 @@ void hw_ui_draw()
             modified = true;
         }
 
-        const char *names[] = { "", "Shrink", "Normal", "Zoom" };
-        const PresetZoom presets[IM_ARRAYSIZE(names) - 1] = {
-            { 0xfed7, 0x00, 0xff },
-            { 0xfed7, 0x00, 0x00 },
-            { 0xfed9, 0x00, 0x00 },
+        v = SWAP32(sim_debug_data->x) & 0xffff;
+        if (ImGui::InputScalar("BG1 X", ImGuiDataType_U32, &v, &step,
+                               &step_fast, "%04X",
+                               ImGuiInputTextFlags_CharsHexadecimal))
+        {
+            sim_debug_data->x = SWAP32(v);
+            modified = true;
+        }
+
+        v = SWAP32(sim_debug_data->zoomx) & 0xff;
+        if (ImGui::InputScalar("BG1 ZoomX", ImGuiDataType_U32, &v, &step,
+                               &step_fast, "%02X",
+                               ImGuiInputTextFlags_CharsHexadecimal))
+        {
+            sim_debug_data->zoomx = SWAP32(v);
+            modified = true;
+        }
+
+        v = SWAP32(sim_debug_data->dx) & 0xff;
+        if (ImGui::InputScalar("BG1 DX", ImGuiDataType_U32, &v, &step,
+                               &step_fast, "%02X",
+                               ImGuiInputTextFlags_CharsHexadecimal))
+        {
+            sim_debug_data->dx = SWAP32(v);
+            modified = true;
+        }
+
+
+        const PresetZoom presets[] = {
+            { 0xfed7, 0x00, 0xff, 0x0000, 0x00, 0x00 },
+            { 0xfed7, 0x00, 0x00, 0x0000, 0x00, 0x00 },
+            { 0xfed9, 0x00, 0x00, 0x0000, 0x00, 0x00 },
+            { 0xff9b, 0x7f, 0x00, 0xffc4, 0xc0, 0xcf },
+            { 0xff9b, 0x7f, 0x00, 0x0003, 0x00, 0x00 },
+            { 0xff9b, 0x7f, 0x00, 0x0003, 0x00, 0xab },
+            { 0xff9b, 0x7f, 0x00, 0x0003, 0x00, 0xac },
         };
 
         if (ImGui::BeginCombo("Preset", "Select Preset", 0))
@@ -86,12 +124,17 @@ void hw_ui_draw()
             for (int n = 0; n < IM_ARRAYSIZE(presets); n++)
             {
                 char label[64];
-                snprintf(label, sizeof(label), "%04X,%02X,%02X", presets[n].y, presets[n].zoom, presets[n].dy);
+                snprintf(label, sizeof(label), "%04X,%02X,%02X,%04X,%02X,%02X",
+                         presets[n].y, presets[n].zoomy, presets[n].dy,
+                         presets[n].x, presets[n].zoomx, presets[n].dx);
                 if (ImGui::Selectable(label, false))
                 {
-                    sim_debug_data->zoom = SWAP32(presets[n].zoom);
+                    sim_debug_data->zoomy = SWAP32(presets[n].zoomy);
                     sim_debug_data->dy = SWAP32(presets[n].dy);
                     sim_debug_data->y = SWAP32(presets[n].y);
+                    sim_debug_data->zoomx = SWAP32(presets[n].zoomx);
+                    sim_debug_data->dx = SWAP32(presets[n].dx);
+                    sim_debug_data->x = SWAP32(presets[n].x);
                     modified = true;
                 }
             }

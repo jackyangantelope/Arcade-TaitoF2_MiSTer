@@ -123,7 +123,7 @@ typedef enum bit [4:0]
 } access_state_t;
 
 module tc0480scp_counter #(
-    parameter TILE_BITS=3
+    parameter READAHEAD=0
     )
 (
     input clk,
@@ -138,22 +138,23 @@ module tc0480scp_counter #(
     input [15:0] xofs,
     input [15:0] yofs,
 
+    input [7:0]  xfine,
     input [6:0]  yfine,
 
     input [7:0]  xzoom,
     input [7:0]  yzoom,
 
-    output [8:0] x,
-    output [8:0] y,
-
-    output reg [8-TILE_BITS:0] xtile
+    output [8:0] xdraw,
+    output [8:0] xread,
+    output [8:0] y
 );
 
-reg [8:0] xcnt;
+reg [16:0] xcnt0, xcnt1;
 reg [15:0] ycnt;
-reg [TILE_BITS-1:0] tilecnt;
+reg [7:0] readcnt;
 
-assign x = xcnt;
+assign xread = xcnt0[16:8];
+assign xdraw  = xcnt1[16:8];
 assign y = ycnt[15:7];
 
 wire [8:0] xstart = xbase[8:0] - xofs[8:0];
@@ -161,23 +162,25 @@ wire [8:0] ystart = ybase[8:0] + yofs[8:0];
 
 always_ff @(posedge clk) begin
     if (ce) begin
-        xcnt <= xcnt + 9'd1;
-        tilecnt <= tilecnt + 1;
-        if (&tilecnt) begin
-            xtile <= xtile + 1;
+        xcnt0 <= xcnt0 + (17'h100 - 17'(xzoom));
+
+        if (readcnt == 8'(READAHEAD)) begin
+            xcnt1 <= xcnt1 + (17'h100 - 17'(xzoom));
+        end else begin
+            readcnt <= readcnt + 1;
         end
 
         if (frame_strobe) begin
-            tilecnt <= 0;
-            xtile <= xstart[8:TILE_BITS] + 2;
-            xcnt <= xstart[8:0];
+            readcnt <= 0;
+            xcnt0 <= {xstart[8:0], xfine} + 17'h7f;
+            xcnt1 <= {xstart[8:0], xfine} + 17'h7f;
             ycnt <= {ystart, yfine};
         end
 
         if (line_strobe) begin
-            tilecnt <= 0;
-            xtile <= xstart[8:TILE_BITS] + 2;
-            xcnt <= xstart[8:0];
+            readcnt <= 0;
+            xcnt0 <= {xstart[8:0], xfine} + 17'h7f;
+            xcnt1 <= {xstart[8:0], xfine} + 17'h7f;
             ycnt <= ycnt + {8'd0, ~yzoom};
         end
     end
@@ -246,7 +249,7 @@ wire       ctrl_bg2_zoom = ctrl[15][0];
 
 wire [8:0] dispx, dispy;
 
-wire [8:0] fg0_xcnt, fg0_ycnt;
+wire [8:0] fg0_xcnt_draw, fg0_xcnt_read, fg0_ycnt;
 wire [5:0] fg0_xtile;
 
 reg [15:0] base_xofs;
@@ -262,37 +265,40 @@ tc0480scp_counter raw_counter(
     .ybase(0),
     .xofs(0),
     .yofs(0),
+    .xfine(0),
     .yfine(0),
-    .x(dispx),
+    .xread(dispx),
+    .xdraw(),
     .y(dispy),
     .xzoom(0),
-    .yzoom(8'h7f),
-    .xtile()
+    .yzoom(8'h7f)
 );
 
-tc0480scp_counter fg0_counter(
+tc0480scp_counter #(.READAHEAD(16)) fg0_counter(
     .clk,
     .ce,
     .line_strobe,
     .frame_strobe,
-    .xbase(base_xofs-28),
+    .xbase(base_xofs-27),
     .ybase(base_yofs-26),
     .xofs(ctrl[12]),
     .yofs(ctrl[13]),
+    .xfine(0),
     .yfine(0),
-    .x(fg0_xcnt),
+    .xread(fg0_xcnt_read),
+    .xdraw(fg0_xcnt_draw),
     .y(fg0_ycnt),
     .xzoom(0),
-    .yzoom(8'h7f),
-    .xtile(fg0_xtile)
+    .yzoom(8'h7f)
 );
 
 
-wire [8:0] bg_xcnt[4], bg_ycnt[4];
-wire [4:0] bg_xtile[4];
-reg [4:0] bg_xtile2[4];
+wire [8:0] bg_xcnt_draw[4], bg_xcnt_read[4], bg_ycnt[4];
+reg [1:0] bg_load_index[4];
 wire [11:0] bg_dot[4];
 reg [31:0] bg_attrib[4];
+reg [8:0] bg_xcnt;
+
 genvar bg_index;
 
 reg [63:0] rom_data_reg;
@@ -320,34 +326,35 @@ wire [63:0] rom_data_deswizzle =
 
 generate
 for (bg_index = 0; bg_index < 4; bg_index = bg_index + 1) begin:bg_layers
-    tc0480scp_counter #(.TILE_BITS(4)) bg_counter(
+    tc0480scp_counter #(.READAHEAD(32 + (bg_index * 4))) bg_counter(
         .clk,
         .ce,
         .line_strobe,
         .frame_strobe,
-        .xbase(base_xofs-(29 + (bg_index * 4))),
-        .ybase(base_xofs),
+        .xbase(base_xofs-29),
+        .ybase(base_yofs),
         .xofs(ctrl[0+bg_index]),
         .yofs(ctrl[4+bg_index]),
+        .xfine(ctrl[16+bg_index][7:0]),
         .yfine(ctrl[20+bg_index][6:0]),
         .xzoom(ctrl[8+bg_index][15:8]),
         .yzoom(ctrl[8+bg_index][7:0]),
-        .x(bg_xcnt[bg_index]),
-        .y(bg_ycnt[bg_index]),
-        .xtile(bg_xtile[bg_index])
+        .xdraw(bg_xcnt_draw[bg_index]),
+        .xread(bg_xcnt_read[bg_index]),
+        .y(bg_ycnt[bg_index])
     );
 
     tc0480scp_shifter #(.TILE_WIDTH(16)) bg_shifter(
         .clk, .ce,
 
-        .tap(bg_xcnt[bg_index][5:0]),
+        .tap(bg_xcnt_draw[bg_index][5:0]),
         .dot_out(bg_dot[bg_index]),
 
         .load(bg_load[bg_index]),
         .load_data(rom_data_deswizzle),
         .load_flip(bg_attrib[bg_index][30]),
         .load_color(bg_attrib[bg_index][23:16]),
-        .load_index(bg_xtile2[bg_index][1:0])
+        .load_index(bg_load_index[bg_index])
     );
 end
 endgenerate
@@ -357,19 +364,20 @@ reg [15:0] fg0_attrib;
 reg [31:0] fg0_gfx;
 
 reg fg0_load;
+reg [1:0] fg0_load_index;
 wire [11:0] fg0_dot;
 
 tc0480scp_shifter fg0_shifter(
     .clk, .ce,
 
-    .tap(fg0_xcnt[4:0]),
+    .tap(fg0_xcnt_draw[4:0]),
     .dot_out(fg0_dot),
 
     .load(fg0_load),
     .load_data(fg0_gfx),
     .load_flip(fg0_attrib[14]),
     .load_color({2'b0, fg0_attrib[13:8]}),
-    .load_index(fg0_xtile[1:0])
+    .load_index(fg0_load_index)
 );
 
 wire [1:0] bg_idx0 = (ctrl_prio[1:0] + 2'd0) ^ ~{2{ctrl_prio[2]}};
@@ -453,17 +461,17 @@ always_comb begin
 
         FG0_ATTRIB_0,
         FG0_ATTRIB_1: begin
-            ram_addr = 16'hc000 + { 3'b0, fg0_ycnt[8:3], fg0_xtile[5:0], 1'b0 };
+            ram_addr = 16'hc000 + { 3'b0, fg0_ycnt[8:3], fg0_xcnt_read[8:3], 1'b0 };
         end
 
-        BG0_ATTRIB0: ram_addr = 16'h0000 + { 4'b0, bg_ycnt[0][8:4], bg_xtile[0][4:0], 1'b0, 1'b0 };
-        BG0_ATTRIB1: ram_addr = 16'h0000 + { 4'b0, bg_ycnt[0][8:4], bg_xtile[0][4:0], 1'b1, 1'b0 };
-        BG1_ATTRIB0: ram_addr = 16'h1000 + { 4'b0, bg_ycnt[1][8:4], bg_xtile[1][4:0], 1'b0, 1'b0 };
-        BG1_ATTRIB1: ram_addr = 16'h1000 + { 4'b0, bg_ycnt[1][8:4], bg_xtile[1][4:0], 1'b1, 1'b0 };
-        BG2_ATTRIB0: ram_addr = 16'h2000 + { 4'b0, bg_ycnt[2][8:4], bg_xtile[2][4:0], 1'b0, 1'b0 };
-        BG2_ATTRIB1: ram_addr = 16'h2000 + { 4'b0, bg_ycnt[2][8:4], bg_xtile[2][4:0], 1'b1, 1'b0 };
-        BG3_ATTRIB0: ram_addr = 16'h3000 + { 4'b0, bg_ycnt[3][8:4], bg_xtile[3][4:0], 1'b0, 1'b0 };
-        BG3_ATTRIB1: ram_addr = 16'h3000 + { 4'b0, bg_ycnt[3][8:4], bg_xtile[3][4:0], 1'b1, 1'b0 };
+        BG0_ATTRIB0: ram_addr = 16'h0000 + { 4'b0, bg_ycnt[0][8:4], bg_xcnt[8:4], 1'b0, 1'b0 };
+        BG0_ATTRIB1: ram_addr = 16'h0000 + { 4'b0, bg_ycnt[0][8:4], bg_xcnt[8:4], 1'b1, 1'b0 };
+        BG1_ATTRIB0: ram_addr = 16'h1000 + { 4'b0, bg_ycnt[1][8:4], bg_xcnt[8:4], 1'b0, 1'b0 };
+        BG1_ATTRIB1: ram_addr = 16'h1000 + { 4'b0, bg_ycnt[1][8:4], bg_xcnt[8:4], 1'b1, 1'b0 };
+        BG2_ATTRIB0: ram_addr = 16'h2000 + { 4'b0, bg_ycnt[2][8:4], bg_xcnt[8:4], 1'b0, 1'b0 };
+        BG2_ATTRIB1: ram_addr = 16'h2000 + { 4'b0, bg_ycnt[2][8:4], bg_xcnt[8:4], 1'b1, 1'b0 };
+        BG3_ATTRIB0: ram_addr = 16'h3000 + { 4'b0, bg_ycnt[3][8:4], bg_xcnt[8:4], 1'b0, 1'b0 };
+        BG3_ATTRIB1: ram_addr = 16'h3000 + { 4'b0, bg_ycnt[3][8:4], bg_xcnt[8:4], 1'b1, 1'b0 };
 
 
         FG0_GFX0_0,
@@ -528,32 +536,35 @@ always @(posedge clk) begin
             BG0_ATTRIB1: begin
                 bg_attrib[0][15:0]  <= RADin;
                 bg_req[0] <= ~bg_req[0];
-                bg_xtile2[0] <= bg_xtile[0];
+                bg_load_index[0] <= bg_xcnt[5:4];
             end
 
             BG1_ATTRIB0: bg_attrib[1][31:16] <= RADin;
             BG1_ATTRIB1: begin
                 bg_attrib[1][15:0]  <= RADin;
                 bg_req[1] <= ~bg_req[1];
-                bg_xtile2[1] <= bg_xtile[1];
+                bg_load_index[1] <= bg_xcnt[5:4];
             end
 
             BG2_ATTRIB0: bg_attrib[2][31:16] <= RADin;
             BG2_ATTRIB1: begin
                 bg_attrib[2][15:0]  <= RADin;
                 bg_req[2] <= ~bg_req[2];
-                bg_xtile2[2] <= bg_xtile[2];
+                bg_load_index[2] <= bg_xcnt[5:4];
             end
 
             BG3_ATTRIB0: bg_attrib[3][31:16] <= RADin;
             BG3_ATTRIB1: begin
                 bg_attrib[3][15:0]  <= RADin;
                 bg_req[3] <= ~bg_req[3];
-                bg_xtile2[3] <= bg_xtile[3];
+                bg_load_index[3] <= bg_xcnt[5:4];
             end
 
             FG0_ATTRIB_0,
-            FG0_ATTRIB_1: fg0_attrib <= RADin;
+            FG0_ATTRIB_1: begin
+                fg0_attrib <= RADin;
+                fg0_load_index <= fg0_xcnt_read[4:3];
+            end
 
             FG0_GFX0_0,
             FG0_GFX0_1: fg0_gfx[15:0] <= RADin;
@@ -570,6 +581,14 @@ always @(posedge clk) begin
 
             default: begin
             end
+        endcase
+
+        case (next_access_cycle)
+            BG0_ATTRIB0: bg_xcnt <= bg_xcnt_read[0];
+            BG1_ATTRIB0: bg_xcnt <= bg_xcnt_read[1];
+            BG2_ATTRIB0: bg_xcnt <= bg_xcnt_read[2];
+            BG3_ATTRIB0: bg_xcnt <= bg_xcnt_read[3];
+            default: begin end
         endcase
 
         if (end_line) begin

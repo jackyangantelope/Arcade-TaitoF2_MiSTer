@@ -1473,7 +1473,8 @@ void init_480scp_zoom()
     for( int y = 0; y < 16; y++ )
     {
         pen_color(0x18 + (y&1));
-        sym_at(10, 7 + y, 1);
+        sym_at(23, 7 + y, 1);
+        sym_at(7 + y, 23, 1);
     }
 
     on_layer(BG1);
@@ -1487,9 +1488,12 @@ void init_480scp_zoom()
 typedef struct
 {
     uint32_t modified;
-    uint32_t zoom;
+    uint32_t zoomy;
     uint32_t dy;
     uint32_t y;
+    uint32_t zoomx;
+    uint32_t dx;
+    uint32_t x;
 } SimDebug;
 
 volatile SimDebug *DEBUG = (volatile SimDebug *)0x080000;
@@ -1504,32 +1508,46 @@ volatile SimDebug *DEBUG = (volatile SimDebug *)0x080000;
 // 00 Y 0xffb6   - 0xffc8  = -18
 void update_480scp_zoom()
 {
-    static uint8_t zoom = 0x7f;
-    static uint16_t y = 0;
     static uint8_t sel = 0;
-    static uint8_t d0 = 0;
-    static uint8_t d1 = 0;
+    
+    static uint8_t zoomy = 0x7f;
+    static uint16_t y = 0;
+    static uint8_t dy = 0;
+    static uint8_t zoomx = 0x00;
+    static uint16_t x = 0;
+    static uint8_t dx = 0;
+
 
     static uint32_t dbg_modifed = 0;
 
     if (dbg_modifed == 0)
         dbg_modifed = DEBUG->modified;
 
-    wait_vblank();
     pen_color(8);
     on_layer(FG0);
-    print_at(2,3,"VBLANK: %04X", DEBUG->zoom);
+    print_at(2,3,"VBLANK: %04X", vblank_count);
 
-    print_at(28, 8,  "  Y:%04X  ", y);
-    print_at(28, 9,  "  Z:  %02X  ", zoom);
-    print_at(28, 10, "  D0: %02X  ", d0);
-    print_at(28, 11, "  D1: %02X  ", d1);
-    sym_at(28, 8 + sel, '>');
-    sym_at(37, 8 + sel, '<');
+    print_at(29, 8,  " Y:%04X ", y);
+    print_at(29, 9,  " ZY: %02X ", zoomy);
+    print_at(29, 10, " DY: %02X ", dy);
+    print_at(29, 11, " X:%04X ", x);
+    print_at(29, 12, " ZX: %02X ", zoomx);
+    print_at(29, 13, " DX: %02X ", dx);
+
+    for( int y = 0; y < 6; y++ )
+    {
+        sym_at(28, 8 + y, sel == y ? '>' : ' ');
+        sym_at(37, 8 + y, sel == y ? '<' : ' ');
+    }
+    
+    wait_vblank();
  
-    TC0480SCP_Ctrl->bg1_zoom = zoom & 0xff;
+    TC0480SCP_Ctrl->bg1_zoom = (zoomy & 0xff) | ( zoomx << 8 );
     TC0480SCP_Ctrl->bg1_y = y;
-    TC0480SCP_Ctrl->bg1_dy = (d1 << 8) | d0;
+    TC0480SCP_Ctrl->bg1_dy = dy;
+    TC0480SCP_Ctrl->bg1_x = x;
+    TC0480SCP_Ctrl->bg1_dx = dx;
+
 
     int dir = 0;
     if (input_pressed(DOWN)) sel++;
@@ -1541,19 +1559,24 @@ void update_480scp_zoom()
     switch(sel)
     {
         case 0: y += dir; break;
-        case 1: zoom += dir; break;
-        case 2: d0 += dir; break;
-        case 3: d1 += dir; break;
-        case 4: sel = 0; break;
-        default: sel = 3; break;
+        case 1: zoomy += dir; break;
+        case 2: dy += dir; break;
+        case 3: x += dir; break;
+        case 4: zoomx += dir; break;
+        case 5: dx += dir; break;
+        case 6: sel = 0; break;
+        default: sel = 5; break;
     }
 
     if (DEBUG->modified != dbg_modifed)
     {
         dbg_modifed = DEBUG->modified;
         y = DEBUG->y;
-        zoom = DEBUG->zoom;
-        d0 = DEBUG->dy;
+        zoomy = DEBUG->zoomy;
+        dy = DEBUG->dy;
+        x = DEBUG->x;
+        zoomx = DEBUG->zoomx;
+        dx = DEBUG->dx;
     }
 }
 
