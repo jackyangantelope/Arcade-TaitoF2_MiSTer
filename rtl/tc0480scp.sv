@@ -172,15 +172,15 @@ always_ff @(posedge clk) begin
 
         if (frame_strobe) begin
             readcnt <= 0;
-            xcnt0 <= {xstart[8:0], xfine} + 17'h7f;
-            xcnt1 <= {xstart[8:0], xfine} + 17'h7f;
+            xcnt0 <= {xstart[8:0], ~xfine};
+            xcnt1 <= {xstart[8:0], ~xfine};
             ycnt <= {ystart, yfine};
         end
 
         if (line_strobe) begin
             readcnt <= 0;
-            xcnt0 <= {xstart[8:0], xfine} + 17'h7f;
-            xcnt1 <= {xstart[8:0], xfine} + 17'h7f;
+            xcnt0 <= {xstart[8:0], ~xfine};
+            xcnt1 <= {xstart[8:0], ~xfine};
             ycnt <= ycnt + {8'd0, ~yzoom};
         end
     end
@@ -279,7 +279,7 @@ tc0480scp_counter #(.READAHEAD(16)) fg0_counter(
     .ce,
     .line_strobe,
     .frame_strobe,
-    .xbase(base_xofs-27),
+    .xbase(base_xofs+1),
     .ybase(base_yofs-26),
     .xofs(ctrl[12]),
     .yofs(ctrl[13]),
@@ -331,7 +331,7 @@ for (bg_index = 0; bg_index < 4; bg_index = bg_index + 1) begin:bg_layers
         .ce,
         .line_strobe,
         .frame_strobe,
-        .xbase(base_xofs-29),
+        .xbase(base_xofs+15),
         .ybase(base_yofs),
         .xofs(ctrl[0+bg_index]),
         .yofs(ctrl[4+bg_index]),

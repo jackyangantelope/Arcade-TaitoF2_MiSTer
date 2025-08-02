@@ -1478,7 +1478,10 @@ void init_480scp_zoom()
     }
 
     on_layer(BG1);
-    pen_color(9);
+    pen_color(0x1a);
+    sym_at(6,5,1);
+    on_layer(BG2);
+    pen_color(0x1c);
     sym_at(6,5,1);
     TC0480SCP_Ctrl->bg1_zoom = 0x00be;
     TC0480SCP_Ctrl->bg1_y = 29;
@@ -1547,6 +1550,12 @@ void update_480scp_zoom()
     TC0480SCP_Ctrl->bg1_dy = dy;
     TC0480SCP_Ctrl->bg1_x = x;
     TC0480SCP_Ctrl->bg1_dx = dx;
+    TC0480SCP_Ctrl->bg2_zoom = (zoomy & 0xff) | ( zoomx << 8 );
+    TC0480SCP_Ctrl->bg2_y = y;
+    TC0480SCP_Ctrl->bg2_dy = dy;
+    TC0480SCP_Ctrl->bg2_x = x - 4;
+    TC0480SCP_Ctrl->bg2_dx = dx;
+
 
 
     int dir = 0;
