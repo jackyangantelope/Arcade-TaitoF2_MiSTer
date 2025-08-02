@@ -1703,7 +1703,7 @@ int main(int argc, char *argv[])
 
     uint32_t system_flags = 0;
 
-    int current_screen = 11;
+    int current_screen = 10;
 
     init_screen(current_screen);
     

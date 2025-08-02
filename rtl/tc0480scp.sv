@@ -162,10 +162,10 @@ wire [8:0] ystart = ybase[8:0] + yofs[8:0];
 
 always_ff @(posedge clk) begin
     if (ce) begin
-        xcnt0 <= xcnt0 + (17'h100 - 17'(xzoom));
+        xcnt0 <= xcnt0 + { 9'd0, ~xzoom };
 
         if (readcnt == 8'(READAHEAD)) begin
-            xcnt1 <= xcnt1 + (17'h100 - 17'(xzoom));
+            xcnt1 <= xcnt1 + { 9'd0, ~xzoom };
         end else begin
             readcnt <= readcnt + 1;
         end
@@ -252,8 +252,8 @@ wire [8:0] dispx, dispy;
 wire [8:0] fg0_xcnt_draw, fg0_xcnt_read, fg0_ycnt;
 wire [5:0] fg0_xtile;
 
-reg [15:0] base_xofs;
-reg [15:0] base_yofs;
+wire [15:0] base_xofs = 12;
+wire [15:0] base_yofs = 17;
 
 reg line_strobe, frame_strobe;
 tc0480scp_counter raw_counter(
@@ -277,10 +277,10 @@ tc0480scp_counter raw_counter(
 tc0480scp_counter #(.READAHEAD(16)) fg0_counter(
     .clk,
     .ce,
-    .line_strobe,
-    .frame_strobe,
-    .xbase(base_xofs+1),
-    .ybase(base_yofs-26),
+    .line_strobe(dispx == base_xofs[8:0]),
+    .frame_strobe(dispy == base_yofs[8:0]),
+    .xbase(1),
+    .ybase(-26),
     .xofs(ctrl[12]),
     .yofs(ctrl[13]),
     .xfine(0),
@@ -329,10 +329,10 @@ for (bg_index = 0; bg_index < 4; bg_index = bg_index + 1) begin:bg_layers
     tc0480scp_counter #(.READAHEAD(32 + (bg_index * 4))) bg_counter(
         .clk,
         .ce,
-        .line_strobe,
-        .frame_strobe,
-        .xbase(base_xofs+15),
-        .ybase(base_yofs),
+        .line_strobe(dispx == base_xofs[8:0]),
+        .frame_strobe(dispy == base_yofs[8:0]),
+        .xbase(15),
+        .ybase(0),
         .xofs(ctrl[0+bg_index]),
         .yofs(ctrl[4+bg_index]),
         .xfine(ctrl[16+bg_index][7:0]),

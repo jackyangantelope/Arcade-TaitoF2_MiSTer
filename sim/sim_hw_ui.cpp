@@ -43,12 +43,14 @@ void hw_ui_draw()
 {
     if (ImGui::Begin("Debug"))
     {
+        /*
         int x = (int16_t)top->rootp->F2__DOT__tc0480scp__DOT__base_xofs;
         int y = (int16_t)top->rootp->F2__DOT__tc0480scp__DOT__base_yofs;
         ImGui::InputInt("Disp X", &x);
         ImGui::InputInt("Disp Y", &y);
         top->rootp->F2__DOT__tc0480scp__DOT__base_xofs = x;
         top->rootp->F2__DOT__tc0480scp__DOT__base_yofs = y;
+        */
 
         int step = 1;
         int step_fast = 16;
