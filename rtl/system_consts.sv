@@ -101,7 +101,8 @@ package system_consts;
         GAME_QJINSEI,
         GAME_QCRAYON,
         GAME_QCRAYON2,
-        GAME_DRIFTOUT
+        GAME_DRIFTOUT,
+        GAME_DEADCONXJ
     } game_t;
 
     typedef struct packed {

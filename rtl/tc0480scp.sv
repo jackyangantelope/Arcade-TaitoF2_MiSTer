@@ -238,6 +238,10 @@ module TC0480SCP #(parameter SS_IDX=-1) (
     input OUHLDn,
     input OUVLDn,
 
+    // Core tweaks
+    input [15:0] sync_xofs,
+    input [15:0] sync_yofs,
+
     ssbus_if.slave ssbus
 );
 
@@ -256,9 +260,6 @@ wire [8:0] dispx, dispy;
 wire [8:0] fg0_xcnt_draw, fg0_xcnt_read, fg0_ycnt;
 wire [5:0] fg0_xtile;
 
-wire [15:0] base_xofs = -12;
-wire [15:0] base_yofs = -17;
-
 reg line_strobe, frame_strobe;
 wire line_next = access_cycle == WAIT1;
 
@@ -268,8 +269,8 @@ tc0480scp_counter raw_counter(
     .line_next,
     .line_strobe,
     .frame_strobe,
-    .xbase(base_xofs),
-    .ybase(base_yofs),
+    .xbase(sync_xofs),
+    .ybase(sync_yofs),
     .xofs(0),
     .yofs(0),
     .xfine(0),
@@ -288,9 +289,9 @@ tc0480scp_counter #(.READAHEAD(16)) fg0_counter(
     .line_strobe(dispx == 0),
     .frame_strobe(dispy == 0),
     .xbase(1),
-    .ybase(-26),
+    .ybase(1),
     .xofs(ctrl[12]),
-    .yofs(ctrl[13]),
+    .yofs(~ctrl[13]),
     .xfine(0),
     .yfine(0),
     .xread(fg0_xcnt_read),

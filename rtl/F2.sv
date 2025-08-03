@@ -578,6 +578,9 @@ TMP82C265 tmp82c265(
     .PCin(~{ 4'd0, coin[1:0], 2'd0, 8'h00})
 );
 
+
+wire [7:0] te7750_p7 = (game == GAME_NINJAK) ? {coin[3:0], 4'd0} : {4'd0, coin[3:0]};
+
 TE7750 te7750(
     .clk,
     .RESETn(~reset),
@@ -595,7 +598,7 @@ TE7750 te7750(
     .P4in(~{start[1], joystick_p2[6:4], joystick_p2[0], joystick_p2[1], joystick_p2[2], joystick_p2[3]}),
     .P5in(~{start[2], joystick_p3[6:4], joystick_p3[0], joystick_p3[1], joystick_p3[2], joystick_p3[3]}),
     .P6in(~{start[3], joystick_p4[6:4], joystick_p4[0], joystick_p4[1], joystick_p4[2], joystick_p4[3]}),
-    .P7in(~{coin[3:0], 4'd0}),
+    .P7in(~te7750_p7),
     .P8in(0),
     .P9in(0),
 
@@ -965,6 +968,19 @@ wire [22:0] scp_rom_address;
 
 assign sdr_scp_addr = SCN1_ROM_SDR_BASE[26:0] + { 4'b0, scp_rom_address[22:0] };
 
+logic [15:0] sync_xofs;
+logic [15:0] sync_yofs;
+
+always_comb begin
+    case (game)
+        GAME_DEADCONXJ: begin sync_xofs = -12; sync_yofs = -17; end
+        GAME_DEADCONX:  begin sync_xofs = -34; sync_yofs = -4; end
+        GAME_METALB:    begin sync_xofs = -12; sync_yofs = -18; end
+        default: begin sync_xofs = 0; sync_yofs = 0; end
+    endcase
+end
+
+
 TC0480SCP #(.SS_IDX(SSIDX_480SCP)) tc0480scp(
     .clk(clk),
     .ce(ce_pixel), // FIXME: scn0 should be authorative here
@@ -1007,6 +1023,9 @@ TC0480SCP #(.SS_IDX(SSIDX_480SCP)) tc0480scp(
     .VLDn(),
     .OUHLDn(HBLn),
     .OUVLDn(VBLn),
+
+    .sync_xofs,
+    .sync_yofs,
 
     .ssbus(ssb[18])
 );
@@ -1171,9 +1190,14 @@ logic [14:0] color0_pri, color1_pri, color2_pri;
 always_comb begin
     color1_pri = {obj_dot[11:10], 1'b0, obj_dot[11:0]};
     if (cfg_480scp) begin
-        color0_pri = {scp_dot_color[14], scp_dot_color[13], scp_dot_color[12:0]};
-        color2_pri = {scp_dot_color[15], scp_dot_color[13], scp_dot_color[12:0]};
-    end else begin
+        if (game == GAME_METALB) begin
+            color0_pri = {~scp_dot_color[14], ~scp_dot_color[13], scp_dot_color[12:0]};
+            color2_pri = {scp_dot_color[15], ~scp_dot_color[13], scp_dot_color[12:0]};
+        end else begin
+            color0_pri = {scp_dot_color[14], scp_dot_color[13], scp_dot_color[12:0]};
+            color2_pri = {scp_dot_color[15], scp_dot_color[13], scp_dot_color[12:0]};
+        end
+     end else begin
         color0_pri = {scn0_dot_color[14:13], scn0_dot_color[12:0]};
         if (cfg_100scn) begin
             color2_pri = {scn1_dot_color[14:13], scn1_dot_color[12:0]};

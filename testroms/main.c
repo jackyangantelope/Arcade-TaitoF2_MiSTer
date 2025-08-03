@@ -1639,10 +1639,11 @@ void init_480scp_row()
     TC0480SCP->bg2_rowscroll[33] = 32;
     TC0480SCP->bg2_rowscroll[34] = -10;
     TC0480SCP->bg2_rowscroll[35] = 32;
-    TC0480SCP->bg2_zoom[32] = 0;
-    TC0480SCP->bg2_zoom[33] = 0;
-    TC0480SCP->bg2_zoom[34] = 16;
-    TC0480SCP->bg2_zoom[35] = 0;
+    TC0480SCP->bg2_zoom[32] = 128;
+    TC0480SCP->bg2_zoom[33] = 32;
+    TC0480SCP->bg2_zoom[34] = 128;
+    TC0480SCP->bg2_zoom[35] = 32;
+    TC0480SCP->bg2_zoom[36] = 80;
    
     for ( int x = 20; x < 30; x++ )
         TC0480SCP->bg2_rowscroll[x] = x;

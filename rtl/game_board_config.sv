@@ -70,6 +70,7 @@ always @(posedge clk) begin
         GAME_QJINSEI:  c = 17'b01_01_0_0_01_0_0_0_0_0_0_0_1_1;
 
         GAME_DEADCONX: c = 17'b01_11_0_1_00_0_1_0_0_0_1_0_1_1;
+        GAME_DEADCONXJ:c = 17'b01_11_0_1_00_0_1_0_0_0_1_0_1_1;
         GAME_METALB:   c = 17'b01_11_0_0_00_0_0_1_0_0_1_0_1_1;
         GAME_DRIFTOUT: c = 17'b11_01_0_0_00_0_0_0_0_1_0_0_1_0;
         default:       c = 17'b00_00_1_0_00_0_0_0_0_0_0_0_0_0;
@@ -375,7 +376,8 @@ always_ff @(posedge clk) begin
         //cfg_addr_watchdog      <= {8'hC0, 8'hFF}; // 0xC00000 - 0xC00001 (Watchdog?) - Note: Overlaps IO chip general range
       end
 
-      GAME_DEADCONX: begin
+      GAME_DEADCONX,
+      GAME_DEADCONXJ: begin
         cfg_addr_rom      <= {8'h00, 8'hF0}; // 0x000000 - 0x0FFFFF
         cfg_addr_work_ram      <= {8'h10, 8'hFF}; // 0x100000 - 0x10FFFF
         cfg_addr_obj    <= {8'h20, 8'hFF}; // 0x200000 - 0x20FFFF
