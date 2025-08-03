@@ -97,9 +97,20 @@ typedef struct TC0480SCP_Control
     uint16_t bg2_dy;
     uint16_t bg3_dy;
 
+    uint16_t bg0_dx1;
+    uint16_t bg1_dx1;
+    uint16_t bg2_dx1;
+    uint16_t bg3_dx1;
+
+    uint16_t bg0_dy1;
+    uint16_t bg1_dy1;
+    uint16_t bg2_dy1;
+    uint16_t bg3_dy1;
+
+
 } TC0480SCP_Control;
 
-_Static_assert(sizeof(TC0480SCP_Control) == 0x30, "TC0480SCP_Control mismatch");
+_Static_assert(sizeof(TC0480SCP_Control) == 0x40, "TC0480SCP_Control mismatch");
 _Static_assert(sizeof(TC0480SCP_Layout) == 0x10000, "TC0480SCP_Layout mismatch");
 
 #endif
