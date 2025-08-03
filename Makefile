@@ -82,6 +82,9 @@ sim/thundfox:
 sim/deadconx:
 	$(MAKE) -j8 -C sim run GAME=deadconx
 
+sim/deadconxj:
+	$(MAKE) -j8 -C sim run GAME=deadconxj
+
 sim/metalb:
 	$(MAKE) -j8 -C sim run GAME=metalb
 

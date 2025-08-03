@@ -1665,8 +1665,10 @@ void update_480scp_row()
     pen_color(8);
     on_layer(FG0);
     
-    print_at(2,3,"VBLANK: %04X %03X", vblank_count, x);
-    
+    print_at(2,3,"VBLANK: %04X %04X", vblank_count, TC0480SCP->fg0[400].attr_code);
+   
+    TC0480SCP->fg0[400].attr_code += 0x0013;
+
     //TC0480SCP->bg2_colscroll[x] = 0;
     //x = (x + 1) % 512;
     //TC0480SCP->bg2_colscroll[x] = -10;
@@ -1788,7 +1790,7 @@ int main(int argc, char *argv[])
 
     uint32_t system_flags = 0;
 
-    int current_screen = 10;
+    int current_screen = 12;
 
     init_screen(current_screen);
     

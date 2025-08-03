@@ -192,6 +192,70 @@ end
 
 endmodule
 
+module tc0480scp_simple_counter #(
+    parameter READAHEAD=0
+    )
+(
+    input clk,
+    input ce,
+
+    input line_next,
+    input line_strobe,
+    input frame_strobe,
+
+    input [15:0] xbase,
+    input [15:0] ybase,
+
+    input [15:0] xofs,
+    input [15:0] yofs,
+
+    output [8:0] xdraw,
+    output [8:0] xread,
+    output [8:0] y
+);
+
+reg [8:0] xcnt0, xcnt1;
+reg [8:0] ycnt;
+reg [7:0] readcnt;
+
+assign xread = xcnt0;
+assign xdraw  = xcnt1;
+assign y = ycnt;
+
+wire [8:0] xstart = xbase[8:0] - xofs[8:0];
+wire [8:0] ystart = ybase[8:0] + yofs[8:0];
+
+always_ff @(posedge clk) begin
+    if (ce) begin
+        xcnt0 <= xcnt0 + 1;
+
+        if (readcnt == 8'(READAHEAD)) begin
+            xcnt1 <= xcnt1 + 1;
+        end else begin
+            readcnt <= readcnt + 1;
+        end
+
+        if (frame_strobe) begin
+            readcnt <= 0;
+            xcnt0 <= xstart[8:0];
+            xcnt1 <= xstart[8:0];
+            ycnt <= ystart;
+        end
+
+        if (line_strobe) begin
+            readcnt <= 0;
+            xcnt0 <= xstart[8:0];
+            xcnt1 <= xstart[8:0];
+        end
+
+        if (line_next) begin
+            ycnt <= ycnt + 1;
+        end
+    end
+end
+
+endmodule
+
 
 module TC0480SCP #(parameter SS_IDX=-1) (
     input clk,
@@ -263,7 +327,7 @@ wire [5:0] fg0_xtile;
 reg line_strobe, frame_strobe;
 wire line_next = access_cycle == WAIT1;
 
-tc0480scp_counter raw_counter(
+tc0480scp_simple_counter raw_counter(
     .clk,
     .ce,
     .line_next,
@@ -273,16 +337,12 @@ tc0480scp_counter raw_counter(
     .ybase(sync_yofs),
     .xofs(0),
     .yofs(0),
-    .xfine(0),
-    .yfine(0),
     .xread(dispx),
     .xdraw(),
-    .y(dispy),
-    .xzoom(0),
-    .yzoom(8'h7f)
+    .y(dispy)
 );
 
-tc0480scp_counter #(.READAHEAD(16)) fg0_counter(
+tc0480scp_simple_counter #(.READAHEAD(16)) fg0_counter(
     .clk,
     .ce,
     .line_next,
@@ -292,13 +352,9 @@ tc0480scp_counter #(.READAHEAD(16)) fg0_counter(
     .ybase(1),
     .xofs(ctrl[12]),
     .yofs(~ctrl[13]),
-    .xfine(0),
-    .yfine(0),
     .xread(fg0_xcnt_read),
     .xdraw(fg0_xcnt_draw),
-    .y(fg0_ycnt),
-    .xzoom(0),
-    .yzoom(8'h7f)
+    .y(fg0_ycnt)
 );
 
 

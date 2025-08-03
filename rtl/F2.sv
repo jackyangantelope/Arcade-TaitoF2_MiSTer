@@ -999,7 +999,7 @@ logic [15:0] sync_yofs;
 always_comb begin
     case (game)
         GAME_DEADCONXJ: begin sync_xofs = -12; sync_yofs = -17; end
-        GAME_DEADCONX:  begin sync_xofs = -34; sync_yofs = -4; end
+        GAME_DEADCONX:  begin sync_xofs = -34; sync_yofs = -30; end
         GAME_METALB:    begin sync_xofs = -12; sync_yofs = -18; end
         default: begin sync_xofs = 0; sync_yofs = 0; end
     endcase
@@ -1389,7 +1389,7 @@ assign cpu_data_in = ~SS_SAVEn ? ss_irq_handler[cpu_addr[3:0]] :
                      ~ROMn ? rom_q :
                      ~WORKn ? workram_q :
                      ~SCREEN0n ? scn0_data_out :
-                     ~SCREEN1n ? scn1_data_out :
+                     ~SCREEN1n ? ( cfg_100scn ? scn1_data_out : scp_data_out ) :
                      ~OBJECTn ? objram_data_out :
                      ~PRIORITYn ? { pri360_data_out, pri360_data_out } :
                      ~COLORn ? (cfg_260dar ? dar_data_out : pri_data_out) :
