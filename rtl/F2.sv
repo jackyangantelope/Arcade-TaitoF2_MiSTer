@@ -579,7 +579,32 @@ TMP82C265 tmp82c265(
 );
 
 
-wire [7:0] te7750_p7 = (game == GAME_NINJAK) ? {coin[3:0], 4'd0} : {4'd0, coin[3:0]};
+logic [7:0] te7750_p[10];
+
+always_comb begin
+    te7750_p[0] = 0;
+    if (game == GAME_NINJAK) begin
+        te7750_p[1] = dswa;
+        te7750_p[2] = dswb;
+        te7750_p[3] = {start[0], joystick_p1[6:4], joystick_p1[0], joystick_p1[1], joystick_p1[2], joystick_p1[3]};
+        te7750_p[4] = {start[1], joystick_p2[6:4], joystick_p2[0], joystick_p2[1], joystick_p2[2], joystick_p2[3]};
+        te7750_p[5] = {start[2], joystick_p3[6:4], joystick_p3[0], joystick_p3[1], joystick_p3[2], joystick_p3[3]};
+        te7750_p[6] = {start[3], joystick_p4[6:4], joystick_p4[0], joystick_p4[1], joystick_p4[2], joystick_p4[3]};
+        te7750_p[7] = {coin[3:0], 4'd0};
+        te7750_p[8] = 0;
+        te7750_p[9] = 0;
+    end else begin
+        te7750_p[1] = dswa;
+        te7750_p[2] = dswb;
+        te7750_p[3] = {4'd0, coin[3:0]};
+        te7750_p[4] = 0;
+        te7750_p[5] = 0;
+        te7750_p[6] = {start[0], joystick_p1[6:4], joystick_p1[0], joystick_p1[1], joystick_p1[2], joystick_p1[3]};
+        te7750_p[7] = {start[1], joystick_p2[6:4], joystick_p2[0], joystick_p2[1], joystick_p2[2], joystick_p2[3]};
+        te7750_p[8] = {start[2], joystick_p3[6:4], joystick_p3[0], joystick_p3[1], joystick_p3[2], joystick_p3[3]};
+        te7750_p[9] = {start[3], joystick_p4[6:4], joystick_p4[0], joystick_p4[1], joystick_p4[2], joystick_p4[3]};
+     end
+end
 
 TE7750 te7750(
     .clk,
@@ -592,15 +617,15 @@ TE7750 te7750(
     .Dout(io_te7750_data_out),
 
 
-    .P1in(~dswa),
-    .P2in(~dswb),
-    .P3in(~{start[0], joystick_p1[6:4], joystick_p1[0], joystick_p1[1], joystick_p1[2], joystick_p1[3]}),
-    .P4in(~{start[1], joystick_p2[6:4], joystick_p2[0], joystick_p2[1], joystick_p2[2], joystick_p2[3]}),
-    .P5in(~{start[2], joystick_p3[6:4], joystick_p3[0], joystick_p3[1], joystick_p3[2], joystick_p3[3]}),
-    .P6in(~{start[3], joystick_p4[6:4], joystick_p4[0], joystick_p4[1], joystick_p4[2], joystick_p4[3]}),
-    .P7in(~te7750_p7),
-    .P8in(0),
-    .P9in(0),
+    .P1in(~te7750_p[1]),
+    .P2in(~te7750_p[2]),
+    .P3in(~te7750_p[3]),
+    .P4in(~te7750_p[4]),
+    .P5in(~te7750_p[5]),
+    .P6in(~te7750_p[6]),
+    .P7in(~te7750_p[7]),
+    .P8in(~te7750_p[8]),
+    .P9in(~te7750_p[9]),
 
     .P1out(), .P2out(), .P3out(), .P4out(), .P5out(),
     .P6out(), .P7out(), .P8out(), .P9out()
