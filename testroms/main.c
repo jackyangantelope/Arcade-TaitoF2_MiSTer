@@ -1341,7 +1341,7 @@ void init_480scp()
     // 1 - BG0 / BG2
     // 2 - BG3
     // 3 - FG0
-    tc0360pri_set_roz_prio(5, 5, 5, 5);
+    tc0360pri_set_roz_prio(7, 7, 7, 7);
     tc0360pri_set_roz(0, 0);
     
     TC0200OBJ_Inst *obj_ptr = TC0200OBJ;

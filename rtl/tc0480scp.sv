@@ -461,6 +461,9 @@ logic [1:0] bg_idx1;
 logic [1:0] bg_idx2;
 logic [1:0] bg_idx3;
 
+// 3'b110 is not correct, it actually enables some kind of intersection mode
+// Only layers 0 and 1 are draw, and only when they overlap with data from
+// 2 and 3
 always_comb begin
     case(ctrl_prio[2:0])
         3'b000: begin bg_idx0 = 2'd0; bg_idx1 = 2'd1; bg_idx2 = 2'd2; bg_idx3 = 2'd3; end
