@@ -456,10 +456,23 @@ tc0480scp_shifter fg0_shifter(
     .load_index(fg0_load_index)
 );
 
-wire [1:0] bg_idx0 = (ctrl_prio[1:0] + 2'd0) ^ ~{2{ctrl_prio[2]}};
-wire [1:0] bg_idx1 = (ctrl_prio[1:0] + 2'd1) ^ ~{2{ctrl_prio[2]}};
-wire [1:0] bg_idx2 = (ctrl_prio[1:0] + 2'd2) ^ ~{2{ctrl_prio[2]}};
-wire [1:0] bg_idx3 = (ctrl_prio[1:0] + 2'd3) ^ ~{2{ctrl_prio[2]}};
+logic [1:0] bg_idx0;
+logic [1:0] bg_idx1;
+logic [1:0] bg_idx2;
+logic [1:0] bg_idx3;
+
+always_comb begin
+    case(ctrl_prio[2:0])
+        3'b000: begin bg_idx0 = 2'd0; bg_idx1 = 2'd1; bg_idx2 = 2'd2; bg_idx3 = 2'd3; end
+        3'b001: begin bg_idx0 = 2'd3; bg_idx1 = 2'd0; bg_idx2 = 2'd1; bg_idx3 = 2'd2; end
+        3'b010: begin bg_idx0 = 2'd2; bg_idx1 = 2'd3; bg_idx2 = 2'd0; bg_idx3 = 2'd1; end
+        3'b011: begin bg_idx0 = 2'd1; bg_idx1 = 2'd2; bg_idx2 = 2'd3; bg_idx3 = 2'd0; end
+        3'b100: begin bg_idx0 = 2'd3; bg_idx1 = 2'd2; bg_idx2 = 2'd1; bg_idx3 = 2'd0; end
+        3'b101: begin bg_idx0 = 2'd2; bg_idx1 = 2'd1; bg_idx2 = 2'd0; bg_idx3 = 2'd3; end
+        3'b110: begin bg_idx0 = 2'd1; bg_idx1 = 2'd0; bg_idx2 = 2'd3; bg_idx3 = 2'd2; end
+        3'b111: begin bg_idx0 = 2'd0; bg_idx1 = 2'd3; bg_idx2 = 2'd2; bg_idx3 = 2'd1; end
+    endcase
+end
 
 logic [15:0] bg_prio_dot[4];
 
@@ -471,10 +484,10 @@ always_comb begin
 end
 
 assign SD = |fg0_dot[3:0] ? { 3'b101, devils_bit, fg0_dot } :
-            |bg_prio_dot[0][3:0] ? bg_prio_dot[0] :
-            |bg_prio_dot[1][3:0] ? bg_prio_dot[1] :
+            |bg_prio_dot[3][3:0] ? bg_prio_dot[3] :
             |bg_prio_dot[2][3:0] ? bg_prio_dot[2] :
-            bg_prio_dot[3];
+            |bg_prio_dot[1][3:0] ? bg_prio_dot[1] :
+            bg_prio_dot[0];
 
 reg dtack_n;
 reg prev_cs_n;

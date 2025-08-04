@@ -1427,29 +1427,35 @@ void init_480scp()
     pen_color(0xC8);
     sym_at(6, 6, 'F');
 
-    /*
-    on_layer(BG3);
-    uint16_t flags = 0;
-    for( int y = 0; y < 8; y++ )
-    {
-        for (int x = 0; x < 8; x++ )
-        {
-            pen_color(255 | (flags << 8));
-            sym_at(x + 4, y + 4, 0x8025);
-            flags++;
-        }
-    }*/
 
+    for( int layer = 0; layer < 4; layer++ )
+    {
+        on_layer(BG0 + layer);
+        pen_color(0x1c + layer);
+        for( int i = 0; i < 4; i++ )
+        {
+            sym_at( 8 + layer, 4 + i, 1);
+            sym_at( 8 + i, 4 + layer, 1);
+        }
+    }
 }
 
 void update_480scp()
 {
+    static uint16_t prio = 0;
     wait_vblank();
     pen_color(8);
     on_layer(FG0);
     sym_at(10,10,1);
     
-    print_at(2,3,"VBLANK: %04X", vblank_count);
+    print_at(2,3,"VBLANK: %04X PRIO %02X", vblank_count, prio);
+
+    if (input_pressed(UP)) prio++;
+    if (input_pressed(DOWN)) prio--;
+
+    prio &= 0x7;
+
+    TC0480SCP_Ctrl->system_flags = TC0480SCP_SYSTEM_EXT_SYNC | (prio << 2);
 }
 
 void init_480scp_zoom()
@@ -1790,7 +1796,7 @@ int main(int argc, char *argv[])
 
     uint32_t system_flags = 0;
 
-    int current_screen = 12;
+    int current_screen = 10;
 
     init_screen(current_screen);
     

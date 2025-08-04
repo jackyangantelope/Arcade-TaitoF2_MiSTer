@@ -1216,8 +1216,11 @@ always_comb begin
     color1_pri = {obj_dot[11:10], 1'b0, obj_dot[11:0]};
     if (cfg_480scp) begin
         if (game == GAME_METALB) begin
-            color0_pri = {~scp_dot_color[14], ~scp_dot_color[13], scp_dot_color[12:0]};
-            color2_pri = {scp_dot_color[15], ~scp_dot_color[13], scp_dot_color[12:0]};
+            color0_pri = {{scp_dot_color[14], scp_dot_color[13]} - 2'b01, scp_dot_color[12:0]};
+            if (scp_dot_color[15:13] == 3'b101)
+                color2_pri = {2'b10, scp_dot_color[12:0]};
+            else
+                color2_pri = {2'b00, scp_dot_color[12:0]};
         end else begin
             color0_pri = {scp_dot_color[14], scp_dot_color[13], scp_dot_color[12:0]};
             color2_pri = {scp_dot_color[15], scp_dot_color[13], scp_dot_color[12:0]};
