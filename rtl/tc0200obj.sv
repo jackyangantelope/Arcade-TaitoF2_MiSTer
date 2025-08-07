@@ -599,7 +599,7 @@ end
 // Scan out
 //
 
-wire [9:0] H_OFS = 97;
+wire [9:0] H_OFS = 98;
 wire [9:0] H_START = 0 + H_OFS;
 wire [9:0] H_END = 424 + H_OFS - 1;
 wire [9:0] HS_START = 340 + H_OFS;

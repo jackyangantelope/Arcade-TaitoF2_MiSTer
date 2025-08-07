@@ -69,7 +69,7 @@ always_ff @(posedge clk) begin
         hb1 <= HBLANKn; hb2 <= hb1;
         vb1 <= VBLANKn; vb2 <= vb1;
 
-        if (hb2 & vb2 & ~cpu_access) begin
+        if (hb1 & vb1 & ~cpu_access) begin
             if (bpp15 & bppmix) begin
                 VIDEOR <= { RDin[15:12], RDin[3], RDin[15:13] };
                 VIDEOG <= { RDin[11:8], RDin[2], RDin[11:9] };

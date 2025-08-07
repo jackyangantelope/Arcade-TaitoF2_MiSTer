@@ -586,7 +586,7 @@ always @(posedge clk) begin
         dtack_n <= 1;
         ram_pending <= 0;
         ram_access <= 0;
-    end else if (ce) begin
+    end else begin
         // CPu interface handling
         prev_cs_n <= CSn;
         if (~CSn & prev_cs_n) begin // CS edge
@@ -605,118 +605,121 @@ always @(posedge clk) begin
             dtack_n <= 1;
         end
 
-        prev_hld_n <= OUHLDn;
-        prev_vld_n <= OUVLDn;
+        if (ce) begin
 
-        line_strobe <= 0;
-        end_line <= prev_hld_n & ~OUHLDn;
-        frame_strobe <= prev_vld_n & ~OUVLDn;
-        fg0_load <= 0;
+            prev_hld_n <= OUHLDn;
+            prev_vld_n <= OUVLDn;
 
-        case(access_cycle)
-            CPU_ACCESS_0,
-            CPU_ACCESS_1: begin
-                if (ram_access) begin
-                    ram_access <= 0;
-                    ram_pending <= 0;
-                    dtack_n <= 0;
-                    VDout <= RADin;
-                end
-            end
+            line_strobe <= 0;
+            end_line <= prev_hld_n & ~OUHLDn;
+            frame_strobe <= prev_vld_n & ~OUVLDn;
+            fg0_load <= 0;
 
-            BG0_ATTRIB0: bg_attrib[0][31:16] <= RADin;
-            BG0_ATTRIB1: begin
-                bg_attrib[0][15:0]  <= RADin;
-                bg_req[0] <= ~bg_req[0];
-                bg_load_index[0] <= bg_xcnt[5:4];
-            end
-
-            BG1_ATTRIB0: bg_attrib[1][31:16] <= RADin;
-            BG1_ATTRIB1: begin
-                bg_attrib[1][15:0]  <= RADin;
-                bg_req[1] <= ~bg_req[1];
-                bg_load_index[1] <= bg_xcnt[5:4];
-            end
-
-            BG2_ATTRIB0: bg_attrib[2][31:16] <= RADin;
-            BG2_ATTRIB1: begin
-                bg_attrib[2][15:0]  <= RADin;
-                bg_req[2] <= ~bg_req[2];
-                bg_load_index[2] <= bg_xcnt[5:4];
-            end
-
-            BG3_ATTRIB0: bg_attrib[3][31:16] <= RADin;
-            BG3_ATTRIB1: begin
-                bg_attrib[3][15:0]  <= RADin;
-                bg_req[3] <= ~bg_req[3];
-                bg_load_index[3] <= bg_xcnt[5:4];
-            end
-
-            FG0_ATTRIB_0,
-            FG0_ATTRIB_1: begin
-                fg0_attrib <= RADin;
-                fg0_load_index <= fg0_xcnt_read[4:3];
-            end
-
-            FG0_GFX0_0,
-            FG0_GFX0_1: fg0_gfx[15:0] <= RADin;
-
-            FG0_GFX1_0,
-            FG0_GFX1_1: begin
-                fg0_gfx[31:16] <= RADin;
-                fg0_load <= 1;
-            end
-
-            BG2_ROW_SELECT: bg_row_select[2] <= RADin[8:0];
-            BG3_ROW_SELECT: bg_row_select[3] <= RADin[8:0];
-
-            BG2_ROW_ZOOM: begin
-                bg_row_zoom[0] <=                              ctrl[8+0][15:8];
-                bg_row_zoom[2] <= ctrl_bg2_zoom ? RADin[7:0] : ctrl[8+2][15:8];
-            end
-            BG3_ROW_ZOOM: begin
-                bg_row_zoom[1] <=                              ctrl[8+1][15:8];
-                bg_row_zoom[3] <= ctrl_bg3_zoom ? RADin[7:0] : ctrl[8+3][15:8];
-            end
-
-            BG0_ROW_SCROLL: bg_row_scroll[0] <= RADin;
-            BG1_ROW_SCROLL: bg_row_scroll[1] <= RADin;
-            BG2_ROW_SCROLL: bg_row_scroll[2] <= RADin;
-            BG3_ROW_SCROLL: bg_row_scroll[3] <= RADin;
-
-            BG0_ROW_SCROLL2: bg_row_scroll2[0] <= RADin[7:0];
-            BG1_ROW_SCROLL2: bg_row_scroll2[1] <= RADin[7:0];
-            BG2_ROW_SCROLL2: bg_row_scroll2[2] <= RADin[7:0];
-            BG3_ROW_SCROLL2: begin
-                bg_row_scroll2[3] <= RADin[7:0];
-                line_strobe <= 1;
-            end
-
-            default: begin
-            end
-        endcase
-
-        case (next_access_cycle)
-            BG0_ATTRIB0: bg_xcnt <= bg_xcnt_read[0];
-            BG1_ATTRIB0: bg_xcnt <= bg_xcnt_read[1];
-            BG2_ATTRIB0: bg_xcnt <= bg_xcnt_read[2];
-            BG3_ATTRIB0: bg_xcnt <= bg_xcnt_read[3];
-            default: begin end
-        endcase
-
-        if (end_line) begin
-            access_cycle <= WAIT0;
-        end else begin
-            access_cycle <= next_access_cycle;
-            case(next_access_cycle)
+            case(access_cycle)
                 CPU_ACCESS_0,
                 CPU_ACCESS_1: begin
-                    ram_access <= ram_pending;
+                    if (ram_access) begin
+                        ram_access <= 0;
+                        ram_pending <= 0;
+                        dtack_n <= 0;
+                        VDout <= RADin;
+                    end
+                end
+
+                BG0_ATTRIB0: bg_attrib[0][31:16] <= RADin;
+                BG0_ATTRIB1: begin
+                    bg_attrib[0][15:0]  <= RADin;
+                    bg_req[0] <= ~bg_req[0];
+                    bg_load_index[0] <= bg_xcnt[5:4];
+                end
+
+                BG1_ATTRIB0: bg_attrib[1][31:16] <= RADin;
+                BG1_ATTRIB1: begin
+                    bg_attrib[1][15:0]  <= RADin;
+                    bg_req[1] <= ~bg_req[1];
+                    bg_load_index[1] <= bg_xcnt[5:4];
+                end
+
+                BG2_ATTRIB0: bg_attrib[2][31:16] <= RADin;
+                BG2_ATTRIB1: begin
+                    bg_attrib[2][15:0]  <= RADin;
+                    bg_req[2] <= ~bg_req[2];
+                    bg_load_index[2] <= bg_xcnt[5:4];
+                end
+
+                BG3_ATTRIB0: bg_attrib[3][31:16] <= RADin;
+                BG3_ATTRIB1: begin
+                    bg_attrib[3][15:0]  <= RADin;
+                    bg_req[3] <= ~bg_req[3];
+                    bg_load_index[3] <= bg_xcnt[5:4];
+                end
+
+                FG0_ATTRIB_0,
+                FG0_ATTRIB_1: begin
+                    fg0_attrib <= RADin;
+                    fg0_load_index <= fg0_xcnt_read[4:3];
+                end
+
+                FG0_GFX0_0,
+                FG0_GFX0_1: fg0_gfx[15:0] <= RADin;
+
+                FG0_GFX1_0,
+                FG0_GFX1_1: begin
+                    fg0_gfx[31:16] <= RADin;
+                    fg0_load <= 1;
+                end
+
+                BG2_ROW_SELECT: bg_row_select[2] <= RADin[8:0];
+                BG3_ROW_SELECT: bg_row_select[3] <= RADin[8:0];
+
+                BG2_ROW_ZOOM: begin
+                    bg_row_zoom[0] <=                              ctrl[8+0][15:8];
+                    bg_row_zoom[2] <= ctrl_bg2_zoom ? RADin[7:0] : ctrl[8+2][15:8];
+                end
+                BG3_ROW_ZOOM: begin
+                    bg_row_zoom[1] <=                              ctrl[8+1][15:8];
+                    bg_row_zoom[3] <= ctrl_bg3_zoom ? RADin[7:0] : ctrl[8+3][15:8];
+                end
+
+                BG0_ROW_SCROLL: bg_row_scroll[0] <= RADin;
+                BG1_ROW_SCROLL: bg_row_scroll[1] <= RADin;
+                BG2_ROW_SCROLL: bg_row_scroll[2] <= RADin;
+                BG3_ROW_SCROLL: bg_row_scroll[3] <= RADin;
+
+                BG0_ROW_SCROLL2: bg_row_scroll2[0] <= RADin[7:0];
+                BG1_ROW_SCROLL2: bg_row_scroll2[1] <= RADin[7:0];
+                BG2_ROW_SCROLL2: bg_row_scroll2[2] <= RADin[7:0];
+                BG3_ROW_SCROLL2: begin
+                    bg_row_scroll2[3] <= RADin[7:0];
+                    line_strobe <= 1;
                 end
 
                 default: begin
                 end
             endcase
+
+            case (next_access_cycle)
+                BG0_ATTRIB0: bg_xcnt <= bg_xcnt_read[0];
+                BG1_ATTRIB0: bg_xcnt <= bg_xcnt_read[1];
+                BG2_ATTRIB0: bg_xcnt <= bg_xcnt_read[2];
+                BG3_ATTRIB0: bg_xcnt <= bg_xcnt_read[3];
+                default: begin end
+            endcase
+
+            if (end_line) begin
+                access_cycle <= WAIT0;
+            end else begin
+                access_cycle <= next_access_cycle;
+                case(next_access_cycle)
+                    CPU_ACCESS_0,
+                    CPU_ACCESS_1: begin
+                        ram_access <= ram_pending;
+                    end
+
+                    default: begin
+                    end
+                endcase
+            end
         end
     end
 

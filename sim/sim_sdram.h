@@ -15,7 +15,6 @@ class SimSDRAM
         size = sz;
         mask = sz - 1;
         data = new uint8_t[size];
-        delay = 0;
     }
 
     ~SimSDRAM()
@@ -24,16 +23,16 @@ class SimSDRAM
         data = nullptr;
     }
 
-    void update_channel_16(uint32_t addr, uint8_t req, uint8_t rw, uint8_t be,
+    void update_channel_16(int ch, int dly, uint32_t addr, uint8_t req, uint8_t rw, uint8_t be,
                            uint16_t din, uint16_t *dout, uint8_t *ack)
     {
         if (req == *ack)
             return;
 
-        delay--;
-        if (delay > 0)
+        delay[ch]--;
+        if (delay[ch] > 0)
             return;
-        delay = rand() % 9;
+        delay[ch] = rand() % dly;
 
         addr &= mask;
         addr &= 0xfffffffe;
@@ -53,11 +52,16 @@ class SimSDRAM
         }
     }
 
-    void update_channel_32(uint32_t addr, uint8_t req, uint8_t rw, uint8_t be,
+    void update_channel_32(int ch, int dly, uint32_t addr, uint8_t req, uint8_t rw, uint8_t be,
                            uint32_t din, uint32_t *dout, uint8_t *ack)
     {
         if (req == *ack)
             return;
+
+        delay[ch]--;
+        if (delay[ch] > 0)
+            return;
+        delay[ch] = rand() % dly;
 
         addr &= mask;
         addr &= 0xfffffffe;
@@ -82,16 +86,16 @@ class SimSDRAM
         }
     }
 
-    void update_channel_64(uint32_t addr, uint8_t req, uint8_t rw, uint8_t be,
+    void update_channel_64(int ch, int dly, uint32_t addr, uint8_t req, uint8_t rw, uint8_t be,
                            uint64_t din, uint64_t *dout, uint8_t *ack)
     {
         if (req == *ack)
             return;
 
-        delay--;
-        if (delay > 0)
+        delay[ch]--;
+        if (delay[ch] > 0)
             return;
-        delay = rand() % 9;
+        delay[ch] = rand() % dly;
 
         addr &= mask;
         addr &= 0xfffffffe;
@@ -201,7 +205,7 @@ class SimSDRAM
     uint32_t size;
     uint32_t mask;
     uint8_t *data;
-    int delay;
+    int delay[8];
 };
 
 extern SimSDRAM sdram;

@@ -998,9 +998,9 @@ logic [15:0] sync_yofs;
 
 always_comb begin
     case (game)
-        GAME_DEADCONXJ: begin sync_xofs = -12; sync_yofs = -17; end
-        GAME_DEADCONX:  begin sync_xofs = -34; sync_yofs = -30; end
-        GAME_METALB:    begin sync_xofs = -12; sync_yofs = -18; end
+        GAME_DEADCONXJ: begin sync_xofs = -11; sync_yofs = -17; end
+        GAME_DEADCONX:  begin sync_xofs = -33; sync_yofs = -30; end
+        GAME_METALB:    begin sync_xofs = -11; sync_yofs = -18; end
         default: begin sync_xofs = 0; sync_yofs = 0; end
     endcase
 end
