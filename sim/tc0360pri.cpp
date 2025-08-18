@@ -1,6 +1,7 @@
 #include <SDL.h>
 
 #include "imgui_wrap.h"
+#include "sim_hierarchy.h"
 
 #include "F2.h"
 #include "F2___024root.h"
@@ -15,13 +16,13 @@ void draw_pri_window()
         return;
     }
 
-    uint16_t color_in0 = top->rootp->F2__DOT__tc0360pri__DOT__color_in0;
-    uint16_t color_in1 = top->rootp->F2__DOT__tc0360pri__DOT__color_in1;
-    uint16_t color_in2 = top->rootp->F2__DOT__tc0360pri__DOT__color_in2;
+    uint16_t color_in0 = top->rootp->F2_SIGNAL(tc0360pri, color_in0);
+    uint16_t color_in1 = top->rootp->F2_SIGNAL(tc0360pri, color_in1);
+    uint16_t color_in2 = top->rootp->F2_SIGNAL(tc0360pri, color_in2);
     uint8_t ctrl[16];
     for (int i = 0; i < 16; i++)
     {
-        ctrl[i] = top->rootp->F2__DOT__tc0360pri__DOT__ctrl[i];
+        ctrl[i] = top->rootp->F2_SIGNAL(tc0360pri, ctrl)[i];
     }
 
     ImGui::Text("Color0: %03X  Sel0: %d", color_in0 & 0xfff,

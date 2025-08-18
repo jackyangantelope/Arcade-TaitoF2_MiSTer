@@ -71,6 +71,7 @@ HDL_SRC += ../rtl/tc0100scn.sv ../rtl/tc0110pr.sv ../rtl/tc0220ioc.sv ../rtl/tc0
 HDL_SRC += ../rtl/tc0260dar.sv ../rtl/tc0200obj_extender.sv ../rtl/tc0360pri.sv ../rtl/tc0190fmc.sv
 HDL_SRC += ../rtl/ram.sv ../rtl/jtframe_frac_cen.v ../rtl/memory_stream.sv ../rtl/savestates.sv ../rtl/ddram.sv
 HDL_SRC += ../rtl/audio_mix.sv ../sys/iir_filter.v
+HDL_SRC += sim_top.sv
 HDL_SRC += verilator.vlt
 
 
@@ -86,7 +87,7 @@ endif
 all: sim
 
 $(VERILATED_DIR)/F2.mk: $(HDL_SRC) $(HDL_GEN) Makefile
-	$(VERILATOR) $(VERILATOR_ARGS) -o F2 --prefix F2 --top F2 $(HDL_SRC)
+	$(VERILATOR) $(VERILATOR_ARGS) -o F2 --prefix F2 --top sim_top $(HDL_SRC)
 
 $(VERILATED_DIR)/F2__ALL.a: $(VERILATED_DIR)/F2.mk $(HDL_SRC) $(HDL_GEN)
 	$(MAKE) -C $(VERILATED_DIR) -f F2.mk

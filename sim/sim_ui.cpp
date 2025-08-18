@@ -4,6 +4,7 @@
 #include "third_party/imgui_memory_editor.h"
 #include "sim_core.h"
 #include "sim_state.h"
+#include "sim_hierarchy.h"
 #include "games.h"
 #include "F2.h"
 #include "F2___024root.h"
@@ -38,17 +39,17 @@ extern uint32_t dipswitch_b;
     {                                                                          \
         size_t word_off = off >> 1;                                            \
         if (off & 1)                                                           \
-            return top->rootp->F2__DOT__##instance##__DOT__ram_l[word_off];    \
+            return top->rootp->F2_SIGNAL(instance, ram_l)[word_off];            \
         else                                                                   \
-            return top->rootp->F2__DOT__##instance##__DOT__ram_h[word_off];    \
+            return top->rootp->F2_SIGNAL(instance, ram_h)[word_off];            \
     }                                                                          \
     void instance##_write(ImU8 *, size_t off, ImU8 d, void *)                  \
     {                                                                          \
         size_t word_off = off >> 1;                                            \
         if (off & 1)                                                           \
-            top->rootp->F2__DOT__##instance##__DOT__ram_l[word_off] = d;       \
+            top->rootp->F2_SIGNAL(instance, ram_l)[word_off] = d;               \
         else                                                                   \
-            top->rootp->F2__DOT__##instance##__DOT__ram_h[word_off] = d;       \
+            top->rootp->F2_SIGNAL(instance, ram_h)[word_off] = d;               \
     }                                                                          \
     class instance##_Editor : public MemoryEditor                              \
     {                                                                          \
@@ -271,9 +272,7 @@ void ui_draw()
             if (ImGui::BeginTabItem("Extension RAM"))
             {
                 extension_ram.DrawContents(
-                    top->rootp
-                        ->F2__DOT__tc0200obj_extender__DOT__extension_ram__DOT__ram
-                        .m_storage,
+                    top->rootp->F2_SIGNAL(tc0200obj_extender, extension_ram, ram).m_storage,
                     4 * 1024);
                 ImGui::EndTabItem();
             }
@@ -307,7 +306,7 @@ void ui_draw()
             if (ImGui::BeginTabItem("Sound RAM"))
             {
                 sound_ram.DrawContents(
-                    top->rootp->F2__DOT__sound_ram__DOT__ram.m_storage,
+                    top->rootp->F2_SIGNAL(sound_ram, ram).m_storage,
                     16 * 1024);
                 ImGui::EndTabItem();
             }
@@ -315,7 +314,7 @@ void ui_draw()
             if (ImGui::BeginTabItem("Sound ROM"))
             {
                 sound_rom.DrawContents(
-                    top->rootp->F2__DOT__sound_rom__DOT__ram.m_storage,
+                    top->rootp->F2_SIGNAL(sound_rom, ram).m_storage,
                     128 * 1024);
                 ImGui::EndTabItem();
             }

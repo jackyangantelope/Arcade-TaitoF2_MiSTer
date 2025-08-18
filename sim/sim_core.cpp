@@ -1,5 +1,6 @@
 
 #include "sim_core.h"
+#include "sim_hierarchy.h"
 #include "F2.h"
 #include "F2___024root.h"
 #include "verilated.h"
@@ -88,7 +89,7 @@ void sim_tick(int count)
             tfp->dump(contextp->time());
 
         if (simulation_wp_set &&
-            top->rootp->F2__DOT__cpu_word_addr == simulation_wp_addr)
+            top->rootp->F2_SIGNAL(cpu_word_addr) == simulation_wp_addr)
         {
             simulation_run = false;
             simulation_step = false;

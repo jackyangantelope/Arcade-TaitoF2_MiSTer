@@ -51,7 +51,7 @@ static bool load_audio(const char *name)
         return false;
     }
 
-    memcpy(top->rootp->F2__DOT__sound_rom__DOT__ram.m_storage, data.data(),
+    memcpy(top->rootp->sim_top__DOT__f2_inst__DOT__sound_rom__DOT__ram.m_storage, data.data(),
            data.size());
 
     return true;

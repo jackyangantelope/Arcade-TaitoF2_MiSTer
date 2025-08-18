@@ -163,19 +163,19 @@ void get_obj_inst(uint16_t index, TC0200OBJ_Inst *inst)
     for (int i = 0; i < 8; i++)
     {
         inst_data[(i * 2) + 0] =
-            top->rootp->F2__DOT__obj_ram__DOT__ram_l.m_storage[offset + i];
+            top->rootp->sim_top__DOT__f2_inst__DOT__obj_ram__DOT__ram_l.m_storage[offset + i];
         inst_data[(i * 2) + 1] =
-            top->rootp->F2__DOT__obj_ram__DOT__ram_h.m_storage[offset + i];
+            top->rootp->sim_top__DOT__f2_inst__DOT__obj_ram__DOT__ram_h.m_storage[offset + i];
     }
 }
 
 uint16_t extended_code(uint16_t index, uint16_t code)
 {
-    if (top->rootp->F2__DOT__cfg_obj_extender == 1)
+    if (top->rootp->sim_top__DOT__f2_inst__DOT__cfg_obj_extender == 1)
     {
         uint8_t ext =
             top->rootp
-                ->F2__DOT__tc0200obj_extender__DOT__extension_ram__DOT__ram
+                ->sim_top__DOT__f2_inst__DOT__tc0200obj_extender__DOT__extension_ram__DOT__ram
                 .m_storage[index];
         return (code & 0xff) | (ext << 8);
     }

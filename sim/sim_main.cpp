@@ -5,6 +5,7 @@
 #include "sim_video.h"
 #include "sim_state.h"
 #include "sim_command.h"
+#include "sim_hierarchy.h"
 #include "games.h"
 #include "F2.h"
 #include "F2___024root.h"
@@ -96,8 +97,8 @@ int main(int argc, char **argv)
         video.init(320, 224, imgui_get_renderer());
         init_obj_cache(imgui_get_renderer(),
                        ddr_memory.memory.data() + OBJ_DATA_DDR_BASE,
-                       top->rootp->F2__DOT__color_ram__DOT__ram_l.m_storage,
-                       top->rootp->F2__DOT__color_ram__DOT__ram_h.m_storage);
+                       top->rootp->F2_SIGNAL(color_ram, ram_l).m_storage,
+                       top->rootp->F2_SIGNAL(color_ram, ram_h).m_storage);
     }
     else
     {
