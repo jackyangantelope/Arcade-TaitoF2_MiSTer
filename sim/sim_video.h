@@ -20,8 +20,15 @@ class SimVideo
         width = w;
         height = h;
         pixels = new uint32_t[width * height];
-        texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBX8888,
-                                    SDL_TEXTUREACCESS_STREAMING, width, height);
+        if (renderer)
+        {
+            texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBX8888,
+                                        SDL_TEXTUREACCESS_STREAMING, width, height);
+        }
+        else
+        {
+            texture = nullptr;  // Headless mode
+        }
         x = 0;
         y = 0;
         rotated = false;
@@ -81,6 +88,9 @@ class SimVideo
 
     void update_texture()
     {
+        if (!texture)
+            return;  // Skip in headless mode
+            
         SDL_Rect region;
 
         int line_count = height;

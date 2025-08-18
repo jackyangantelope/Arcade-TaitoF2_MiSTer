@@ -4,6 +4,7 @@
 #include "sim_hw_ui.h"
 #include "sim_video.h"
 #include "sim_state.h"
+#include "sim_command.h"
 #include "games.h"
 #include "F2.h"
 #include "F2___024root.h"
@@ -14,6 +15,7 @@
 #include "sim_ddr.h"
 
 #include <stdio.h>
+#include <iostream>
 #include <SDL.h>
 
 extern SimVideo video;
@@ -44,13 +46,17 @@ SimDebug *sim_debug_data = nullptr;
 
 int main(int argc, char **argv)
 {
-    const char *game_name = "finalb";
-    char title[64];
-
-    if (argc == 2)
+    CommandQueue command_queue;
+    std::string game_name_str = "finalb";
+    
+    // Parse command line arguments
+    if (!command_queue.parse_arguments(argc, argv, game_name_str))
     {
-        game_name = argv[1];
+        return -1;
     }
+    
+    const char *game_name = game_name_str.c_str();
+    char title[64];
 
     const game_t game = game_find(game_name);
     if (game == GAME_INVALID)
@@ -62,7 +68,12 @@ int main(int argc, char **argv)
     snprintf(title, 64, "F2 - %s", game_name);
 
     sim_init();
-    ui_init(title);
+    
+    // Only initialize UI if not in headless mode
+    if (!command_queue.is_headless())
+    {
+        ui_init(title);
+    }
 
     game_init(game);
 
@@ -80,59 +91,169 @@ int main(int argc, char **argv)
     state_manager = new SimState(top, &ddr_memory, 0, 512 * 1024);
     state_manager->set_game_name(::game_name(game));
 
-    video.init(320, 224, imgui_get_renderer());
-
-    init_obj_cache(imgui_get_renderer(),
-                   ddr_memory.memory.data() + OBJ_DATA_DDR_BASE,
-                   top->rootp->F2__DOT__color_ram__DOT__ram_l.m_storage,
-                   top->rootp->F2__DOT__color_ram__DOT__ram_h.m_storage);
+    if (!command_queue.is_headless())
+    {
+        video.init(320, 224, imgui_get_renderer());
+        init_obj_cache(imgui_get_renderer(),
+                       ddr_memory.memory.data() + OBJ_DATA_DDR_BASE,
+                       top->rootp->F2__DOT__color_ram__DOT__ram_l.m_storage,
+                       top->rootp->F2__DOT__color_ram__DOT__ram_h.m_storage);
+    }
+    else
+    {
+        // Minimal init for headless mode
+        video.init(320, 224, nullptr);
+    }
 
     Verilated::traceEverOn(true);
 
-    const Uint8 *keyboard_state = SDL_GetKeyboardState(NULL);
+    const Uint8 *keyboard_state = command_queue.is_headless() ? nullptr : SDL_GetKeyboardState(NULL);
     bool screenshot_key_pressed = false;
-
-    while (ui_begin_frame())
+    
+    // Execute pre-simulation commands (like load-state)
+    while (!command_queue.empty())
     {
-        if (keyboard_state[SDL_SCANCODE_F12] && !screenshot_key_pressed)
+        Command& cmd = command_queue.front();
+        if (cmd.type == CommandType::LOAD_STATE)
         {
-            std::string filename =
-                video.generate_screenshot_filename(game_name);
-            video.save_screenshot(filename.c_str());
-            screenshot_key_pressed = true;
+            if (command_queue.is_verbose())
+                std::cout << "Loading state from: " << cmd.filename << std::endl;
+            state_manager->restore_state(cmd.filename.c_str());
+            command_queue.pop();
         }
-        else if (!keyboard_state[SDL_SCANCODE_F12])
+        else
         {
-            screenshot_key_pressed = false;
+            break;  // Stop at first non-load command
         }
-        prune_obj_cache();
-
-        top->dswa = dipswitch_a & 0xff;
-        top->dswb = dipswitch_b & 0xff;
-        top->pause = system_pause;
-
-        top->joystick_p1 = imgui_get_buttons();
-
-        if (simulation_run || simulation_step)
+    }
+    
+    // Track frame counting for interactive mode
+    bool prev_vblank = false;
+    
+    // Main loop
+    bool running = true;
+    while (running)
+    {
+        // Check if we have commands to execute
+        if (!command_queue.empty())
         {
-            if (simulation_step_vblank)
+            Command& cmd = command_queue.front();
+            
+            switch (cmd.type)
             {
-                sim_tick_until([&] { return top->vblank == 0; });
-                sim_tick_until([&] { return top->vblank != 0; });
+            case CommandType::RUN_CYCLES:
+                if (command_queue.is_verbose())
+                    std::cout << "Running " << cmd.count << " cycles..." << std::endl;
+                sim_tick(cmd.count);
+                if (command_queue.is_verbose())
+                    std::cout << "Completed running " << cmd.count << " cycles" << std::endl;
+                command_queue.pop();
+                break;
+                
+            case CommandType::RUN_FRAMES:
+                if (command_queue.is_verbose())
+                    std::cout << "Running " << cmd.count << " frames..." << std::endl;
+                for (uint64_t i = 0; i < cmd.count; i++)
+                {
+                    sim_tick_until([&] { return top->vblank == 0; });
+                    sim_tick_until([&] { return top->vblank != 0; });
+                }
+                if (command_queue.is_verbose())
+                    std::cout << "Completed running " << cmd.count << " frames" << std::endl;
+                command_queue.pop();
+                break;
+                
+            case CommandType::SCREENSHOT:
+                video.update_texture();
+                if (command_queue.is_verbose())
+                    std::cout << "Saving screenshot to: " << cmd.filename << std::endl;
+                if (video.save_screenshot(cmd.filename.c_str()))
+                {
+                    if (command_queue.is_verbose())
+                        std::cout << "Screenshot saved successfully" << std::endl;
+                }
+                else
+                {
+                    std::cerr << "Failed to save screenshot" << std::endl;
+                }
+                command_queue.pop();
+                break;
+                
+            case CommandType::SAVE_STATE:
+                if (command_queue.is_verbose())
+                    std::cout << "Saving state to: " << cmd.filename << std::endl;
+                state_manager->save_state(cmd.filename.c_str());
+                command_queue.pop();
+                break;
+                
+            case CommandType::EXIT:
+                if (command_queue.is_verbose())
+                    std::cout << "Exiting..." << std::endl;
+                running = false;
+                command_queue.pop();
+                break;
+                
+            default:
+                std::cerr << "Unhandled command type" << std::endl;
+                command_queue.pop();
+                break;
             }
-            else
-            {
-                sim_tick(simulation_step_size);
-            }
-            video.update_texture();
         }
-        simulation_step = false;
+        else if (!command_queue.is_headless())
+        {
+            // Interactive mode
+            if (!ui_begin_frame())
+            {
+                running = false;
+                break;
+            }
+            
+            // Handle F12 screenshot key
+            if (keyboard_state && keyboard_state[SDL_SCANCODE_F12] && !screenshot_key_pressed)
+            {
+                std::string filename = video.generate_screenshot_filename(game_name);
+                video.save_screenshot(filename.c_str());
+                screenshot_key_pressed = true;
+            }
+            else if (keyboard_state && !keyboard_state[SDL_SCANCODE_F12])
+            {
+                screenshot_key_pressed = false;
+            }
+            
+            prune_obj_cache();
 
-        ui_draw();
-        hw_ui_draw();
-        video.draw();
+            top->dswa = dipswitch_a & 0xff;
+            top->dswb = dipswitch_b & 0xff;
+            top->pause = system_pause;
 
-        ui_end_frame();
+            top->joystick_p1 = imgui_get_buttons();
+
+            if (simulation_run || simulation_step)
+            {
+                if (simulation_step_vblank)
+                {
+                    sim_tick_until([&] { return top->vblank == 0; });
+                    sim_tick_until([&] { return top->vblank != 0; });
+                }
+                else
+                {
+                    sim_tick(simulation_step_size);
+                }
+                video.update_texture();
+            }
+            simulation_step = false;
+
+            ui_draw();
+            hw_ui_draw();
+            video.draw();
+
+            ui_end_frame();
+        }
+        else
+        {
+            // Headless mode with no commands left
+            running = false;
+        }
     }
 
     sim_shutdown();
