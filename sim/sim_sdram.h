@@ -23,8 +23,9 @@ class SimSDRAM
         data = nullptr;
     }
 
-    void update_channel_16(int ch, int dly, uint32_t addr, uint8_t req, uint8_t rw, uint8_t be,
-                           uint16_t din, uint16_t *dout, uint8_t *ack)
+    void update_channel_16(int ch, int dly, uint32_t addr, uint8_t req,
+                           uint8_t rw, uint8_t be, uint16_t din, uint16_t *dout,
+                           uint8_t *ack)
     {
         if (req == *ack)
             return;
@@ -52,8 +53,9 @@ class SimSDRAM
         }
     }
 
-    void update_channel_32(int ch, int dly, uint32_t addr, uint8_t req, uint8_t rw, uint8_t be,
-                           uint32_t din, uint32_t *dout, uint8_t *ack)
+    void update_channel_32(int ch, int dly, uint32_t addr, uint8_t req,
+                           uint8_t rw, uint8_t be, uint32_t din, uint32_t *dout,
+                           uint8_t *ack)
     {
         if (req == *ack)
             return;
@@ -86,8 +88,9 @@ class SimSDRAM
         }
     }
 
-    void update_channel_64(int ch, int dly, uint32_t addr, uint8_t req, uint8_t rw, uint8_t be,
-                           uint64_t din, uint64_t *dout, uint8_t *ack)
+    void update_channel_64(int ch, int dly, uint32_t addr, uint8_t req,
+                           uint8_t rw, uint8_t be, uint64_t din, uint64_t *dout,
+                           uint8_t *ack)
     {
         if (req == *ack)
             return;

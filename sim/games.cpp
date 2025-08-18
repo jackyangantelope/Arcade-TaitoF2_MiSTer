@@ -11,13 +11,15 @@
 extern F2 *top;
 
 static const char *game_names[N_GAMES] = {
-    "finalb",        "dondokod",      "megab",    "thundfox",    "cameltry",
-    "qtorimon",      "liquidk",       "quizhq",   "ssi",         "gunfront",
-    "growl",         "mjnquest",      "footchmp", "koshien",     "yuyugogo",
-    "ninjak",        "solfigtr",      "qzquest",  "pulirula",    "metalb",
-    "qzchikyu",      "yesnoj",        "deadconx", "dinorex",     "qjinsei",
-    "qcrayon",       "qcrayon2",      "driftout", "deadconxj",   "finalb_test",
-    "qjinsei_test",  "driftout_test", "deadconx_test",
+    "finalb",        "dondokod",    "megab",        "thundfox",
+    "cameltry",      "qtorimon",    "liquidk",      "quizhq",
+    "ssi",           "gunfront",    "growl",        "mjnquest",
+    "footchmp",      "koshien",     "yuyugogo",     "ninjak",
+    "solfigtr",      "qzquest",     "pulirula",     "metalb",
+    "qzchikyu",      "yesnoj",      "deadconx",     "dinorex",
+    "qjinsei",       "qcrayon",     "qcrayon2",     "driftout",
+    "deadconxj",     "finalb_test", "qjinsei_test", "driftout_test",
+    "deadconx_test",
 };
 
 game_t game_find(const char *name)

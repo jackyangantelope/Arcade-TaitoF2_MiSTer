@@ -43,7 +43,7 @@ void draw_pri_window()
                 (ctrl[8] >> 4) & 0xf, (ctrl[9] >> 0) & 0xf,
                 (ctrl[9] >> 4) & 0xf);
 
-    for( int i = 0; i < 8; i++ )
+    for (int i = 0; i < 8; i++)
     {
         ImGui::Text("%04X %04X", ctrl[i * 2], ctrl[(i * 2) + 1]);
     }
