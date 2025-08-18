@@ -32,6 +32,7 @@ SRCS = imgui/imgui.cpp \
 		sim_core.cpp \
 		sim_ui.cpp \
 		sim_hw_ui.cpp \
+		sim_video.cpp \
 		games.cpp \
 		imgui_wrap.cpp \
 		tc0200obj.cpp \

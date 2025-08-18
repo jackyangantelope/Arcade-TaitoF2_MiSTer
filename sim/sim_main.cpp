@@ -89,8 +89,22 @@ int main(int argc, char **argv)
 
     Verilated::traceEverOn(true);
 
+    const Uint8 *keyboard_state = SDL_GetKeyboardState(NULL);
+    bool screenshot_key_pressed = false;
+
     while (ui_begin_frame())
     {
+        if (keyboard_state[SDL_SCANCODE_F12] && !screenshot_key_pressed)
+        {
+            std::string filename =
+                video.generate_screenshot_filename(game_name);
+            video.save_screenshot(filename.c_str());
+            screenshot_key_pressed = true;
+        }
+        else if (!keyboard_state[SDL_SCANCODE_F12])
+        {
+            screenshot_key_pressed = false;
+        }
         prune_obj_cache();
 
         top->dswa = dipswitch_a & 0xff;

@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <SDL.h>
+#include <string>
 
 #include "imgui_wrap.h"
 
@@ -111,6 +112,9 @@ class SimVideo
         SDL_UnlockTexture(texture);
     }
 
+    bool save_screenshot(const char *filename);
+    std::string generate_screenshot_filename(const char *game_name);
+
     void draw()
     {
         ImGui::Begin("Video", nullptr, ImGuiWindowFlags_NoScrollbar);
@@ -118,6 +122,15 @@ class SimVideo
         ImGui::Checkbox("TATE", &rotated);
         ImGui::SameLine();
         ImGui::Text("X: %03d Y: %03d", x, y);
+
+        if (!screenshot_status.empty())
+        {
+            ImGui::SameLine();
+            ImGui::TextColored(ImVec4(0, 1, 0, 1), "%s",
+                               screenshot_status.c_str());
+            if (--screenshot_status_timer <= 0)
+                screenshot_status.clear();
+        }
 
         ImVec2 avail_size = ImGui::GetContentRegionAvail();
         int w = avail_size.x;
@@ -167,6 +180,9 @@ class SimVideo
     int x, y;
     bool in_hsync, in_vsync, in_ce;
     SDL_Texture *texture = nullptr;
+
+    std::string screenshot_status;
+    int screenshot_status_timer = 0;
 };
 
 #endif
