@@ -14,15 +14,18 @@
 #include "file_search.h"
 #include "sim_sdram.h"
 #include "sim_ddr.h"
+#include "verilated_fst_c.h"
 
 #include <stdio.h>
 #include <iostream>
+#include <memory>
 #include <SDL.h>
 
 extern SimVideo video;
 extern SimDDR ddr_memory;
 extern SimSDRAM sdram;
 extern F2 *top;
+extern std::unique_ptr<VerilatedFstC> tfp;
 
 SimState *state_manager = nullptr;
 
@@ -184,6 +187,40 @@ int main(int argc, char **argv)
                 if (command_queue.is_verbose())
                     std::cout << "Saving state to: " << cmd.filename << std::endl;
                 state_manager->save_state(cmd.filename.c_str());
+                command_queue.pop();
+                break;
+                
+            case CommandType::TRACE_START:
+                if (command_queue.is_verbose())
+                    std::cout << "Starting trace to: " << cmd.filename << std::endl;
+                if (tfp)
+                {
+                    tfp->close();
+                    tfp.reset();
+                }
+                tfp = std::make_unique<VerilatedFstC>();
+                top->trace(tfp.get(), 99);  // Default depth 99
+                tfp->open(cmd.filename.c_str());
+                if (command_queue.is_verbose())
+                    std::cout << "Trace started successfully" << std::endl;
+                command_queue.pop();
+                break;
+                
+            case CommandType::TRACE_STOP:
+                if (command_queue.is_verbose())
+                    std::cout << "Stopping trace" << std::endl;
+                if (tfp)
+                {
+                    tfp->close();
+                    tfp.reset();
+                    if (command_queue.is_verbose())
+                        std::cout << "Trace stopped successfully" << std::endl;
+                }
+                else
+                {
+                    if (command_queue.is_verbose())
+                        std::cout << "No trace was active" << std::endl;
+                }
                 command_queue.pop();
                 break;
                 

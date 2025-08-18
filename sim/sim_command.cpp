@@ -20,6 +20,8 @@ bool CommandQueue::parse_arguments(int argc, char** argv, std::string& game_name
         {"run-cycles", required_argument, 0, 'c'},
         {"run-frames", required_argument, 0, 'f'},
         {"screenshot", required_argument, 0, 'p'},
+        {"trace-start", required_argument, 0, 't'},
+        {"trace-stop", no_argument, 0, 'T'},
         {"script", required_argument, 0, 'x'},
         {"headless", no_argument, 0, 'h'},
         {"verbose", no_argument, 0, 'v'},
@@ -33,7 +35,7 @@ bool CommandQueue::parse_arguments(int argc, char** argv, std::string& game_name
     // Reset getopt
     optind = 1;
     
-    while ((c = getopt_long(argc, argv, "l:s:c:f:p:x:hv?", long_options, &option_index)) != -1)
+    while ((c = getopt_long(argc, argv, "l:s:c:f:p:t:Tx:hv?", long_options, &option_index)) != -1)
     {
         switch (c)
         {
@@ -66,6 +68,16 @@ bool CommandQueue::parse_arguments(int argc, char** argv, std::string& game_name
         case 'p':
             add(Command(CommandType::SCREENSHOT, optarg));
             if (verbose) std::cout << "Command: Save screenshot to " << optarg << std::endl;
+            break;
+            
+        case 't':
+            add(Command(CommandType::TRACE_START, optarg));
+            if (verbose) std::cout << "Command: Start trace to " << optarg << std::endl;
+            break;
+            
+        case 'T':
+            add(Command(CommandType::TRACE_STOP));
+            if (verbose) std::cout << "Command: Stop trace" << std::endl;
             break;
             
         case 'x':
@@ -196,6 +208,19 @@ bool CommandQueue::parse_script_line(const std::string& line)
         add(Command(CommandType::SCREENSHOT, filename));
         if (verbose) std::cout << "Script: Save screenshot to " << filename << std::endl;
     }
+    else if (command == "trace-start" || command == "trace_start")
+    {
+        std::string filename;
+        iss >> filename;
+        if (filename.empty()) return false;
+        add(Command(CommandType::TRACE_START, filename));
+        if (verbose) std::cout << "Script: Start trace to " << filename << std::endl;
+    }
+    else if (command == "trace-stop" || command == "trace_stop")
+    {
+        add(Command(CommandType::TRACE_STOP));
+        if (verbose) std::cout << "Script: Stop trace" << std::endl;
+    }
     else if (command == "wait" || command == "delay")
     {
         uint64_t ms;
@@ -224,6 +249,8 @@ void CommandQueue::print_usage(const char* program_name)
               << "  --run-cycles <N>       Run simulation for N cycles\n"
               << "  --run-frames <N>       Run simulation for N frames\n"
               << "  --screenshot <file>    Save screenshot to file\n"
+              << "  --trace-start <file>   Start FST trace to file\n"
+              << "  --trace-stop           Stop FST trace\n"
               << "  --script <file>        Execute commands from script file\n"
               << "  --headless             Run without GUI (batch mode only)\n"
               << "  --verbose              Print command execution details\n"
@@ -232,6 +259,9 @@ void CommandQueue::print_usage(const char* program_name)
               << "  # Comments start with #\n"
               << "  load-state checkpoint.state\n"
               << "  run-frames 100\n"
+              << "  trace-start debug.fst\n"
+              << "  run-frames 50\n"
+              << "  trace-stop\n"
               << "  screenshot test.png\n"
               << "  save-state final.state\n"
               << "\nExample:\n"

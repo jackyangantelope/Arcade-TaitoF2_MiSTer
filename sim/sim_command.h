@@ -12,6 +12,8 @@ enum class CommandType
     RUN_CYCLES,
     RUN_FRAMES,
     SCREENSHOT,
+    TRACE_START,
+    TRACE_STOP,
     SCRIPT_FILE,
     EXIT
 };
