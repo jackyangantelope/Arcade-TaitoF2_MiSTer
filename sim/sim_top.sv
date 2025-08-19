@@ -30,25 +30,13 @@ module sim_top(
     input       [7:0] dswa,
     input       [7:0] dswb,
 
-    output reg [26:0] sdr_cpu_addr,
-    input      [63:0] sdr_cpu_q,
-    output reg        sdr_cpu_req,
-    input             sdr_cpu_ack,
-
-    output reg [26:0] sdr_scn0_addr,
-    input      [31:0] sdr_scn0_q,
-    output reg        sdr_scn0_req,
-    input             sdr_scn0_ack,
-
-    output reg [26:0] sdr_scn_mux_addr,
-    input      [63:0] sdr_scn_mux_q,
-    output reg        sdr_scn_mux_req,
-    input             sdr_scn_mux_ack,
-
-    output reg [26:0] sdr_audio_addr,
-    input      [15:0] sdr_audio_q,
-    output reg        sdr_audio_req,
-    input             sdr_audio_ack,
+    output reg [26:0] sdr_addr,
+    input      [63:0] sdr_q,
+    output reg [63:0] sdr_data,
+    output reg        sdr_req,
+    output reg        sdr_rw,
+    output reg  [7:0] sdr_be,
+    input             sdr_ack,
 
     // Memory stream interface
     output            ddr_acquire,
@@ -80,6 +68,14 @@ module sim_top(
 
     input             pause
 );
+
+wire [26:0] sdr_cpu_addr, sdr_scn0_addr, sdr_scn_mux_addr, sdr_audio_addr;
+wire sdr_cpu_req, sdr_scn0_req, sdr_scn_mux_req, sdr_audio_req;
+reg  sdr_cpu_ack, sdr_scn0_ack, sdr_scn_mux_ack, sdr_audio_ack;
+reg [63:0] sdr_cpu_q;
+reg [31:0] sdr_scn0_q;
+reg [63:0] sdr_scn_mux_q;
+reg [15:0] sdr_audio_q;
 
 // Instantiate the F2 module
 F2 f2_inst(
@@ -160,5 +156,61 @@ F2 f2_inst(
     
     .pause(pause)
 );
+
+reg sdr_active;
+reg [1:0] sdr_active_ch;
+
+always_ff @(posedge clk) begin
+    if (sdr_active) begin
+        if (sdr_req == sdr_ack) begin
+            case(sdr_active_ch)
+            0: begin
+                sdr_cpu_ack <= sdr_cpu_req;
+                sdr_cpu_q <= sdr_q;
+            end
+            1: begin
+                sdr_scn0_ack <= sdr_scn0_req;
+                sdr_scn0_q <= sdr_q[31:0];
+            end
+            2: begin
+                sdr_scn_mux_ack <= sdr_scn_mux_req;
+                sdr_scn_mux_q <= sdr_q;
+            end
+            3: begin
+                sdr_audio_ack <= sdr_audio_req;
+                sdr_audio_q <= sdr_q[15:0];
+            end
+            endcase
+
+            sdr_active <= 0;
+        end
+    end else begin
+        if (sdr_scn0_req != sdr_scn0_ack) begin
+            sdr_rw <= 1;
+            sdr_addr <= sdr_scn0_addr;
+            sdr_req <= ~sdr_req;
+            sdr_active <= 1;
+            sdr_active_ch <= 1;
+        end else if (sdr_scn_mux_req != sdr_scn_mux_ack) begin
+            sdr_rw <= 1;
+            sdr_addr <= sdr_scn_mux_addr;
+            sdr_req <= ~sdr_req;
+            sdr_active <= 1;
+            sdr_active_ch <= 2;
+        end else if (sdr_audio_req != sdr_audio_ack) begin
+            sdr_rw <= 1;
+            sdr_addr <= sdr_audio_addr;
+            sdr_req <= ~sdr_req;
+            sdr_active <= 1;
+            sdr_active_ch <= 3;
+        end else if (sdr_cpu_req != sdr_cpu_ack) begin
+            sdr_rw <= 1;
+            sdr_addr <= sdr_cpu_addr;
+            sdr_req <= ~sdr_req;
+            sdr_active <= 1;
+            sdr_active_ch <= 0;
+        end
+    end
+end
 
 endmodule
