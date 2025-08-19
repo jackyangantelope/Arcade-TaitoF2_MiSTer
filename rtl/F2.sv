@@ -50,17 +50,7 @@ module F2(
     output reg        sdr_audio_req,
     input             sdr_audio_ack,
 
-    // Memory stream interface
-    output            ddr_acquire,
-    output     [31:0] ddr_addr,
-    output     [63:0] ddr_wdata,
-    input      [63:0] ddr_rdata,
-    output            ddr_read,
-    output            ddr_write,
-    output      [7:0] ddr_burstcnt,
-    output      [7:0] ddr_byteenable,
-    input             ddr_busy,
-    input             ddr_read_complete,
+    ddr_if.to_host    ddr,
 
     input      [12:0] obj_debug_idx,
 
@@ -138,18 +128,6 @@ game_board_config game_board_config(
     .cfg_addr_roz,
     .cfg_addr_cchip
 );
-
-ddr_if ddr();
-assign ddr_addr = ddr.addr;
-assign ddr_wdata = ddr.wdata;
-assign ddr_read = ddr.read;
-assign ddr_write = ddr.write;
-assign ddr_burstcnt = ddr.burstcnt;
-assign ddr_byteenable = ddr.byteenable;
-assign ddr.rdata = ddr_rdata;
-assign ddr.busy = ddr_busy;
-assign ddr.rdata_ready = ddr_read_complete;
-assign ddr_acquire = ddr.acquire;
 
 ddr_if ddr_ss(), ddr_obj();
 

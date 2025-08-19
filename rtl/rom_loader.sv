@@ -23,19 +23,18 @@ import system_consts::*;
 module rom_loader
 (
     input sys_clk,
-    input ram_clk,
 
     input ioctl_wr,
     input [7:0] ioctl_data,
 
-    output ioctl_wait,
+    output reg ioctl_wait,
 
-    output [24:0] sdr_addr,
-    output [15:0] sdr_data,
-    output [1:0] sdr_be,
-    output sdr_req,
+    output reg [26:0] sdr_addr,
+    output reg [15:0] sdr_data,
+    output reg [1:0] sdr_be,
+    output reg sdr_req,
     input sdr_ack,
-    output sdr_rw,
+    output reg sdr_rw,
 
     ddr_if.to_host ddr,
 
@@ -71,7 +70,7 @@ typedef enum {
 
 stage_t stage = BOARD_CFG_0;
 
-reg [3:0] region = 0;
+int region = 0;
 
 reg write_rq = 0;
 reg write_ack = 0;
@@ -97,8 +96,8 @@ always @(posedge sys_clk) begin
             stage <= REGION_IDX;
         end
         REGION_IDX: if (ioctl_wr) begin
-            if (ioctl_data == 8'hff) region <= region + 4'd1;
-            else region <= ioctl_data[3:0];
+            if (ioctl_data == 8'hff) region <= region + 1;
+            else region <= int'(ioctl_data[3:0]);
             stage <= SIZE_0;
         end
         SIZE_0: if (ioctl_wr) begin size[23:16] <= ioctl_data; stage <= SIZE_1; end
@@ -123,7 +122,7 @@ always @(posedge sys_clk) begin
             sdr_buffer[7:0] <= ioctl_data;
             offset <= offset + 25'd1;
             if (offset[0] == 1'b1) begin
-                sdr_addr <= base_addr[24:0] + {offset[24:1], 1'b0};
+                sdr_addr <= { 2'b0, base_addr[24:0] + {offset[24:1], 1'b0} };
                 sdr_data <= {ioctl_data, sdr_buffer[7:0]};
                 sdr_be <= 2'b11;
                 sdr_rw <= 0; // write
@@ -137,7 +136,7 @@ always @(posedge sys_clk) begin
             if (sdr_req == sdr_ack) begin
                 ioctl_wait <= 0;
                 sdr_rw <= 1;
-                if (offset >= size)
+                if (offset >= 25'(size))
                     stage <= REGION_IDX;
                 else
                     stage <= SDR_DATA;
@@ -168,7 +167,7 @@ always @(posedge sys_clk) begin
             if (~ddr.busy) begin
                 ddr.write <= 0;
                 ioctl_wait <= 0;
-                if (offset >= size)
+                if (offset >= 25'(size))
                     stage <= REGION_IDX;
                 else
                     stage <= DDR_DATA;
@@ -201,13 +200,13 @@ module ddr_rom_loader_adaptor #(
     input [7:0] ioctl_index,
     input ioctl_wr,
     input [7:0] ioctl_data,
-    output ioctl_wait,
+    output logic ioctl_wait,
 
-    output busy,
+    output logic busy,
 
     input data_wait,
-    output data_strobe,
-    output [7:0] data,
+    output logic data_strobe,
+    output logic [7:0] data,
 
     ddr_if.to_host ddr
 );
@@ -279,7 +278,7 @@ always_ff @(posedge clk) begin
         DDR_READ: begin
             ddr.acquire <= 1;
             if (~ddr.busy) begin
-                ddr.addr <= DDR_DOWNLOAD_ADDR + offset;
+                ddr.addr <= DDR_DOWNLOAD_ADDR + 32'(offset);
                 ddr.read <= 1;
                 state <= DDR_WAIT;
             end
@@ -303,7 +302,7 @@ always_ff @(posedge clk) begin
                 if (offset == length) begin
                     state <= IDLE;
                 end else begin
-                    offset <= offset + 32'd1;
+                    offset <= offset + 25'd1;
                     if (&offset[2:0]) state <= DDR_READ;
                     ddr_strobe <= 1;
                     ddr_byte <= buffer[(offset[2:0] * 8) +: 8];

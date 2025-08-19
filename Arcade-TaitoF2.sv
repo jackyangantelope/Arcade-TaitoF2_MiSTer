@@ -528,7 +528,6 @@ ddr_rom_loader_adaptor ddr_rom_loader(
 
 rom_loader rom_loader(
     .sys_clk(clk_sys),
-    .ram_clk(clk_sdr),
 
     .ioctl_wr(rom_data_strobe),
     .ioctl_data(rom_data),

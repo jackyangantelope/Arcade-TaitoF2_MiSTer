@@ -38,7 +38,7 @@ module sim_top(
     output reg  [7:0] sdr_be,
     input             sdr_ack,
 
-    // Memory stream interface
+    // DDR interface
     output            ddr_acquire,
     output     [31:0] ddr_addr,
     output     [63:0] ddr_wdata,
@@ -50,6 +50,14 @@ module sim_top(
     input             ddr_busy,
     input             ddr_read_complete,
 
+    // IOCTL interface
+    input             ioctl_download,
+    input       [7:0] ioctl_index,
+    input             ioctl_wr,
+    input      [24:0] ioctl_addr,
+    input       [7:0] ioctl_dout,
+    output            ioctl_wait,
+
     input      [12:0] obj_debug_idx,
 
     output     [15:0] audio_out,
@@ -60,22 +68,105 @@ module sim_top(
     input       [1:0] ss_index,
     output      [3:0] ss_state_out,
 
-    input      [23:0] bram_addr,
-    input       [7:0] bram_data,
-    input             bram_wr,
-
     input             sync_fix,
 
     input             pause
 );
 
-wire [26:0] sdr_cpu_addr, sdr_scn0_addr, sdr_scn_mux_addr, sdr_audio_addr;
-wire sdr_cpu_req, sdr_scn0_req, sdr_scn_mux_req, sdr_audio_req;
-reg  sdr_cpu_ack, sdr_scn0_ack, sdr_scn_mux_ack, sdr_audio_ack;
+wire [26:0] sdr_cpu_addr, sdr_scn0_addr, sdr_scn_mux_addr, sdr_audio_addr, sdr_rom_addr;
+wire sdr_cpu_req, sdr_scn0_req, sdr_scn_mux_req, sdr_audio_req, sdr_rom_req;
+reg  sdr_cpu_ack, sdr_scn0_ack, sdr_scn_mux_ack, sdr_audio_ack, sdr_rom_ack;
+wire sdr_rom_rw;
+wire [1:0] sdr_rom_be;
 reg [63:0] sdr_cpu_q;
 reg [31:0] sdr_scn0_q;
 reg [63:0] sdr_scn_mux_q;
 reg [15:0] sdr_audio_q;
+wire [15:0] sdr_rom_data;
+
+
+
+
+ddr_if ddr_host(), ddr_romload(), ddr_x(), ddr_romload_adaptor(), ddr_romload_loader(), ddr_f2();
+
+ddr_mux ddr_mux(
+    .clk(clk),
+    .x(ddr_host),
+    .a(ddr_f2),
+    .b(ddr_romload)
+);
+
+ddr_mux ddr_mux2(
+    .clk(clk),
+    .x(ddr_romload),
+    .a(ddr_romload_adaptor),
+    .b(ddr_romload_loader)
+);
+
+assign ddr_addr = ddr_host.addr;
+assign ddr_byteenable = ddr_host.byteenable;
+assign ddr_write = ddr_host.write;
+assign ddr_read = ddr_host.read;
+assign ddr_wdata = ddr_host.wdata;
+assign ddr_burstcnt = ddr_host.burstcnt;
+assign ddr_host.rdata = ddr_rdata;
+assign ddr_host.rdata_ready = ddr_read_complete;
+assign ddr_host.busy = ddr_busy;
+
+wire rom_load_busy;
+wire rom_data_wait;
+wire rom_data_strobe;
+wire [7:0] rom_data;
+
+wire [23:0] bram_addr;
+wire  [7:0] bram_data;
+wire        bram_wr;
+
+board_cfg_t board_cfg;
+
+
+ddr_rom_loader_adaptor ddr_rom_loader(
+    .clk(clk),
+
+    .ioctl_download,
+    .ioctl_addr,
+    .ioctl_index,
+    .ioctl_wr,
+    .ioctl_data(ioctl_dout),
+    .ioctl_wait,
+
+    .busy(rom_load_busy),
+
+    .data_wait(rom_data_wait),
+    .data_strobe(rom_data_strobe),
+    .data(rom_data),
+
+    .ddr(ddr_romload_adaptor)
+);
+
+rom_loader rom_loader(
+    .sys_clk(clk),
+
+    .ioctl_wr(rom_data_strobe),
+    .ioctl_data(rom_data),
+    .ioctl_wait(rom_data_wait),
+
+    .sdr_addr(sdr_rom_addr),
+    .sdr_data(sdr_rom_data),
+    .sdr_be(sdr_rom_be),
+    .sdr_req(sdr_rom_req),
+    .sdr_ack(sdr_rom_ack),
+    .sdr_rw(sdr_rom_rw),
+
+    .ddr(ddr_romload_loader),
+
+    .bram_addr(bram_addr),
+    .bram_data(bram_data),
+    .bram_wr(bram_wr),
+
+    .board_cfg(board_cfg)
+);
+
 
 // Instantiate the F2 module
 F2 f2_inst(
@@ -127,16 +218,7 @@ F2 f2_inst(
     .sdr_audio_req(sdr_audio_req),
     .sdr_audio_ack(sdr_audio_ack),
     
-    .ddr_acquire(ddr_acquire),
-    .ddr_addr(ddr_addr),
-    .ddr_wdata(ddr_wdata),
-    .ddr_rdata(ddr_rdata),
-    .ddr_read(ddr_read),
-    .ddr_write(ddr_write),
-    .ddr_burstcnt(ddr_burstcnt),
-    .ddr_byteenable(ddr_byteenable),
-    .ddr_busy(ddr_busy),
-    .ddr_read_complete(ddr_read_complete),
+    .ddr(ddr_f2),
     
     .obj_debug_idx(obj_debug_idx),
     
@@ -158,7 +240,7 @@ F2 f2_inst(
 );
 
 reg sdr_active;
-reg [1:0] sdr_active_ch;
+reg [2:0] sdr_active_ch;
 
 always_ff @(posedge clk) begin
     if (sdr_active) begin
@@ -180,6 +262,10 @@ always_ff @(posedge clk) begin
                 sdr_audio_ack <= sdr_audio_req;
                 sdr_audio_q <= sdr_q[15:0];
             end
+            4: begin
+                sdr_rom_ack <= sdr_rom_req;
+            end
+            default: begin end
             endcase
 
             sdr_active <= 0;
@@ -209,6 +295,14 @@ always_ff @(posedge clk) begin
             sdr_req <= ~sdr_req;
             sdr_active <= 1;
             sdr_active_ch <= 0;
+        end else if (sdr_rom_req != sdr_rom_ack) begin
+            sdr_rw <= sdr_rom_rw;
+            sdr_addr <= sdr_rom_addr;
+            sdr_data <= { 48'd0, sdr_rom_data[15:0] };
+            sdr_be <= { 6'd0, sdr_rom_be };
+            sdr_req <= ~sdr_req;
+            sdr_active <= 1;
+            sdr_active_ch <= 4;
         end
     end
 end

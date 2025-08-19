@@ -40,7 +40,9 @@ SRCS = imgui/imgui.cpp \
 		tc0360pri.cpp \
 		tc0480scp.cpp \
 		third_party/miniz.cpp \
-		file_search.cpp
+		third_party/pugixml.cpp \
+		file_search.cpp \
+		mra_loader.cpp
 
 OBJS = $(patsubst %.cpp, $(OBJ_DIR)/%.o, $(SRCS))
 
@@ -71,6 +73,7 @@ HDL_SRC += ../rtl/tc0100scn.sv ../rtl/tc0110pr.sv ../rtl/tc0220ioc.sv ../rtl/tc0
 HDL_SRC += ../rtl/tc0260dar.sv ../rtl/tc0200obj_extender.sv ../rtl/tc0360pri.sv ../rtl/tc0190fmc.sv
 HDL_SRC += ../rtl/ram.sv ../rtl/jtframe_frac_cen.v ../rtl/memory_stream.sv ../rtl/savestates.sv ../rtl/ddram.sv
 HDL_SRC += ../rtl/audio_mix.sv ../sys/iir_filter.v
+HDL_SRC += ../rtl/rom_loader.sv
 HDL_SRC += sim_top.sv
 HDL_SRC += verilator.vlt
 

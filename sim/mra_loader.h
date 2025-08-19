@@ -1,0 +1,76 @@
+#ifndef MRA_LOADER_H
+#define MRA_LOADER_H
+
+#include <string>
+#include <vector>
+#include <cstdint>
+#include "third_party/miniz.h"
+
+/**
+ * MRA (MiSTer ROM Archive) loader
+ * Parses MRA XML files and assembles ROM data from various sources
+ */
+class MRALoader
+{
+public:
+    /**
+     * Load an MRA file and assemble the ROM data
+     * @param mraPath Path to the .mra file
+     * @param romData Output vector to store the assembled ROM data
+     * @return true if successful, false on error
+     */
+    bool load(const std::string& mraPath, std::vector<uint8_t>& romData);
+    
+    /**
+     * Get the last error message
+     * @return Error message from the last failed operation
+     */
+    const std::string& getLastError() const { return m_lastError; }
+    
+private:
+    std::string m_lastError;
+    
+    /**
+     * Parse hex string into bytes
+     * @param hexStr Hex string (e.g., "1b 00" or "1b00")
+     * @param output Vector to append bytes to
+     * @return true if successful
+     */
+    bool parseHexString(const std::string& hexStr, std::vector<uint8_t>& output);
+    
+    /**
+     * Load a file from zip or filesystem
+     * @param zipPath Path to zip file (empty if loading from filesystem)
+     * @param fileName Name of the file to load
+     * @param output Vector to store file contents
+     * @param crc32 CRC32 to search by if name lookup fails (0 = no CRC search)
+     * @return true if successful
+     */
+    bool loadFileData(const std::string& zipPath, const std::string& fileName, 
+                      std::vector<uint8_t>& output, uint32_t crc32 = 0);
+    
+    /**
+     * Apply map attribute to data (e.g., "01" to take odd bytes)
+     * @param data Input/output data to transform
+     * @param mapStr Map string
+     * @return true if successful
+     */
+    bool applyMap(std::vector<uint8_t>& data, const std::string& mapStr);
+    
+    /**
+     * Calculate CRC32 of data
+     * @param data Data to checksum
+     * @return CRC32 value
+     */
+    uint32_t calculateCRC32(const std::vector<uint8_t>& data);
+    
+    /**
+     * Search for file by CRC in zip archive
+     * @param zip Zip archive to search
+     * @param crc32 CRC32 value to find
+     * @return File index or -1 if not found
+     */
+    int searchByCRC(mz_zip_archive* zip, uint32_t crc32);
+};
+
+#endif // MRA_LOADER_H
