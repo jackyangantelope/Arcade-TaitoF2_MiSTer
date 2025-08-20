@@ -42,7 +42,7 @@ SimDebug *sim_debug_data = nullptr;
 int main(int argc, char **argv)
 {
     CommandQueue command_queue;
-    std::string game_name_str = "finalb";
+    std::string game_name_str;
     
     // Parse command line arguments
     if (!command_queue.parse_arguments(argc, argv, game_name_str))
@@ -50,45 +50,24 @@ int main(int argc, char **argv)
         return -1;
     }
     
-    const char *game_name = game_name_str.c_str();
-    char title[64];
-    bool use_mra = false;
-    game_t game = GAME_INVALID;
-
-    // Check if it's an MRA file
-    if (game_name_str.length() > 4 && 
-        game_name_str.substr(game_name_str.length() - 4) == ".mra") {
-        use_mra = true;
-        snprintf(title, 64, "F2 - MRA");
-    } else {
-        game = game_find(game_name);
-        if (game == GAME_INVALID)
-        {
-            printf("Game '%s' is not found.\n", game_name);
-            return -1;
+    // Convert positional game argument to command if provided
+    if (!game_name_str.empty()) {
+        // Check if it's an MRA file
+        if (game_name_str.length() > 4 && 
+            game_name_str.substr(game_name_str.length() - 4) == ".mra") {
+            command_queue.add(Command(CommandType::LOAD_MRA, game_name_str));
+        } else {
+            command_queue.add(Command(CommandType::LOAD_GAME, game_name_str));
         }
-        snprintf(title, 64, "F2 - %s", game_name);
     }
-
+    
     g_sim_core.Init();
     
     // Only initialize UI if not in headless mode
     if (!command_queue.is_headless())
     {
-        ui_init(title);
-    }
-
-    // Set the game parameter on the core
-    if (use_mra) {
-        // For MRA mode, set game to a default value (will be overridden by MRA data)
-        g_sim_core.top->game = GAME_FINALB;  // Default, ROM loader will determine actual config
-        if (!game_init_mra(game_name)) {
-            printf("Failed to initialize from MRA file: %s\n", game_name);
-            return -1;
-        }
-    } else {
-        g_sim_core.top->game = game;
-        game_init(game);
+        ui_init("F2 Simulator");
+        ui_set_command_queue(&command_queue);
     }
 
     g_fs.addSearchPath(".");
@@ -103,7 +82,6 @@ int main(int argc, char **argv)
     g_sim_core.top->joystick_p2 = 0;
 
     state_manager = new SimState(g_sim_core.top, g_sim_core.ddr_memory, 0, 512 * 1024);
-    state_manager->set_game_name(::game_name(game));
 
     if (!command_queue.is_headless())
     {
@@ -226,6 +204,55 @@ int main(int argc, char **argv)
                 command_queue.pop();
                 break;
                 
+            case CommandType::LOAD_GAME:
+                if (command_queue.is_verbose())
+                    printf("Loading game: %s\n", cmd.filename.c_str());
+                {
+                    game_t game = game_find(cmd.filename.c_str());
+                    if (game != GAME_INVALID) {
+                        if (game_init(game)) {
+                            state_manager->set_game_name(cmd.filename.c_str());
+                            if (!command_queue.is_headless())
+                                ui_game_changed();
+                            if (command_queue.is_verbose())
+                                printf("Successfully loaded game: %s\n", cmd.filename.c_str());
+                        } else {
+                            printf("Failed to load game: %s\n", cmd.filename.c_str());
+                        }
+                    } else {
+                        printf("Unknown game: %s\n", cmd.filename.c_str());
+                    }
+                }
+                command_queue.pop();
+                break;
+                
+            case CommandType::LOAD_MRA:
+                if (command_queue.is_verbose())
+                    printf("Loading MRA: %s\n", cmd.filename.c_str());
+                if (game_init_mra(cmd.filename.c_str())) {
+                    state_manager->set_game_name(g_sim_core.GetGameName());
+                    if (!command_queue.is_headless())
+                        ui_game_changed();
+                    if (command_queue.is_verbose())
+                        printf("Successfully loaded MRA: %s (%s)\n", cmd.filename.c_str(), g_sim_core.GetGameName());
+                } else {
+                    printf("Failed to load MRA: %s\n", cmd.filename.c_str());
+                }
+                command_queue.pop();
+                break;
+                
+            case CommandType::RESET:
+                if (command_queue.is_verbose())
+                    printf("Reset for %llu cycles\n", cmd.count);
+                // Set reset signal
+                g_sim_core.top->reset = 1;
+                // Run for specified cycles
+                g_sim_core.Tick(cmd.count);
+                // Clear reset signal
+                g_sim_core.top->reset = 0;
+                command_queue.pop();
+                break;
+                
             case CommandType::EXIT:
                 if (command_queue.is_verbose())
                     printf("Exiting...\n");
@@ -251,7 +278,7 @@ int main(int argc, char **argv)
             // Handle F12 screenshot key
             if (keyboard_state && keyboard_state[SDL_SCANCODE_F12] && !screenshot_key_pressed)
             {
-                std::string filename = g_sim_core.video->generate_screenshot_filename(game_name);
+                std::string filename = g_sim_core.video->generate_screenshot_filename("sim");
                 g_sim_core.video->save_screenshot(filename.c_str());
                 screenshot_key_pressed = true;
             }
@@ -297,7 +324,6 @@ int main(int argc, char **argv)
     }
 
     g_sim_core.Shutdown();
-    g_sim_core.video->deinit();
 
     delete state_manager;
     return 0;

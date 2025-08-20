@@ -15,6 +15,9 @@ enum class CommandType
     TRACE_START,
     TRACE_STOP,
     SCRIPT_FILE,
+    LOAD_GAME,
+    LOAD_MRA,
+    RESET,
     EXIT
 };
 

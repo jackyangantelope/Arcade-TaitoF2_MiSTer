@@ -286,25 +286,47 @@ bool MRALoader::load(const std::string& mraPath, std::vector<uint8_t>& romData)
                     targetSlots.push_back(partIdx % bytesPerUnit);
                 } else {
                     // Parse map string to determine byte placement
-                    // "10" means this part goes to byte position 1 (high byte in little-endian)
-                    // "01" means this part goes to byte position 0 (low byte in little-endian)
-                    for (size_t i = 0; i < mapStr.length(); i++) {
-                        char c = mapStr[i];
-                        if (c == '1') {
-                            // The position of '1' in the string indicates the target byte position
-                            // For "10": '1' is at position 0, so this goes to byte 1
-                            // For "01": '1' is at position 1, so this goes to byte 0
-                            int slot = mapStr.length() - 1 - i;
-                            if (slot < bytesPerUnit) {
-                                targetSlots.push_back(slot);
+                    // For 16-bit: "10" means high byte, "01" means low byte
+                    // For 32-bit: "1200" means bytes 0,1 and "0012" means bytes 2,3
+                    
+                    if (mapStr.length() == bytesPerUnit) {
+                        // Multi-byte pattern: each position corresponds to a byte lane
+                        // Look for positions where this part's data should go
+                        for (size_t i = 0; i < mapStr.length(); i++) {
+                            char c = mapStr[i];
+                            // For patterns like "1200", part 0 data goes where we see '1' or '2'
+                            // For patterns like "0012", part 1 data goes where we see '1' or '2'
+                            if ((c == '1') || (c == '2')) {
+                                int slot = mapStr.length() - 1 - i;
+                                if (slot >= 0 && slot < bytesPerUnit) {
+                                    targetSlots.push_back(slot);
+                                }
+                            }
+                        }
+                    } else {
+                        // Legacy binary pattern: look for '1' positions
+                        for (size_t i = 0; i < mapStr.length(); i++) {
+                            char c = mapStr[i];
+                            if (c == '1') {
+                                int slot = mapStr.length() - 1 - i;
+                                if (slot >= 0 && slot < bytesPerUnit) {
+                                    targetSlots.push_back(slot);
+                                }
                             }
                         }
                     }
                 }
                 
-                // Place all bytes from this part into target slots
-                for (size_t byteIdx = 0; byteIdx < part.size(); byteIdx++) {
-                    for (int slot : targetSlots) {
+                // Place bytes from this part into target slots
+                if (targetSlots.size() == 1) {
+                    // Single target slot: place all bytes there
+                    for (size_t byteIdx = 0; byteIdx < part.size(); byteIdx++) {
+                        outputSlots[targetSlots[0]].push_back(part[byteIdx]);
+                    }
+                } else if (targetSlots.size() > 1) {
+                    // Multiple target slots: distribute bytes sequentially
+                    for (size_t byteIdx = 0; byteIdx < part.size(); byteIdx++) {
+                        int slot = targetSlots[byteIdx % targetSlots.size()];
                         outputSlots[slot].push_back(part[byteIdx]);
                     }
                 }

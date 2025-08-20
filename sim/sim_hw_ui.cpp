@@ -162,11 +162,11 @@ void hw_ui_draw()
             g_sim_core.top->rootp->sim_top__DOT__f2_inst__DOT__m68000__DOT__excUnit__DOT__PcL |
             (g_sim_core.top->rootp->sim_top__DOT__f2_inst__DOT__m68000__DOT__excUnit__DOT__PcH << 16);
         ImGui::LabelText("PC", "%08X", pc);
-        Dis68k dis(g_sim_core.sdram->data + pc, g_sim_core.sdram->data + pc + 64, pc);
+        /*Dis68k dis(g_sim_core.sdram->data + pc, g_sim_core.sdram->data + pc + 64, pc);
         char optxt[128];
         uint32_t addr;
         dis.disasm(&addr, optxt, sizeof(optxt));
-        ImGui::TextUnformatted(optxt);
+        ImGui::TextUnformatted(optxt);*/
     }
     ImGui::End();
 }

@@ -77,7 +77,7 @@ static void load_finalb()
     g_sim_core.ddr_memory->load_data("b82-04.ic8", OBJ_DATA_DDR_BASE + 1, 4);
     g_sim_core.ddr_memory->load_data("b82-05.ic7", OBJ_DATA_DDR_BASE + 2, 4);
 
-    g_sim_core.top->game = GAME_FINALB;
+    g_sim_core.SetGame(GAME_FINALB);
 }
 
 static void load_finalb_test()
@@ -103,7 +103,7 @@ static void load_qjinsei()
     g_sim_core.ddr_memory->load_data("d48-02", OBJ_DATA_DDR_BASE + 0, 2);
     g_sim_core.ddr_memory->load_data("d48-01", OBJ_DATA_DDR_BASE + 1, 2);
 
-    g_sim_core.top->game = GAME_QJINSEI;
+    g_sim_core.SetGame(GAME_QJINSEI);
 }
 
 static void load_qjinsei_test()
@@ -133,7 +133,7 @@ static void load_dinorex()
     g_sim_core.ddr_memory->load_data("d39-02.28", OBJ_DATA_DDR_BASE + 0x200000, 1);
     g_sim_core.ddr_memory->load_data("d39-03.27", OBJ_DATA_DDR_BASE + 0x400000, 1);
 
-    g_sim_core.top->game = GAME_DINOREX;
+    g_sim_core.SetGame(GAME_DINOREX);
 }
 
 static void load_liquidk()
@@ -153,7 +153,7 @@ static void load_liquidk()
     g_sim_core.ddr_memory->load_data("c49-01.ic54", OBJ_DATA_DDR_BASE, 1);
     g_sim_core.ddr_memory->load_data("c49-02.ic53", OBJ_DATA_DDR_BASE + 0x80000, 1);
 
-    g_sim_core.top->game = GAME_LIQUIDK;
+    g_sim_core.SetGame(GAME_LIQUIDK);
 }
 
 static void load_growl()
@@ -175,7 +175,7 @@ static void load_growl()
     g_sim_core.ddr_memory->load_data("c74-03.ic12", OBJ_DATA_DDR_BASE, 1);
     g_sim_core.ddr_memory->load_data("c74-02.ic11", OBJ_DATA_DDR_BASE + 0x100000, 1);
 
-    g_sim_core.top->game = GAME_GROWL;
+    g_sim_core.SetGame(GAME_GROWL);
 }
 
 static void load_megab()
@@ -197,7 +197,7 @@ static void load_megab()
     g_sim_core.ddr_memory->load_data("c11-03.32", OBJ_DATA_DDR_BASE, 2);
     g_sim_core.ddr_memory->load_data("c11-04.31", OBJ_DATA_DDR_BASE + 1, 2);
 
-    g_sim_core.top->game = GAME_MEGAB;
+    g_sim_core.SetGame(GAME_MEGAB);
 }
 
 static void load_driftout()
@@ -214,7 +214,7 @@ static void load_driftout()
 
     g_sim_core.ddr_memory->load_data("do_obj.rom", OBJ_DATA_DDR_BASE, 1);
 
-    g_sim_core.top->game = GAME_DRIFTOUT;
+    g_sim_core.SetGame(GAME_DRIFTOUT);
 }
 
 static void load_cameltry()
@@ -231,7 +231,7 @@ static void load_cameltry()
 
     g_sim_core.ddr_memory->load_data("c38-01.bin", OBJ_DATA_DDR_BASE, 1);
 
-    g_sim_core.top->game = GAME_CAMELTRY;
+    g_sim_core.SetGame(GAME_CAMELTRY);
 }
 
 static void load_driftout_test()
@@ -263,7 +263,7 @@ static void load_pulirula()
     g_sim_core.ddr_memory->load_data("c98-02.rom", OBJ_DATA_DDR_BASE, 1);
     g_sim_core.ddr_memory->load_data("c98-03.rom", OBJ_DATA_DDR_BASE + 0x100000, 1);
 
-    g_sim_core.top->game = GAME_PULIRULA;
+    g_sim_core.SetGame(GAME_PULIRULA);
 }
 
 static void load_ninjak()
@@ -285,7 +285,7 @@ static void load_ninjak()
     g_sim_core.ddr_memory->load_data("c85-01.ic19", OBJ_DATA_DDR_BASE, 1);
     g_sim_core.ddr_memory->load_data("c85-02.ic17", OBJ_DATA_DDR_BASE + 0x100000, 1);
 
-    g_sim_core.top->game = GAME_NINJAK;
+    g_sim_core.SetGame(GAME_NINJAK);
 }
 
 static void load_thundfox()
@@ -308,7 +308,7 @@ static void load_thundfox()
     g_sim_core.ddr_memory->load_data("c28-03.29", OBJ_DATA_DDR_BASE, 2);
     g_sim_core.ddr_memory->load_data("c28-04.28", OBJ_DATA_DDR_BASE + 0x1, 2);
 
-    g_sim_core.top->game = GAME_THUNDFOX;
+    g_sim_core.SetGame(GAME_THUNDFOX);
 }
 
 static void load_deadconx()
@@ -330,7 +330,7 @@ static void load_deadconx()
     g_sim_core.ddr_memory->load_data("d28-01.8", OBJ_DATA_DDR_BASE, 1);
     g_sim_core.ddr_memory->load_data("d28-02.9", OBJ_DATA_DDR_BASE + 0x100000, 1);
 
-    g_sim_core.top->game = GAME_DEADCONX;
+    g_sim_core.SetGame(GAME_DEADCONX);
 }
 
 static void load_deadconxj()
@@ -341,7 +341,7 @@ static void load_deadconxj()
 
     g_sim_core.sdram->load_data("d28-07.5", CPU_ROM_SDR_BASE + 0, 2);
 
-    g_sim_core.top->game = GAME_DEADCONXJ;
+    g_sim_core.SetGame(GAME_DEADCONXJ);
 }
 
 static void load_deadconxj_test()
@@ -369,12 +369,13 @@ static void load_metalb()
 
     g_sim_core.ddr_memory->load_data("d12-01.20", OBJ_DATA_DDR_BASE, 1);
 
-    g_sim_core.top->game = GAME_METALB;
+    g_sim_core.SetGame(GAME_METALB);
 }
 
 bool game_init(game_t game)
 {
     g_fs.clearSearchPaths();
+    g_fs.addSearchPath(".");
 
     switch (game)
     {
@@ -446,7 +447,6 @@ bool game_init_mra(const char *mra_path)
     // Add common ROM search paths
     std::vector<std::string> searchPaths = {
         ".",
-        "roms/",
         "../roms/"
     };
     

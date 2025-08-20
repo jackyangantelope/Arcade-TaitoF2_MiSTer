@@ -19,7 +19,7 @@ SimCore::SimCore()
     : video(nullptr), top(nullptr), ddr_memory(nullptr), sdram(nullptr),
       m_contextp(nullptr), m_total_ticks(0), m_trace_active(false), m_trace_depth(1),
       m_simulation_run(false), m_simulation_step(false), m_simulation_step_size(100000),
-      m_simulation_step_vblank(false), m_simulation_reset_until(15000000),
+      m_simulation_step_vblank(false), 
       m_system_pause(false), m_simulation_wp_set(false), m_simulation_wp_addr(0)
 {
     strcpy(m_trace_filename, "sim.fst");
@@ -52,15 +52,6 @@ void SimCore::Tick(int count)
     for (int i = 0; i < count; i++)
     {
         m_total_ticks++;
-
-        if (m_total_ticks < m_simulation_reset_until)
-        {
-            top->reset = 1;
-        }
-        else
-        {
-            top->reset = 0;
-        }
 
         sdram->update_channel_64(0, 8, top->sdr_addr, top->sdr_req, top->sdr_rw,
                                 top->sdr_be, top->sdr_data, &top->sdr_q, &top->sdr_ack);
@@ -228,4 +219,19 @@ void SimCore::WaitForIOCTLReady()
     }
 }
 
+void SimCore::SetGame(game_t game)
+{
+    top->rootp->sim_top__DOT__board_cfg = game << 8;
+}
 
+game_t SimCore::GetGame() const
+{
+    return (game_t)(top->rootp->sim_top__DOT__board_cfg >> 8);
+}
+
+const char *SimCore::GetGameName() const
+{
+    return game_name(GetGame());
+}
+
+ 

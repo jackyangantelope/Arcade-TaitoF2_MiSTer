@@ -7,6 +7,8 @@
 #include <vector>
 #include <cstdint>
 
+#include "games.h"
+
 class VerilatedContext;
 class F2;
 class VerilatedFstC;
@@ -56,6 +58,10 @@ public:
     
     // Stats
     uint64_t GetTotalTicks() const { return m_total_ticks; }
+
+    void SetGame(game_t game);
+    game_t GetGame() const;
+    const char *GetGameName() const;
     
 private:
     // Verilator context and top module

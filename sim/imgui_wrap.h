@@ -9,6 +9,7 @@
 bool imgui_init(const char *title);
 bool imgui_begin_frame();
 void imgui_end_frame();
+void imgui_set_title(const char *title);
 
 uint32_t imgui_get_buttons();
 

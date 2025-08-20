@@ -82,6 +82,8 @@ bool FileSearch::addSearchPath(const std::string &path)
 
 void FileSearch::clearSearchPaths()
 {
+    printf( "Clear search paths" );
+
     m_searchPaths.clear();
 
     // Clean up and clear zip files
@@ -127,6 +129,7 @@ bool FileSearch::loadFromDirectory(const std::string &dirPath,
     // Check if file exists
     if (!fs::exists(filePath))
     {
+        printf("Doesn't exist: %s\n", filePath.c_str());
         return false;
     }
 

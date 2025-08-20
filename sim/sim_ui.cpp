@@ -5,6 +5,7 @@
 #include "sim_core.h"
 #include "sim_state.h"
 #include "sim_hierarchy.h"
+#include "sim_command.h"
 #include "games.h"
 #include "F2.h"
 #include "F2___024root.h"
@@ -13,6 +14,8 @@
 #include "sim_ddr.h"
 
 extern SimState *state_manager;
+
+static CommandQueue* g_command_queue = nullptr;
 
 extern uint32_t dipswitch_a;
 extern uint32_t dipswitch_b;
@@ -68,6 +71,11 @@ void ui_init(const char *title)
     imgui_init(title);
 }
 
+void ui_set_command_queue(CommandQueue* queue)
+{
+    g_command_queue = queue;
+}
+
 bool ui_begin_frame()
 {
     return imgui_begin_frame();
@@ -76,6 +84,18 @@ bool ui_begin_frame()
 void ui_end_frame()
 {
     imgui_end_frame();
+}
+
+static bool refresh_state_files = true;
+
+void ui_game_changed()
+{
+    char title[64];
+    const char *name = g_sim_core.GetGameName();
+    
+    snprintf(title, sizeof(title), "F2 - %s", name);
+    imgui_set_title(title);
+    refresh_state_files = true;
 }
 
 void ui_draw()
@@ -99,7 +119,7 @@ void ui_draw()
 
         if (ImGui::Button("Reset"))
         {
-            g_sim_core.m_simulation_reset_until = g_sim_core.m_total_ticks + 100;
+            g_command_queue->add(Command(CommandType::RESET, 100));
         }
 
         ImGui::SameLine();
@@ -114,19 +134,18 @@ void ui_draw()
         ImGui::InputText("State Filename", state_filename,
                          sizeof(state_filename));
 
-        static std::vector<std::string> state_files =
-            state_manager->get_f2state_files();
+        static std::vector<std::string> state_files;
         static int selected_state_file = -1;
 
         // Auto-generate filename when file list is loaded/updated
-        static bool first_load = true;
-        if (first_load)
+        if (refresh_state_files)
         {
+            state_files = state_manager->get_f2state_files();
             std::string auto_name = state_manager->generate_next_state_name();
             strncpy(state_filename, auto_name.c_str(),
                     sizeof(state_filename) - 1);
             state_filename[sizeof(state_filename) - 1] = '\0';
-            first_load = false;
+            refresh_state_files = false;
         }
 
         if (ImGui::Button("Save State"))

@@ -138,3 +138,9 @@ SDL_Renderer *imgui_get_renderer()
 {
     return sdl_renderer;
 }
+
+void imgui_set_title(const char *title)
+{
+    SDL_SetWindowTitle(sdl_window, title);
+}
+

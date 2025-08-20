@@ -4,8 +4,6 @@ module sim_top(
     input             clk,
     input             reset,
 
-    input  game_t     game,
-
     output            ce_pixel,
     output            hsync,
     output            hblank,
@@ -172,7 +170,7 @@ rom_loader rom_loader(
 F2 f2_inst(
     .clk(clk),
     .reset(reset),
-    .game(game),
+    .game(board_cfg.game),
     
     .ce_pixel(ce_pixel),
     .hsync(hsync),

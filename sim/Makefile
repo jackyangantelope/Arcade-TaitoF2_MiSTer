@@ -114,6 +114,15 @@ nanorom.mem: ../rtl/fx68k/hdl/nanorom.mem
 sim: $(OBJS) $(VERILATOR_OBJS) $(VERILATED_DIR)/F2__ALL.a | microrom.mem nanorom.mem
 	$(CXX) -o $@ $^ $(CPPFLAGS) $(LDFLAGS) $(LDLIBS) -lpthread -lz
 
+validate_mra: validate_mra.cpp mra_loader.cpp file_search.cpp third_party/miniz.cpp third_party/pugixml.cpp
+	$(CXX) -o $@ $^ $(CPPFLAGS) $(LDFLAGS) -lz
+
+debug_mra: debug_mra.cpp mra_loader.cpp file_search.cpp third_party/miniz.cpp third_party/pugixml.cpp
+	$(CXX) -o $@ $^ $(CPPFLAGS) $(LDFLAGS) -lz
+
+compare_bindumps: compare_bindumps.cpp mra_loader.cpp file_search.cpp third_party/miniz.cpp third_party/pugixml.cpp
+	$(CXX) -o $@ $^ $(CPPFLAGS) $(LDFLAGS) -lz
+
 run: sim
 	./sim $(GAME)
 

@@ -23,6 +23,9 @@ bool CommandQueue::parse_arguments(int argc, char** argv, std::string& game_name
         {"trace-start", required_argument, 0, 't'},
         {"trace-stop", no_argument, 0, 'T'},
         {"script", required_argument, 0, 'x'},
+        {"load-game", required_argument, 0, 'g'},
+        {"load-mra", required_argument, 0, 'm'},
+        {"reset", required_argument, 0, 'r'},
         {"headless", no_argument, 0, 'h'},
         {"verbose", no_argument, 0, 'v'},
         {"help", no_argument, 0, '?'},
@@ -35,7 +38,7 @@ bool CommandQueue::parse_arguments(int argc, char** argv, std::string& game_name
     // Reset getopt
     optind = 1;
     
-    while ((c = getopt_long(argc, argv, "l:s:c:f:p:t:Tx:hv?", long_options, &option_index)) != -1)
+    while ((c = getopt_long(argc, argv, "l:s:c:f:p:t:Tx:g:m:r:hv?", long_options, &option_index)) != -1)
     {
         switch (c)
         {
@@ -85,6 +88,24 @@ bool CommandQueue::parse_arguments(int argc, char** argv, std::string& game_name
             {
                 printf("Error: Failed to parse script file: %s\n", optarg);
                 return false;
+            }
+            break;
+            
+        case 'g':
+            add(Command(CommandType::LOAD_GAME, optarg));
+            if (verbose) printf("Command: Load game %s\n", optarg);
+            break;
+            
+        case 'm':
+            add(Command(CommandType::LOAD_MRA, optarg));
+            if (verbose) printf("Command: Load MRA %s\n", optarg);
+            break;
+            
+        case 'r':
+            {
+                uint64_t cycles = std::stoull(optarg);
+                add(Command(CommandType::RESET, cycles));
+                if (verbose) printf("Command: Reset for %llu cycles\n", cycles);
             }
             break;
             
@@ -221,6 +242,30 @@ bool CommandQueue::parse_script_line(const std::string& line)
         add(Command(CommandType::TRACE_STOP));
         if (verbose) printf("Script: Stop trace\n");
     }
+    else if (command == "load-game" || command == "load_game")
+    {
+        std::string game_name;
+        iss >> game_name;
+        if (game_name.empty()) return false;
+        add(Command(CommandType::LOAD_GAME, game_name));
+        if (verbose) printf("Script: Load game %s\n", game_name.c_str());
+    }
+    else if (command == "load-mra" || command == "load_mra")
+    {
+        std::string mra_path;
+        iss >> mra_path;
+        if (mra_path.empty()) return false;
+        add(Command(CommandType::LOAD_MRA, mra_path));
+        if (verbose) printf("Script: Load MRA %s\n", mra_path.c_str());
+    }
+    else if (command == "reset")
+    {
+        uint64_t cycles;
+        iss >> cycles;
+        if (iss.fail()) return false;
+        add(Command(CommandType::RESET, cycles));
+        if (verbose) printf("Script: Reset for %llu cycles\n", cycles);
+    }
     else if (command == "wait" || command == "delay")
     {
         uint64_t ms;
@@ -252,11 +297,16 @@ void CommandQueue::print_usage(const char* program_name)
     printf("  --trace-start <file>   Start FST trace to file\n");
     printf("  --trace-stop           Stop FST trace\n");
     printf("  --script <file>        Execute commands from script file\n");
+    printf("  --load-game <name>     Load game by name (e.g. finalb, cameltry)\n");
+    printf("  --load-mra <file>      Load game from MRA file\n");
+    printf("  --reset <cycles>       Reset for specified number of cycles\n");
     printf("  --headless             Run without GUI (batch mode only)\n");
     printf("  --verbose              Print command execution details\n");
     printf("  --help                 Show this help message\n");
     printf("\nScript file format:\n");
     printf("  # Comments start with #\n");
+    printf("  load-game finalb\n");
+    printf("  reset 100\n");
     printf("  load-state checkpoint.state\n");
     printf("  run-frames 100\n");
     printf("  trace-start debug.fst\n");
@@ -266,5 +316,7 @@ void CommandQueue::print_usage(const char* program_name)
     printf("  save-state final.state\n");
     printf("\nExample:\n");
     printf("  %s finalb --load-state test.state --run-frames 60 --screenshot out.png\n", program_name);
-    printf("  %s driftout --script test_sequence.txt\n", program_name);
+    printf("  %s --load-game finalb --run-frames 60 --screenshot out.png\n", program_name);
+    printf("  %s --load-mra test.mra --headless --run-frames 100\n", program_name);
+    printf("  %s --script test_sequence.txt\n", program_name);
 }
