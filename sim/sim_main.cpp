@@ -58,6 +58,7 @@ int main(int argc, char **argv)
             command_queue.add(Command(CommandType::LOAD_MRA, game_name_str));
         } else {
             command_queue.add(Command(CommandType::LOAD_GAME, game_name_str));
+            command_queue.add(Command(CommandType::RESET, 100));
         }
     }
     
