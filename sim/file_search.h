@@ -15,6 +15,20 @@
 class FileSearch
 {
   public:
+    // Enum to track search path type
+    enum class PathType
+    {
+        Directory,
+        ZipFile
+    };
+
+    // Structure to track search paths in order
+    struct SearchPath
+    {
+        std::string path;
+        PathType type;
+    };
+
     // Constructor
     FileSearch();
 
@@ -35,11 +49,44 @@ class FileSearch
      * @return true if file was found and loaded
      */
     bool loadFile(const std::string &filename, std::vector<uint8_t> &buffer);
+    
+    /**
+     * Load a file by CRC32 from zip files in search paths
+     * @param crc32 CRC32 value to search for
+     * @param buffer Vector to store the file contents
+     * @return true if file was found and loaded
+     */
+    bool loadFileByCRC(uint32_t crc32, std::vector<uint8_t> &buffer);
+    
+    /**
+     * Find the full path of a file in search paths
+     * @param filename Name of the file to locate
+     * @return Full path to the file, or empty string if not found
+     */
+    std::string findFilePath(const std::string &filename);
 
     /**
      * Clear all search paths
      */
     void clearSearchPaths();
+    
+    /**
+     * Save current search paths state
+     * @return Saved state that can be restored later
+     */
+    std::vector<SearchPath> saveSearchPaths() const;
+    
+    /**
+     * Restore search paths from saved state
+     * @param savedPaths Previously saved search paths
+     */
+    void restoreSearchPaths(const std::vector<SearchPath> &savedPaths);
+    
+    /**
+     * Get the number of search paths
+     * @return Number of active search paths
+     */
+    size_t getSearchPathCount() const { return m_searchPaths.size(); }
 
   private:
     // Structure to hold opened zip archive information
@@ -62,20 +109,6 @@ class FileSearch
         }
     };
 
-    // Enum to track search path type
-    enum class PathType
-    {
-        Directory,
-        ZipFile
-    };
-
-    // Structure to track search paths in order
-    struct SearchPath
-    {
-        std::string path;
-        PathType type;
-    };
-
     // List of search paths in the order they were added
     std::vector<SearchPath> m_searchPaths;
 
@@ -90,6 +123,10 @@ class FileSearch
     // Try to load file from a zip archive
     bool loadFromZip(const std::string &zipPath, const std::string &filename,
                      std::vector<uint8_t> &buffer);
+                     
+    // Try to load file by CRC from a zip archive
+    bool loadFromZipByCRC(const std::string &zipPath, uint32_t crc32,
+                          std::vector<uint8_t> &buffer);
 };
 
 // Global FileSearch instance that can be used throughout the application

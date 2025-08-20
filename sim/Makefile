@@ -42,7 +42,8 @@ SRCS = imgui/imgui.cpp \
 		third_party/miniz.cpp \
 		third_party/pugixml.cpp \
 		file_search.cpp \
-		mra_loader.cpp
+		mra_loader.cpp \
+		sim_ioctl.cpp
 
 OBJS = $(patsubst %.cpp, $(OBJ_DIR)/%.o, $(SRCS))
 

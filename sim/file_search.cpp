@@ -199,3 +199,105 @@ bool FileSearch::loadFromZip(const std::string &zipPath,
               << std::endl;
     return true;
 }
+
+bool FileSearch::loadFileByCRC(uint32_t crc32, std::vector<uint8_t> &buffer)
+{
+    // Search through all zip files in search paths
+    for (const auto &searchPath : m_searchPaths)
+    {
+        if (searchPath.type == PathType::ZipFile)
+        {
+            if (loadFromZipByCRC(searchPath.path, crc32, buffer))
+            {
+                return true;
+            }
+        }
+    }
+    
+    return false;
+}
+
+bool FileSearch::loadFromZipByCRC(const std::string &zipPath, uint32_t crc32,
+                                  std::vector<uint8_t> &buffer)
+{
+    ZipInfo *zipInfo = m_zipFiles[zipPath];
+    if (!zipInfo || !zipInfo->valid)
+    {
+        return false;
+    }
+
+    // Search for file by CRC32
+    for (unsigned int fileIndex = 0; fileIndex < zipInfo->archive.m_total_files; fileIndex++)
+    {
+        mz_zip_archive_file_stat fileStat;
+        if (mz_zip_reader_file_stat(&zipInfo->archive, fileIndex, &fileStat))
+        {
+            if (fileStat.m_crc32 == crc32)
+            {
+                // Found file with matching CRC
+                buffer.resize(fileStat.m_uncomp_size);
+                
+                if (mz_zip_reader_extract_to_mem(&zipInfo->archive, fileIndex,
+                                                 buffer.data(), buffer.size(), 0))
+                {
+                    return true;
+                }
+                else
+                {
+                    buffer.clear();
+                    return false;
+                }
+            }
+        }
+    }
+
+    return false;
+}
+
+std::string FileSearch::findFilePath(const std::string &filename)
+{
+    // Search through all search paths
+    for (const auto &searchPath : m_searchPaths)
+    {
+        if (searchPath.type == PathType::Directory)
+        {
+            std::filesystem::path fullPath = std::filesystem::path(searchPath.path) / filename;
+            if (std::filesystem::exists(fullPath))
+            {
+                return fullPath.string();
+            }
+        }
+        else if (searchPath.type == PathType::ZipFile)
+        {
+            // For ZIP files, return the ZIP path if the file exists inside it
+            ZipInfo *zipInfo = m_zipFiles[searchPath.path];
+            if (zipInfo && zipInfo->valid)
+            {
+                int fileIndex = mz_zip_reader_locate_file(&zipInfo->archive, filename.c_str(), nullptr, 0);
+                if (fileIndex >= 0)
+                {
+                    return searchPath.path; // Return the ZIP file path
+                }
+            }
+        }
+    }
+    
+    return ""; // File not found
+}
+
+std::vector<FileSearch::SearchPath> FileSearch::saveSearchPaths() const
+{
+    return m_searchPaths;
+}
+
+void FileSearch::restoreSearchPaths(const std::vector<SearchPath> &savedPaths)
+{
+    // Clear current paths and zip cache
+    clearSearchPaths();
+    
+    // Restore saved paths
+    for (const auto &path : savedPaths)
+    {
+        addSearchPath(path.path);
+    }
+}

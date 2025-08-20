@@ -57,5 +57,6 @@ game_t game_find(const char *name);
 const char *game_name(game_t game);
 
 bool game_init(game_t game);
+bool game_init_mra(const char *mra_path);
 
 #endif // GAMES_H

@@ -38,16 +38,6 @@ private:
      */
     bool parseHexString(const std::string& hexStr, std::vector<uint8_t>& output);
     
-    /**
-     * Load a file from zip or filesystem
-     * @param zipPath Path to zip file (empty if loading from filesystem)
-     * @param fileName Name of the file to load
-     * @param output Vector to store file contents
-     * @param crc32 CRC32 to search by if name lookup fails (0 = no CRC search)
-     * @return true if successful
-     */
-    bool loadFileData(const std::string& zipPath, const std::string& fileName, 
-                      std::vector<uint8_t>& output, uint32_t crc32 = 0);
     
     /**
      * Apply map attribute to data (e.g., "01" to take odd bytes)
@@ -64,13 +54,6 @@ private:
      */
     uint32_t calculateCRC32(const std::vector<uint8_t>& data);
     
-    /**
-     * Search for file by CRC in zip archive
-     * @param zip Zip archive to search
-     * @param crc32 CRC32 value to find
-     * @return File index or -1 if not found
-     */
-    int searchByCRC(mz_zip_archive* zip, uint32_t crc32);
 };
 
 #endif // MRA_LOADER_H

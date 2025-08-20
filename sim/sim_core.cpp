@@ -27,7 +27,7 @@ bool simulation_run = false;
 bool simulation_step = false;
 int simulation_step_size = 100000;
 bool simulation_step_vblank = false;
-uint64_t simulation_reset_until = 100;
+uint64_t simulation_reset_until = 15000000;
 bool system_pause = false;
 
 bool simulation_wp_set = false;

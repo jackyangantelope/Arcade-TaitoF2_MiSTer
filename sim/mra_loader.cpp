@@ -14,13 +14,23 @@ bool MRALoader::load(const std::string& mraPath, std::vector<uint8_t>& romData)
     romData.clear();
     m_lastError.clear();
     
+    // Save current search paths state
+    auto savedPaths = g_fs.saveSearchPaths();
+    
     // Load and parse the MRA XML file
     pugi::xml_document doc;
     pugi::xml_parse_result result = doc.load_file(mraPath.c_str());
     
     if (!result) {
         m_lastError = "Failed to parse MRA file: " + std::string(result.description());
+        g_fs.restoreSearchPaths(savedPaths);
         return false;
+    }
+    
+    // Add the MRA directory to search paths
+    std::filesystem::path mraDir = std::filesystem::path(mraPath).parent_path();
+    if (!mraDir.empty()) {
+        g_fs.addSearchPath(mraDir.string());
     }
     
     // Find the rom element with index="0" (or no index attribute)
@@ -35,15 +45,43 @@ bool MRALoader::load(const std::string& mraPath, std::vector<uint8_t>& romData)
     
     if (!romNode) {
         m_lastError = "No ROM element with index 0 found";
+        g_fs.restoreSearchPaths(savedPaths);
         return false;
     }
     
-    // Get the zip file path if specified
-    std::string zipPath = romNode.attribute("zip").as_string("");
-    if (!zipPath.empty()) {
-        // Try to find the zip file in the same directory as the MRA
-        std::filesystem::path mraDir = std::filesystem::path(mraPath).parent_path();
-        zipPath = (mraDir / zipPath).string();
+    // Get the zip file path(s) if specified and add them to search paths
+    std::string zipAttr = romNode.attribute("zip").as_string("");
+    if (!zipAttr.empty()) {
+        // Split zip attribute by | character to support multiple zip files
+        std::vector<std::string> zipPaths;
+        std::stringstream ss(zipAttr);
+        std::string zipPath;
+        
+        while (std::getline(ss, zipPath, '|')) {
+            // Trim whitespace
+            zipPath.erase(0, zipPath.find_first_not_of(" \t"));
+            zipPath.erase(zipPath.find_last_not_of(" \t") + 1);
+            if (!zipPath.empty()) {
+                zipPaths.push_back(zipPath);
+            }
+        }
+        
+        // Try to find and add each zip file to search paths
+        bool foundAnyZip = false;
+        for (const std::string& zip : zipPaths) {
+            std::string actualZipPath = g_fs.findFilePath(zip);
+            if (!actualZipPath.empty()) {
+                // Found the zip file, add it to search paths
+                g_fs.addSearchPath(actualZipPath);
+                foundAnyZip = true;
+            }
+        }
+        
+        if (!foundAnyZip) {
+            m_lastError = "Could not find any ZIP files from: " + zipAttr;
+            g_fs.restoreSearchPaths(savedPaths);
+            return false;
+        }
     }
     
     // Process each part in order
@@ -73,9 +111,20 @@ bool MRALoader::load(const std::string& mraPath, std::vector<uint8_t>& romData)
                     }
                 }
                 
-                // Load file from zip or filesystem
-                if (!loadFileData(zipPath, fileName, partData, crc32Value)) {
+                // Load file from zip or filesystem using FileSearch
+                bool loaded = false;
+                if (crc32Value != 0) {
+                    // Try CRC lookup first
+                    loaded = g_fs.loadFileByCRC(crc32Value, partData);
+                }
+                if (!loaded) {
+                    // Fallback to filename lookup
+                    loaded = g_fs.loadFile(fileName, partData);
+                }
+                
+                if (!loaded) {
                     m_lastError = "Failed to load file: " + fileName;
+                    g_fs.restoreSearchPaths(savedPaths);
                     return false;
                 }
                 
@@ -83,6 +132,7 @@ bool MRALoader::load(const std::string& mraPath, std::vector<uint8_t>& romData)
                 if (offset > 0 || length >= 0) {
                     if (offset >= partData.size()) {
                         m_lastError = "Offset exceeds file size for: " + fileName;
+                        g_fs.restoreSearchPaths(savedPaths);
                         return false;
                     }
                     
@@ -99,6 +149,7 @@ bool MRALoader::load(const std::string& mraPath, std::vector<uint8_t>& romData)
                 if (!mapStr.empty()) {
                     if (!applyMap(partData, mapStr)) {
                         m_lastError = "Failed to apply map: " + mapStr;
+                        g_fs.restoreSearchPaths(savedPaths);
                         return false;
                     }
                 }
@@ -108,6 +159,7 @@ bool MRALoader::load(const std::string& mraPath, std::vector<uint8_t>& romData)
                 if (!hexData.empty()) {
                     if (!parseHexString(hexData, partData)) {
                         m_lastError = "Failed to parse hex data";
+                        g_fs.restoreSearchPaths(savedPaths);
                         return false;
                     }
                 }
@@ -136,6 +188,7 @@ bool MRALoader::load(const std::string& mraPath, std::vector<uint8_t>& romData)
             int outputWidth = child.attribute("output").as_int(8);
             if (outputWidth != 8 && outputWidth != 16 && outputWidth != 32) {
                 m_lastError = "Invalid interleave output width: " + std::to_string(outputWidth);
+                g_fs.restoreSearchPaths(savedPaths);
                 return false;
             }
             
@@ -161,9 +214,20 @@ bool MRALoader::load(const std::string& mraPath, std::vector<uint8_t>& romData)
                 std::vector<uint8_t> partData;
                 
                 if (!fileName.empty()) {
-                    // Load from file
-                    if (!loadFileData(zipPath, fileName, partData, crc32Value)) {
+                    // Load file using FileSearch
+                    bool loaded = false;
+                    if (crc32Value != 0) {
+                        // Try CRC lookup first
+                        loaded = g_fs.loadFileByCRC(crc32Value, partData);
+                    }
+                    if (!loaded) {
+                        // Fallback to filename lookup
+                        loaded = g_fs.loadFile(fileName, partData);
+                    }
+                    
+                    if (!loaded) {
                         m_lastError = "Failed to load interleave file: " + fileName;
+                        g_fs.restoreSearchPaths(savedPaths);
                         return false;
                     }
                 } else {
@@ -172,6 +236,7 @@ bool MRALoader::load(const std::string& mraPath, std::vector<uint8_t>& romData)
                     if (!hexData.empty()) {
                         if (!parseHexString(hexData, partData)) {
                             m_lastError = "Failed to parse hex data in interleave";
+                            g_fs.restoreSearchPaths(savedPaths);
                             return false;
                         }
                     }
@@ -193,6 +258,7 @@ bool MRALoader::load(const std::string& mraPath, std::vector<uint8_t>& romData)
             // Perform interleaving: combine multiple parts into wider output
             if (interleaveParts.empty()) {
                 m_lastError = "No parts in interleave section";
+                g_fs.restoreSearchPaths(savedPaths);
                 return false;
             }
             
@@ -219,14 +285,18 @@ bool MRALoader::load(const std::string& mraPath, std::vector<uint8_t>& romData)
                     // No map specified, place in order
                     targetSlots.push_back(partIdx % bytesPerUnit);
                 } else {
-                    // Parse map string: "01" means low byte (slot 0), "10" means high byte (slot 1)
-                    // Each character represents a 4-bit nibble position
+                    // Parse map string to determine byte placement
+                    // "10" means this part goes to byte position 1 (high byte in little-endian)
+                    // "01" means this part goes to byte position 0 (low byte in little-endian)
                     for (size_t i = 0; i < mapStr.length(); i++) {
                         char c = mapStr[i];
                         if (c == '1') {
-                            // Bit set - this part goes to slot i
-                            if (i < bytesPerUnit) {
-                                targetSlots.push_back(i);
+                            // The position of '1' in the string indicates the target byte position
+                            // For "10": '1' is at position 0, so this goes to byte 1
+                            // For "01": '1' is at position 1, so this goes to byte 0
+                            int slot = mapStr.length() - 1 - i;
+                            if (slot < bytesPerUnit) {
+                                targetSlots.push_back(slot);
                             }
                         }
                     }
@@ -258,6 +328,8 @@ bool MRALoader::load(const std::string& mraPath, std::vector<uint8_t>& romData)
         }
     }
     
+    // Restore search paths
+    g_fs.restoreSearchPaths(savedPaths);
     return true;
 }
 
@@ -291,64 +363,6 @@ bool MRALoader::parseHexString(const std::string& hexStr, std::vector<uint8_t>& 
     return true;
 }
 
-bool MRALoader::loadFileData(const std::string& zipPath, const std::string& fileName, 
-                             std::vector<uint8_t>& output, uint32_t crc32)
-{
-    if (!zipPath.empty() && std::filesystem::exists(zipPath)) {
-        // Try to load from zip file
-        mz_zip_archive zip;
-        mz_zip_zero_struct(&zip);
-        
-        if (mz_zip_reader_init_file(&zip, zipPath.c_str(), 0)) {
-            int fileIndex = -1;
-            
-            // First try to find by CRC if provided
-            if (crc32 != 0) {
-                fileIndex = searchByCRC(&zip, crc32);
-            }
-            
-            // If CRC search failed or no CRC provided, search by name
-            if (fileIndex < 0) {
-                fileIndex = mz_zip_reader_locate_file(&zip, fileName.c_str(), nullptr, 0);
-            }
-            
-            if (fileIndex >= 0) {
-                mz_zip_archive_file_stat fileStat;
-                if (mz_zip_reader_file_stat(&zip, fileIndex, &fileStat)) {
-                    output.resize(fileStat.m_uncomp_size);
-                    
-                    if (mz_zip_reader_extract_to_mem(&zip, fileIndex, output.data(), 
-                                                     output.size(), 0)) {
-                        mz_zip_reader_end(&zip);
-                        return true;
-                    }
-                }
-            }
-            
-            mz_zip_reader_end(&zip);
-        }
-    }
-    
-    // Try to load from filesystem using global file search
-    if (g_fs.loadFile(fileName, output)) {
-        return true;
-    }
-    
-    // Try direct file load as last resort
-    std::ifstream file(fileName, std::ios::binary);
-    if (file.is_open()) {
-        file.seekg(0, std::ios::end);
-        size_t size = file.tellg();
-        file.seekg(0, std::ios::beg);
-        
-        output.resize(size);
-        file.read(reinterpret_cast<char*>(output.data()), size);
-        return file.good();
-    }
-    
-    return false;
-}
-
 bool MRALoader::applyMap(std::vector<uint8_t>& data, const std::string& mapStr)
 {
     // Map string like "0001" means take every 4th byte starting at offset 3
@@ -375,17 +389,4 @@ bool MRALoader::applyMap(std::vector<uint8_t>& data, const std::string& mapStr)
 uint32_t MRALoader::calculateCRC32(const std::vector<uint8_t>& data)
 {
     return mz_crc32(MZ_CRC32_INIT, data.data(), data.size());
-}
-
-int MRALoader::searchByCRC(mz_zip_archive* zip, uint32_t crc32)
-{
-    for (unsigned int fileIndex = 0; fileIndex < zip->m_total_files; fileIndex++) {
-        mz_zip_archive_file_stat fileStat;
-        if (mz_zip_reader_file_stat(zip, fileIndex, &fileStat)) {
-            if (fileStat.m_crc32 == crc32) {
-                return fileIndex;
-            }
-        }
-    }
-    return -1;
 }

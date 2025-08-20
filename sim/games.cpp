@@ -1,6 +1,7 @@
 #include "games.h"
 #include "sim_sdram.h"
 #include "sim_ddr.h"
+#include "sim_ioctl.h"
 
 #include "F2.h"
 #include "F2___024root.h"
@@ -435,5 +436,31 @@ bool game_init(game_t game)
         return false;
     }
 
+    return true;
+}
+
+bool game_init_mra(const char *mra_path)
+{
+    g_fs.clearSearchPaths();
+    
+    extern F2 *top;
+    
+    // Create SimIOCTL instance to handle MRA loading
+    SimIOCTL ioctl(top);
+    
+    // Add common ROM search paths
+    std::vector<std::string> searchPaths = {
+        ".",
+        "roms/",
+        "../roms/"
+    };
+    
+    // Load the MRA file
+    if (!ioctl.loadMRA(mra_path, searchPaths)) {
+        printf("Failed to load MRA file '%s': %s\n", mra_path, ioctl.getLastError().c_str());
+        return false;
+    }
+    
+    printf("Successfully loaded MRA: %s\n", mra_path);
     return true;
 }

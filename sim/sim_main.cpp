@@ -61,15 +61,23 @@ int main(int argc, char **argv)
     
     const char *game_name = game_name_str.c_str();
     char title[64];
+    bool use_mra = false;
+    game_t game = GAME_INVALID;
 
-    const game_t game = game_find(game_name);
-    if (game == GAME_INVALID)
-    {
-        printf("Game '%s' is not found.\n", game_name);
-        return -1;
+    // Check if it's an MRA file
+    if (game_name_str.length() > 4 && 
+        game_name_str.substr(game_name_str.length() - 4) == ".mra") {
+        use_mra = true;
+        snprintf(title, 64, "F2 - MRA");
+    } else {
+        game = game_find(game_name);
+        if (game == GAME_INVALID)
+        {
+            printf("Game '%s' is not found.\n", game_name);
+            return -1;
+        }
+        snprintf(title, 64, "F2 - %s", game_name);
     }
-
-    snprintf(title, 64, "F2 - %s", game_name);
 
     sim_init();
     
@@ -79,7 +87,18 @@ int main(int argc, char **argv)
         ui_init(title);
     }
 
-    game_init(game);
+    // Set the game parameter on the core
+    if (use_mra) {
+        // For MRA mode, set game to a default value (will be overridden by MRA data)
+        top->game = GAME_FINALB;  // Default, ROM loader will determine actual config
+        if (!game_init_mra(game_name)) {
+            printf("Failed to initialize from MRA file: %s\n", game_name);
+            return -1;
+        }
+    } else {
+        top->game = game;
+        game_init(game);
+    }
 
     g_fs.addSearchPath(".");
 
