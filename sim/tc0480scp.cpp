@@ -2,11 +2,10 @@
 
 #include "imgui_wrap.h"
 #include "tc0480scp.h"
+#include "sim_core.h"
 
 #include "F2.h"
 #include "F2___024root.h"
-
-extern F2 *top;
 
 void draw_480scp_window()
 {
@@ -19,7 +18,7 @@ void draw_480scp_window()
     int16_t ctrl[32];
     for (int i = 0; i < 32; i++)
     {
-        ctrl[i] = top->rootp->sim_top__DOT__f2_inst__DOT__tc0480scp__DOT__ctrl[i];
+        ctrl[i] = g_sim_core.top->rootp->sim_top__DOT__f2_inst__DOT__tc0480scp__DOT__ctrl[i];
     }
 
     ImGui::LabelText("BG0", "X:%d Y:%d Z:%d DX:%d DY:%d", ctrl[0], ctrl[4],

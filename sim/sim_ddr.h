@@ -287,6 +287,6 @@ class SimDDR
     uint8_t burst_size;    // Total size of current burst
 };
 
-extern SimDDR ddr_memory;
+// SimDDR global instance is now provided via sim_core.h
 
 #endif // SIM_DDR_H

@@ -2,11 +2,10 @@
 
 #include "imgui_wrap.h"
 #include "sim_hierarchy.h"
+#include "sim_core.h"
 
 #include "F2.h"
 #include "F2___024root.h"
-
-extern F2 *top;
 
 void draw_pri_window()
 {
@@ -16,13 +15,13 @@ void draw_pri_window()
         return;
     }
 
-    uint16_t color_in0 = top->rootp->F2_SIGNAL(tc0360pri, color_in0);
-    uint16_t color_in1 = top->rootp->F2_SIGNAL(tc0360pri, color_in1);
-    uint16_t color_in2 = top->rootp->F2_SIGNAL(tc0360pri, color_in2);
+    uint16_t color_in0 = g_sim_core.top->rootp->F2_SIGNAL(tc0360pri, color_in0);
+    uint16_t color_in1 = g_sim_core.top->rootp->F2_SIGNAL(tc0360pri, color_in1);
+    uint16_t color_in2 = g_sim_core.top->rootp->F2_SIGNAL(tc0360pri, color_in2);
     uint8_t ctrl[16];
     for (int i = 0; i < 16; i++)
     {
-        ctrl[i] = top->rootp->F2_SIGNAL(tc0360pri, ctrl)[i];
+        ctrl[i] = g_sim_core.top->rootp->F2_SIGNAL(tc0360pri, ctrl)[i];
     }
 
     ImGui::Text("Color0: %03X  Sel0: %d", color_in0 & 0xfff,

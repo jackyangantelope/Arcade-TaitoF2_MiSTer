@@ -1,5 +1,6 @@
 
 #include "sim_hw_ui.h"
+#include "sim_core.h"
 #include "imgui.h"
 #include "F2.h"
 #include "F2___024root.h"
@@ -8,9 +9,6 @@
 #include "tc0200obj.h"
 #include "tc0360pri.h"
 #include "tc0480scp.h"
-
-extern F2 *top;
-extern SimSDRAM sdram;
 
 #define SWAP32(x)                                                              \
     (((x) & 0xff000000) >> 16) | (((x) & 0x00ff0000) >> 16) |                  \
@@ -44,12 +42,12 @@ void hw_ui_draw()
     if (ImGui::Begin("Debug"))
     {
         /*
-        int x = (int16_t)top->rootp->sim_top__DOT__f2_inst__DOT__tc0480scp__DOT__base_xofs;
-        int y = (int16_t)top->rootp->sim_top__DOT__f2_inst__DOT__tc0480scp__DOT__base_yofs;
+        int x = (int16_t)g_sim_core.top->rootp->sim_top__DOT__f2_inst__DOT__tc0480scp__DOT__base_xofs;
+        int y = (int16_t)g_sim_core.top->rootp->sim_top__DOT__f2_inst__DOT__tc0480scp__DOT__base_yofs;
         ImGui::InputInt("Disp X", &x);
         ImGui::InputInt("Disp Y", &y);
-        top->rootp->sim_top__DOT__f2_inst__DOT__tc0480scp__DOT__base_xofs = x;
-        top->rootp->sim_top__DOT__f2_inst__DOT__tc0480scp__DOT__base_yofs = y;
+        g_sim_core.top->rootp->sim_top__DOT__f2_inst__DOT__tc0480scp__DOT__base_xofs = x;
+        g_sim_core.top->rootp->sim_top__DOT__f2_inst__DOT__tc0480scp__DOT__base_yofs = y;
         */
 
         int step = 1;
@@ -148,7 +146,7 @@ void hw_ui_draw()
         if (modified)
         {
             sim_debug_data->modified++;
-            top->rootp->sim_top__DOT__f2_inst__DOT__rom_cache__DOT__version++;
+            g_sim_core.top->rootp->sim_top__DOT__f2_inst__DOT__rom_cache__DOT__version++;
         }
     }
     ImGui::End();
@@ -161,10 +159,10 @@ void hw_ui_draw()
     if (ImGui::Begin("68000"))
     {
         uint32_t pc =
-            top->rootp->sim_top__DOT__f2_inst__DOT__m68000__DOT__excUnit__DOT__PcL |
-            (top->rootp->sim_top__DOT__f2_inst__DOT__m68000__DOT__excUnit__DOT__PcH << 16);
+            g_sim_core.top->rootp->sim_top__DOT__f2_inst__DOT__m68000__DOT__excUnit__DOT__PcL |
+            (g_sim_core.top->rootp->sim_top__DOT__f2_inst__DOT__m68000__DOT__excUnit__DOT__PcH << 16);
         ImGui::LabelText("PC", "%08X", pc);
-        Dis68k dis(sdram.data + pc, sdram.data + pc + 64, pc);
+        Dis68k dis(g_sim_core.sdram->data + pc, g_sim_core.sdram->data + pc + 64, pc);
         char optxt[128];
         uint32_t addr;
         dis.disasm(&addr, optxt, sizeof(optxt));

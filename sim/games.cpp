@@ -1,15 +1,15 @@
 #include "games.h"
+#include "sim_core.h"
 #include "sim_sdram.h"
 #include "sim_ddr.h"
-#include "sim_ioctl.h"
+#include "mra_loader.h"
 
 #include "F2.h"
 #include "F2___024root.h"
 
 #include "file_search.h"
 #include <string.h>
-
-extern F2 *top;
+#include <cstdio>
 
 static const char *game_names[N_GAMES] = {
     "finalb",        "dondokod",    "megab",        "thundfox",
@@ -52,7 +52,7 @@ static bool load_audio(const char *name)
         return false;
     }
 
-    memcpy(top->rootp->sim_top__DOT__f2_inst__DOT__sound_rom__DOT__ram.m_storage, data.data(),
+    memcpy(g_sim_core.top->rootp->sim_top__DOT__f2_inst__DOT__sound_rom__DOT__ram.m_storage, data.data(),
            data.size());
 
     return true;
@@ -64,20 +64,20 @@ static void load_finalb()
 
     load_audio("b82_10.ic5");
 
-    sdram.load_data("b82-09.ic23", CPU_ROM_SDR_BASE + 1, 2);
-    sdram.load_data("b82-17.ic11", CPU_ROM_SDR_BASE + 0, 2);
+    g_sim_core.sdram->load_data("b82-09.ic23", CPU_ROM_SDR_BASE + 1, 2);
+    g_sim_core.sdram->load_data("b82-17.ic11", CPU_ROM_SDR_BASE + 0, 2);
 
-    sdram.load_data("b82-07.ic34", SCN0_ROM_SDR_BASE + 1, 2);
-    sdram.load_data("b82-06.ic33", SCN0_ROM_SDR_BASE + 0, 2);
+    g_sim_core.sdram->load_data("b82-07.ic34", SCN0_ROM_SDR_BASE + 1, 2);
+    g_sim_core.sdram->load_data("b82-06.ic33", SCN0_ROM_SDR_BASE + 0, 2);
 
-    sdram.load_data("b82-02.ic1", ADPCMA_ROM_SDR_BASE, 1);
-    sdram.load_data("b82-01.ic2", ADPCMB_ROM_SDR_BASE, 1);
+    g_sim_core.sdram->load_data("b82-02.ic1", ADPCMA_ROM_SDR_BASE, 1);
+    g_sim_core.sdram->load_data("b82-01.ic2", ADPCMB_ROM_SDR_BASE, 1);
 
-    ddr_memory.load_data("b82-03.ic9", OBJ_DATA_DDR_BASE + 0, 4);
-    ddr_memory.load_data("b82-04.ic8", OBJ_DATA_DDR_BASE + 1, 4);
-    ddr_memory.load_data("b82-05.ic7", OBJ_DATA_DDR_BASE + 2, 4);
+    g_sim_core.ddr_memory->load_data("b82-03.ic9", OBJ_DATA_DDR_BASE + 0, 4);
+    g_sim_core.ddr_memory->load_data("b82-04.ic8", OBJ_DATA_DDR_BASE + 1, 4);
+    g_sim_core.ddr_memory->load_data("b82-05.ic7", OBJ_DATA_DDR_BASE + 2, 4);
 
-    top->game = GAME_FINALB;
+    g_sim_core.top->game = GAME_FINALB;
 }
 
 static void load_finalb_test()
@@ -92,18 +92,18 @@ static void load_qjinsei()
 
     load_audio("d48-11");
 
-    sdram.load_data("d48-09", CPU_ROM_SDR_BASE + 1, 2);
-    sdram.load_data("d48-10", CPU_ROM_SDR_BASE + 0, 2);
-    sdram.load_data("d48-03", CPU_ROM_SDR_BASE + 0x100000, 1);
+    g_sim_core.sdram->load_data("d48-09", CPU_ROM_SDR_BASE + 1, 2);
+    g_sim_core.sdram->load_data("d48-10", CPU_ROM_SDR_BASE + 0, 2);
+    g_sim_core.sdram->load_data("d48-03", CPU_ROM_SDR_BASE + 0x100000, 1);
 
-    sdram.load_data("d48-04", SCN0_ROM_SDR_BASE, 1);
+    g_sim_core.sdram->load_data("d48-04", SCN0_ROM_SDR_BASE, 1);
 
-    sdram.load_data("d48-05", ADPCMA_ROM_SDR_BASE, 1);
+    g_sim_core.sdram->load_data("d48-05", ADPCMA_ROM_SDR_BASE, 1);
 
-    ddr_memory.load_data("d48-02", OBJ_DATA_DDR_BASE + 0, 2);
-    ddr_memory.load_data("d48-01", OBJ_DATA_DDR_BASE + 1, 2);
+    g_sim_core.ddr_memory->load_data("d48-02", OBJ_DATA_DDR_BASE + 0, 2);
+    g_sim_core.ddr_memory->load_data("d48-01", OBJ_DATA_DDR_BASE + 1, 2);
 
-    top->game = GAME_QJINSEI;
+    g_sim_core.top->game = GAME_QJINSEI;
 }
 
 static void load_qjinsei_test()
@@ -119,21 +119,21 @@ static void load_dinorex()
 
     load_audio("d39-12.5");
 
-    sdram.load_data("d39-14.9", CPU_ROM_SDR_BASE + 1, 2);
-    sdram.load_data("d39-16.8", CPU_ROM_SDR_BASE + 0, 2);
-    sdram.load_data("d39-04.6", CPU_ROM_SDR_BASE + 0x100000, 1);
-    sdram.load_data("d39-05.7", CPU_ROM_SDR_BASE + 0x200000, 1);
+    g_sim_core.sdram->load_data("d39-14.9", CPU_ROM_SDR_BASE + 1, 2);
+    g_sim_core.sdram->load_data("d39-16.8", CPU_ROM_SDR_BASE + 0, 2);
+    g_sim_core.sdram->load_data("d39-04.6", CPU_ROM_SDR_BASE + 0x100000, 1);
+    g_sim_core.sdram->load_data("d39-05.7", CPU_ROM_SDR_BASE + 0x200000, 1);
 
-    sdram.load_data("d39-06.2", SCN0_ROM_SDR_BASE, 1);
+    g_sim_core.sdram->load_data("d39-06.2", SCN0_ROM_SDR_BASE, 1);
 
-    sdram.load_data("d39-07.10", ADPCMA_ROM_SDR_BASE, 1);
-    sdram.load_data("d39-08.4", ADPCMB_ROM_SDR_BASE, 1);
+    g_sim_core.sdram->load_data("d39-07.10", ADPCMA_ROM_SDR_BASE, 1);
+    g_sim_core.sdram->load_data("d39-08.4", ADPCMB_ROM_SDR_BASE, 1);
 
-    ddr_memory.load_data("d39-01.29", OBJ_DATA_DDR_BASE, 1);
-    ddr_memory.load_data("d39-02.28", OBJ_DATA_DDR_BASE + 0x200000, 1);
-    ddr_memory.load_data("d39-03.27", OBJ_DATA_DDR_BASE + 0x400000, 1);
+    g_sim_core.ddr_memory->load_data("d39-01.29", OBJ_DATA_DDR_BASE, 1);
+    g_sim_core.ddr_memory->load_data("d39-02.28", OBJ_DATA_DDR_BASE + 0x200000, 1);
+    g_sim_core.ddr_memory->load_data("d39-03.27", OBJ_DATA_DDR_BASE + 0x400000, 1);
 
-    top->game = GAME_DINOREX;
+    g_sim_core.top->game = GAME_DINOREX;
 }
 
 static void load_liquidk()
@@ -141,19 +141,19 @@ static void load_liquidk()
     g_fs.addSearchPath("../roms/liquidk.zip");
     load_audio("c49-08.ic32");
 
-    sdram.load_data("c49-09.ic47", CPU_ROM_SDR_BASE + 1, 2);
-    sdram.load_data("c49-11.ic48", CPU_ROM_SDR_BASE + 0, 2);
-    sdram.load_data("c49-10.ic45", CPU_ROM_SDR_BASE + 0x40001, 2);
-    sdram.load_data("c49-12.ic46", CPU_ROM_SDR_BASE + 0x40000, 2);
+    g_sim_core.sdram->load_data("c49-09.ic47", CPU_ROM_SDR_BASE + 1, 2);
+    g_sim_core.sdram->load_data("c49-11.ic48", CPU_ROM_SDR_BASE + 0, 2);
+    g_sim_core.sdram->load_data("c49-10.ic45", CPU_ROM_SDR_BASE + 0x40001, 2);
+    g_sim_core.sdram->load_data("c49-12.ic46", CPU_ROM_SDR_BASE + 0x40000, 2);
 
-    sdram.load_data("c49-03.ic76", SCN0_ROM_SDR_BASE, 1);
+    g_sim_core.sdram->load_data("c49-03.ic76", SCN0_ROM_SDR_BASE, 1);
 
-    sdram.load_data("c49-04.ic33", ADPCMA_ROM_SDR_BASE, 1);
+    g_sim_core.sdram->load_data("c49-04.ic33", ADPCMA_ROM_SDR_BASE, 1);
 
-    ddr_memory.load_data("c49-01.ic54", OBJ_DATA_DDR_BASE, 1);
-    ddr_memory.load_data("c49-02.ic53", OBJ_DATA_DDR_BASE + 0x80000, 1);
+    g_sim_core.ddr_memory->load_data("c49-01.ic54", OBJ_DATA_DDR_BASE, 1);
+    g_sim_core.ddr_memory->load_data("c49-02.ic53", OBJ_DATA_DDR_BASE + 0x80000, 1);
 
-    top->game = GAME_LIQUIDK;
+    g_sim_core.top->game = GAME_LIQUIDK;
 }
 
 static void load_growl()
@@ -162,20 +162,20 @@ static void load_growl()
 
     load_audio("c74-12.ic62");
 
-    sdram.load_data("c74-10-1.ic59", CPU_ROM_SDR_BASE + 1, 2);
-    sdram.load_data("c74-08-1.ic61", CPU_ROM_SDR_BASE + 0, 2);
-    sdram.load_data("c74-11.ic58", CPU_ROM_SDR_BASE + 0x80001, 2);
-    sdram.load_data("c74-14.ic60", CPU_ROM_SDR_BASE + 0x80000, 2);
+    g_sim_core.sdram->load_data("c74-10-1.ic59", CPU_ROM_SDR_BASE + 1, 2);
+    g_sim_core.sdram->load_data("c74-08-1.ic61", CPU_ROM_SDR_BASE + 0, 2);
+    g_sim_core.sdram->load_data("c74-11.ic58", CPU_ROM_SDR_BASE + 0x80001, 2);
+    g_sim_core.sdram->load_data("c74-14.ic60", CPU_ROM_SDR_BASE + 0x80000, 2);
 
-    sdram.load_data("c74-01.ic34", SCN0_ROM_SDR_BASE, 1);
+    g_sim_core.sdram->load_data("c74-01.ic34", SCN0_ROM_SDR_BASE, 1);
 
-    sdram.load_data("c74-04.ic28", ADPCMA_ROM_SDR_BASE, 1);
-    sdram.load_data("c74-05.ic29", ADPCMB_ROM_SDR_BASE, 1);
+    g_sim_core.sdram->load_data("c74-04.ic28", ADPCMA_ROM_SDR_BASE, 1);
+    g_sim_core.sdram->load_data("c74-05.ic29", ADPCMB_ROM_SDR_BASE, 1);
 
-    ddr_memory.load_data("c74-03.ic12", OBJ_DATA_DDR_BASE, 1);
-    ddr_memory.load_data("c74-02.ic11", OBJ_DATA_DDR_BASE + 0x100000, 1);
+    g_sim_core.ddr_memory->load_data("c74-03.ic12", OBJ_DATA_DDR_BASE, 1);
+    g_sim_core.ddr_memory->load_data("c74-02.ic11", OBJ_DATA_DDR_BASE + 0x100000, 1);
 
-    top->game = GAME_GROWL;
+    g_sim_core.top->game = GAME_GROWL;
 }
 
 static void load_megab()
@@ -184,20 +184,20 @@ static void load_megab()
 
     load_audio("c11-12.3");
 
-    sdram.load_data("c11-07.55", CPU_ROM_SDR_BASE + 1, 2);
-    sdram.load_data("c11-08.39", CPU_ROM_SDR_BASE + 0, 2);
-    sdram.load_data("c11-06.54", CPU_ROM_SDR_BASE + 0x40001, 2);
-    sdram.load_data("c11-11.38", CPU_ROM_SDR_BASE + 0x40000, 2);
+    g_sim_core.sdram->load_data("c11-07.55", CPU_ROM_SDR_BASE + 1, 2);
+    g_sim_core.sdram->load_data("c11-08.39", CPU_ROM_SDR_BASE + 0, 2);
+    g_sim_core.sdram->load_data("c11-06.54", CPU_ROM_SDR_BASE + 0x40001, 2);
+    g_sim_core.sdram->load_data("c11-11.38", CPU_ROM_SDR_BASE + 0x40000, 2);
 
-    sdram.load_data("c11-05.58", SCN0_ROM_SDR_BASE, 1);
+    g_sim_core.sdram->load_data("c11-05.58", SCN0_ROM_SDR_BASE, 1);
 
-    sdram.load_data("c11-01.29", ADPCMA_ROM_SDR_BASE, 1);
-    sdram.load_data("c11-02.30", ADPCMB_ROM_SDR_BASE, 1);
+    g_sim_core.sdram->load_data("c11-01.29", ADPCMA_ROM_SDR_BASE, 1);
+    g_sim_core.sdram->load_data("c11-02.30", ADPCMB_ROM_SDR_BASE, 1);
 
-    ddr_memory.load_data("c11-03.32", OBJ_DATA_DDR_BASE, 2);
-    ddr_memory.load_data("c11-04.31", OBJ_DATA_DDR_BASE + 1, 2);
+    g_sim_core.ddr_memory->load_data("c11-03.32", OBJ_DATA_DDR_BASE, 2);
+    g_sim_core.ddr_memory->load_data("c11-04.31", OBJ_DATA_DDR_BASE + 1, 2);
 
-    top->game = GAME_MEGAB;
+    g_sim_core.top->game = GAME_MEGAB;
 }
 
 static void load_driftout()
@@ -206,15 +206,15 @@ static void load_driftout()
 
     load_audio("do_50.rom");
 
-    sdram.load_data("ic46.rom", CPU_ROM_SDR_BASE + 1, 2);
-    sdram.load_data("ic45.rom", CPU_ROM_SDR_BASE + 0, 2);
+    g_sim_core.sdram->load_data("ic46.rom", CPU_ROM_SDR_BASE + 1, 2);
+    g_sim_core.sdram->load_data("ic45.rom", CPU_ROM_SDR_BASE + 0, 2);
 
-    sdram.load_data("do_piv.rom", PIVOT_ROM_SDR_BASE, 1);
-    sdram.load_data("do_snd.rom", ADPCMA_ROM_SDR_BASE, 1);
+    g_sim_core.sdram->load_data("do_piv.rom", PIVOT_ROM_SDR_BASE, 1);
+    g_sim_core.sdram->load_data("do_snd.rom", ADPCMA_ROM_SDR_BASE, 1);
 
-    ddr_memory.load_data("do_obj.rom", OBJ_DATA_DDR_BASE, 1);
+    g_sim_core.ddr_memory->load_data("do_obj.rom", OBJ_DATA_DDR_BASE, 1);
 
-    top->game = GAME_DRIFTOUT;
+    g_sim_core.top->game = GAME_DRIFTOUT;
 }
 
 static void load_cameltry()
@@ -223,15 +223,15 @@ static void load_cameltry()
 
     load_audio("c38-08.bin");
 
-    sdram.load_data("c38-11", CPU_ROM_SDR_BASE + 1, 2);
-    sdram.load_data("c38-14", CPU_ROM_SDR_BASE + 0, 2);
+    g_sim_core.sdram->load_data("c38-11", CPU_ROM_SDR_BASE + 1, 2);
+    g_sim_core.sdram->load_data("c38-14", CPU_ROM_SDR_BASE + 0, 2);
 
-    sdram.load_data("c38-02.bin", PIVOT_ROM_SDR_BASE, 1);
-    sdram.load_data("c38-03.bin", ADPCMA_ROM_SDR_BASE, 1);
+    g_sim_core.sdram->load_data("c38-02.bin", PIVOT_ROM_SDR_BASE, 1);
+    g_sim_core.sdram->load_data("c38-03.bin", ADPCMA_ROM_SDR_BASE, 1);
 
-    ddr_memory.load_data("c38-01.bin", OBJ_DATA_DDR_BASE, 1);
+    g_sim_core.ddr_memory->load_data("c38-01.bin", OBJ_DATA_DDR_BASE, 1);
 
-    top->game = GAME_CAMELTRY;
+    g_sim_core.top->game = GAME_CAMELTRY;
 }
 
 static void load_driftout_test()
@@ -240,7 +240,7 @@ static void load_driftout_test()
     load_driftout();
 
     g_fs.addSearchPath("../roms/growl.zip");
-    sdram.load_data("c74-01.ic34", SCN0_ROM_SDR_BASE, 1);
+    g_sim_core.sdram->load_data("c74-01.ic34", SCN0_ROM_SDR_BASE, 1);
 }
 
 static void load_pulirula()
@@ -249,21 +249,21 @@ static void load_pulirula()
 
     load_audio("c98-14.rom");
 
-    sdram.load_data("c98-12.rom", CPU_ROM_SDR_BASE + 1, 2);
-    sdram.load_data("c98-16.rom", CPU_ROM_SDR_BASE + 0, 2);
-    sdram.load_data("c98-06.rom", CPU_ROM_SDR_BASE + 0x80001, 2);
-    sdram.load_data("c98-07.rom", CPU_ROM_SDR_BASE + 0x80000, 2);
+    g_sim_core.sdram->load_data("c98-12.rom", CPU_ROM_SDR_BASE + 1, 2);
+    g_sim_core.sdram->load_data("c98-16.rom", CPU_ROM_SDR_BASE + 0, 2);
+    g_sim_core.sdram->load_data("c98-06.rom", CPU_ROM_SDR_BASE + 0x80001, 2);
+    g_sim_core.sdram->load_data("c98-07.rom", CPU_ROM_SDR_BASE + 0x80000, 2);
 
-    sdram.load_data("c98-04.rom", SCN0_ROM_SDR_BASE, 1);
+    g_sim_core.sdram->load_data("c98-04.rom", SCN0_ROM_SDR_BASE, 1);
 
-    sdram.load_data("c98-05.rom", PIVOT_ROM_SDR_BASE, 1);
+    g_sim_core.sdram->load_data("c98-05.rom", PIVOT_ROM_SDR_BASE, 1);
 
-    sdram.load_data("c98-01.rom", ADPCMA_ROM_SDR_BASE, 1);
+    g_sim_core.sdram->load_data("c98-01.rom", ADPCMA_ROM_SDR_BASE, 1);
 
-    ddr_memory.load_data("c98-02.rom", OBJ_DATA_DDR_BASE, 1);
-    ddr_memory.load_data("c98-03.rom", OBJ_DATA_DDR_BASE + 0x100000, 1);
+    g_sim_core.ddr_memory->load_data("c98-02.rom", OBJ_DATA_DDR_BASE, 1);
+    g_sim_core.ddr_memory->load_data("c98-03.rom", OBJ_DATA_DDR_BASE + 0x100000, 1);
 
-    top->game = GAME_PULIRULA;
+    g_sim_core.top->game = GAME_PULIRULA;
 }
 
 static void load_ninjak()
@@ -272,20 +272,20 @@ static void load_ninjak()
 
     load_audio("c85-14.ic54");
 
-    sdram.load_data("c85-10x.ic50", CPU_ROM_SDR_BASE + 1, 2);
-    sdram.load_data("c85-13x.ic49", CPU_ROM_SDR_BASE + 0, 2);
-    sdram.load_data("c85-07.ic48", CPU_ROM_SDR_BASE + 0x40001, 2);
-    sdram.load_data("c85-06.ic47", CPU_ROM_SDR_BASE + 0x40000, 2);
+    g_sim_core.sdram->load_data("c85-10x.ic50", CPU_ROM_SDR_BASE + 1, 2);
+    g_sim_core.sdram->load_data("c85-13x.ic49", CPU_ROM_SDR_BASE + 0, 2);
+    g_sim_core.sdram->load_data("c85-07.ic48", CPU_ROM_SDR_BASE + 0x40001, 2);
+    g_sim_core.sdram->load_data("c85-06.ic47", CPU_ROM_SDR_BASE + 0x40000, 2);
 
-    sdram.load_data("c85-03.ic65", SCN0_ROM_SDR_BASE, 1);
+    g_sim_core.sdram->load_data("c85-03.ic65", SCN0_ROM_SDR_BASE, 1);
 
-    sdram.load_data("c85-04.ic31", ADPCMA_ROM_SDR_BASE, 1);
-    sdram.load_data("c85-05.ic33", ADPCMB_ROM_SDR_BASE, 1);
+    g_sim_core.sdram->load_data("c85-04.ic31", ADPCMA_ROM_SDR_BASE, 1);
+    g_sim_core.sdram->load_data("c85-05.ic33", ADPCMB_ROM_SDR_BASE, 1);
 
-    ddr_memory.load_data("c85-01.ic19", OBJ_DATA_DDR_BASE, 1);
-    ddr_memory.load_data("c85-02.ic17", OBJ_DATA_DDR_BASE + 0x100000, 1);
+    g_sim_core.ddr_memory->load_data("c85-01.ic19", OBJ_DATA_DDR_BASE, 1);
+    g_sim_core.ddr_memory->load_data("c85-02.ic17", OBJ_DATA_DDR_BASE + 0x100000, 1);
 
-    top->game = GAME_NINJAK;
+    g_sim_core.top->game = GAME_NINJAK;
 }
 
 static void load_thundfox()
@@ -294,21 +294,21 @@ static void load_thundfox()
 
     load_audio("c28-14.3");
 
-    sdram.load_data("c28-13-1.51", CPU_ROM_SDR_BASE + 1, 2);
-    sdram.load_data("c28-16-1.40", CPU_ROM_SDR_BASE + 0, 2);
-    sdram.load_data("c28-08.50", CPU_ROM_SDR_BASE + 0x40001, 2);
-    sdram.load_data("c28-07.39", CPU_ROM_SDR_BASE + 0x40000, 2);
+    g_sim_core.sdram->load_data("c28-13-1.51", CPU_ROM_SDR_BASE + 1, 2);
+    g_sim_core.sdram->load_data("c28-16-1.40", CPU_ROM_SDR_BASE + 0, 2);
+    g_sim_core.sdram->load_data("c28-08.50", CPU_ROM_SDR_BASE + 0x40001, 2);
+    g_sim_core.sdram->load_data("c28-07.39", CPU_ROM_SDR_BASE + 0x40000, 2);
 
-    sdram.load_data("c28-02.61", SCN0_ROM_SDR_BASE, 1);
-    sdram.load_data("c28-01.63", SCN1_ROM_SDR_BASE, 1);
+    g_sim_core.sdram->load_data("c28-02.61", SCN0_ROM_SDR_BASE, 1);
+    g_sim_core.sdram->load_data("c28-01.63", SCN1_ROM_SDR_BASE, 1);
 
-    sdram.load_data("c28-06.41", ADPCMA_ROM_SDR_BASE, 1);
-    sdram.load_data("c28-05.42", ADPCMB_ROM_SDR_BASE, 1);
+    g_sim_core.sdram->load_data("c28-06.41", ADPCMA_ROM_SDR_BASE, 1);
+    g_sim_core.sdram->load_data("c28-05.42", ADPCMB_ROM_SDR_BASE, 1);
 
-    ddr_memory.load_data("c28-03.29", OBJ_DATA_DDR_BASE, 2);
-    ddr_memory.load_data("c28-04.28", OBJ_DATA_DDR_BASE + 0x1, 2);
+    g_sim_core.ddr_memory->load_data("c28-03.29", OBJ_DATA_DDR_BASE, 2);
+    g_sim_core.ddr_memory->load_data("c28-04.28", OBJ_DATA_DDR_BASE + 0x1, 2);
 
-    top->game = GAME_THUNDFOX;
+    g_sim_core.top->game = GAME_THUNDFOX;
 }
 
 static void load_deadconx()
@@ -317,20 +317,20 @@ static void load_deadconx()
 
     load_audio("d28-10.6");
 
-    sdram.load_data("d28-06.3", CPU_ROM_SDR_BASE + 1, 2);
-    sdram.load_data("d28-12.5", CPU_ROM_SDR_BASE + 0, 2);
-    sdram.load_data("d28-09.2", CPU_ROM_SDR_BASE + 0x80001, 2);
-    sdram.load_data("d28-08.4", CPU_ROM_SDR_BASE + 0x80000, 2);
+    g_sim_core.sdram->load_data("d28-06.3", CPU_ROM_SDR_BASE + 1, 2);
+    g_sim_core.sdram->load_data("d28-12.5", CPU_ROM_SDR_BASE + 0, 2);
+    g_sim_core.sdram->load_data("d28-09.2", CPU_ROM_SDR_BASE + 0x80001, 2);
+    g_sim_core.sdram->load_data("d28-08.4", CPU_ROM_SDR_BASE + 0x80000, 2);
 
-    sdram.load_data16be("d28-04.16", SCN1_ROM_SDR_BASE + 0x2, 4);
-    sdram.load_data16be("d28-05.17", SCN1_ROM_SDR_BASE, 4);
+    g_sim_core.sdram->load_data16be("d28-04.16", SCN1_ROM_SDR_BASE + 0x2, 4);
+    g_sim_core.sdram->load_data16be("d28-05.17", SCN1_ROM_SDR_BASE, 4);
 
-    sdram.load_data("d28-03.10", ADPCMA_ROM_SDR_BASE, 1);
+    g_sim_core.sdram->load_data("d28-03.10", ADPCMA_ROM_SDR_BASE, 1);
 
-    ddr_memory.load_data("d28-01.8", OBJ_DATA_DDR_BASE, 1);
-    ddr_memory.load_data("d28-02.9", OBJ_DATA_DDR_BASE + 0x100000, 1);
+    g_sim_core.ddr_memory->load_data("d28-01.8", OBJ_DATA_DDR_BASE, 1);
+    g_sim_core.ddr_memory->load_data("d28-02.9", OBJ_DATA_DDR_BASE + 0x100000, 1);
 
-    top->game = GAME_DEADCONX;
+    g_sim_core.top->game = GAME_DEADCONX;
 }
 
 static void load_deadconxj()
@@ -339,9 +339,9 @@ static void load_deadconxj()
 
     g_fs.addSearchPath("../roms/deadconxj.zip");
 
-    sdram.load_data("d28-07.5", CPU_ROM_SDR_BASE + 0, 2);
+    g_sim_core.sdram->load_data("d28-07.5", CPU_ROM_SDR_BASE + 0, 2);
 
-    top->game = GAME_DEADCONXJ;
+    g_sim_core.top->game = GAME_DEADCONXJ;
 }
 
 static void load_deadconxj_test()
@@ -356,20 +356,20 @@ static void load_metalb()
 
     load_audio("d12-13.5");
 
-    sdram.load_data("d16-16.8", CPU_ROM_SDR_BASE + 1, 2);
-    sdram.load_data("d16-18.7", CPU_ROM_SDR_BASE + 0, 2);
-    sdram.load_data("d12-07.9", CPU_ROM_SDR_BASE + 0x80001, 2);
-    sdram.load_data("d12-06.6", CPU_ROM_SDR_BASE + 0x80000, 2);
+    g_sim_core.sdram->load_data("d16-16.8", CPU_ROM_SDR_BASE + 1, 2);
+    g_sim_core.sdram->load_data("d16-18.7", CPU_ROM_SDR_BASE + 0, 2);
+    g_sim_core.sdram->load_data("d12-07.9", CPU_ROM_SDR_BASE + 0x80001, 2);
+    g_sim_core.sdram->load_data("d12-06.6", CPU_ROM_SDR_BASE + 0x80000, 2);
 
-    sdram.load_data16be("d12-03.14", SCN1_ROM_SDR_BASE + 0x2, 4);
-    sdram.load_data16be("d12-04.13", SCN1_ROM_SDR_BASE, 4);
+    g_sim_core.sdram->load_data16be("d12-03.14", SCN1_ROM_SDR_BASE + 0x2, 4);
+    g_sim_core.sdram->load_data16be("d12-04.13", SCN1_ROM_SDR_BASE, 4);
 
-    sdram.load_data("d12-02.10", ADPCMA_ROM_SDR_BASE, 1);
-    sdram.load_data("d12-05.16", ADPCMB_ROM_SDR_BASE, 1);
+    g_sim_core.sdram->load_data("d12-02.10", ADPCMA_ROM_SDR_BASE, 1);
+    g_sim_core.sdram->load_data("d12-05.16", ADPCMB_ROM_SDR_BASE, 1);
 
-    ddr_memory.load_data("d12-01.20", OBJ_DATA_DDR_BASE, 1);
+    g_sim_core.ddr_memory->load_data("d12-01.20", OBJ_DATA_DDR_BASE, 1);
 
-    top->game = GAME_METALB;
+    g_sim_core.top->game = GAME_METALB;
 }
 
 bool game_init(game_t game)
@@ -443,11 +443,6 @@ bool game_init_mra(const char *mra_path)
 {
     g_fs.clearSearchPaths();
     
-    extern F2 *top;
-    
-    // Create SimIOCTL instance to handle MRA loading
-    SimIOCTL ioctl(top);
-    
     // Add common ROM search paths
     std::vector<std::string> searchPaths = {
         ".",
@@ -455,9 +450,33 @@ bool game_init_mra(const char *mra_path)
         "../roms/"
     };
     
+    // Add ROM search paths
+    for (const auto& path : searchPaths) {
+        g_fs.addSearchPath(path);
+    }
+    
+    // Add the directory containing the MRA file as a search path
+    std::string mraPathStr(mra_path);
+    size_t lastSlash = mraPathStr.find_last_of("/\\");
+    if (lastSlash != std::string::npos) {
+        g_fs.addSearchPath(mraPathStr.substr(0, lastSlash));
+    }
+    
     // Load the MRA file
-    if (!ioctl.loadMRA(mra_path, searchPaths)) {
-        printf("Failed to load MRA file '%s': %s\n", mra_path, ioctl.getLastError().c_str());
+    MRALoader loader;
+    std::vector<uint8_t> romData;
+    
+    if (!loader.load(mra_path, romData)) {
+        printf("Failed to load MRA file '%s': %s\n", mra_path, loader.getLastError().c_str());
+        return false;
+    }
+    
+    printf("Loaded MRA: %s\n", mra_path);
+    printf("ROM data size: %zu bytes\n", romData.size());
+    
+    // Send ROM data via ioctl interface (index 0)
+    if (!g_sim_core.SendIOCTLData(0, romData)) {
+        printf("Failed to send ROM data via ioctl\n");
         return false;
     }
     

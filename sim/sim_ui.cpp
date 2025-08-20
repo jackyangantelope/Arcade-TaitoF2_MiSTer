@@ -12,24 +12,7 @@
 #include "sim_sdram.h"
 #include "sim_ddr.h"
 
-extern VerilatedContext *contextp;
-extern F2 *top;
-extern std::unique_ptr<VerilatedFstC> tfp;
 extern SimState *state_manager;
-extern SimSDRAM sdram;
-extern SimDDR ddr_memory;
-extern uint64_t total_ticks;
-extern bool simulation_run;
-extern bool simulation_step;
-extern int simulation_step_size;
-extern bool simulation_step_vblank;
-extern bool simulation_wp_set;
-extern int simulation_wp_addr;
-extern uint64_t simulation_reset_until;
-extern bool system_pause;
-extern char trace_filename[64];
-extern int trace_depth;
-extern bool trace_active;
 
 extern uint32_t dipswitch_a;
 extern uint32_t dipswitch_b;
@@ -39,17 +22,17 @@ extern uint32_t dipswitch_b;
     {                                                                          \
         size_t word_off = off >> 1;                                            \
         if (off & 1)                                                           \
-            return top->rootp->F2_SIGNAL(instance, ram_l)[word_off];            \
+            return g_sim_core.top->rootp->F2_SIGNAL(instance, ram_l)[word_off];            \
         else                                                                   \
-            return top->rootp->F2_SIGNAL(instance, ram_h)[word_off];            \
+            return g_sim_core.top->rootp->F2_SIGNAL(instance, ram_h)[word_off];            \
     }                                                                          \
     void instance##_write(ImU8 *, size_t off, ImU8 d, void *)                  \
     {                                                                          \
         size_t word_off = off >> 1;                                            \
         if (off & 1)                                                           \
-            top->rootp->F2_SIGNAL(instance, ram_l)[word_off] = d;               \
+            g_sim_core.top->rootp->F2_SIGNAL(instance, ram_l)[word_off] = d;               \
         else                                                                   \
-            top->rootp->F2_SIGNAL(instance, ram_h)[word_off] = d;               \
+            g_sim_core.top->rootp->F2_SIGNAL(instance, ram_h)[word_off] = d;               \
     }                                                                          \
     class instance##_Editor : public MemoryEditor                              \
     {                                                                          \
@@ -99,28 +82,28 @@ void ui_draw()
 {
     if (ImGui::Begin("Simulation Control"))
     {
-        ImGui::LabelText("Ticks", "%llu", total_ticks);
-        ImGui::Checkbox("Run", &simulation_run);
+        ImGui::LabelText("Ticks", "%llu", g_sim_core.m_total_ticks);
+        ImGui::Checkbox("Run", &g_sim_core.m_simulation_run);
         if (ImGui::Button("Step"))
         {
-            simulation_step = true;
-            simulation_run = false;
+            g_sim_core.m_simulation_step = true;
+            g_sim_core.m_simulation_run = false;
         }
-        ImGui::InputInt("Step Size", &simulation_step_size);
-        ImGui::Checkbox("Step Frame", &simulation_step_vblank);
+        ImGui::InputInt("Step Size", &g_sim_core.m_simulation_step_size);
+        ImGui::Checkbox("Step Frame", &g_sim_core.m_simulation_step_vblank);
 
-        ImGui::Checkbox("WP Set", &simulation_wp_set);
+        ImGui::Checkbox("WP Set", &g_sim_core.m_simulation_wp_set);
         ImGui::SameLine();
-        ImGui::InputInt("##wpaddr", &simulation_wp_addr, 0, 0,
+        ImGui::InputInt("##wpaddr", &g_sim_core.m_simulation_wp_addr, 0, 0,
                         ImGuiInputTextFlags_CharsHexadecimal);
 
         if (ImGui::Button("Reset"))
         {
-            simulation_reset_until = total_ticks + 100;
+            g_sim_core.m_simulation_reset_until = g_sim_core.m_total_ticks + 100;
         }
 
         ImGui::SameLine();
-        ImGui::Checkbox("Pause", &system_pause);
+        ImGui::Checkbox("Pause", &g_sim_core.m_system_pause);
 
         ImGui::Separator();
 
@@ -209,31 +192,28 @@ void ui_draw()
         ImGui::Separator();
 
         ImGui::PushItemWidth(100);
-        if (ImGui::InputInt("Trace Depth", &trace_depth, 1, 10,
-                            trace_active ? ImGuiInputTextFlags_ReadOnly
+        if (ImGui::InputInt("Trace Depth", &g_sim_core.m_trace_depth, 1, 10,
+                            g_sim_core.m_trace_active ? ImGuiInputTextFlags_ReadOnly
                                          : ImGuiInputTextFlags_None))
         {
-            trace_depth = std::min(std::max(trace_depth, 1), 99);
+            g_sim_core.m_trace_depth = std::min(std::max(g_sim_core.m_trace_depth, 1), 99);
         }
         ImGui::PopItemWidth();
-        ImGui::InputText("Filename", trace_filename, sizeof(trace_filename),
-                         tfp ? ImGuiInputTextFlags_ReadOnly
+        ImGui::InputText("Filename", g_sim_core.m_trace_filename, sizeof(g_sim_core.m_trace_filename),
+                         g_sim_core.IsTraceActive() ? ImGuiInputTextFlags_ReadOnly
                              : ImGuiInputTextFlags_None);
-        if (ImGui::Button(tfp ? "Stop Tracing###TraceBtn"
+        if (ImGui::Button(g_sim_core.IsTraceActive() ? "Stop Tracing###TraceBtn"
                               : "Start Tracing###TraceBtn"))
         {
-            if (tfp)
+            if (g_sim_core.IsTraceActive())
             {
-                tfp->close();
-                tfp.reset();
+                g_sim_core.StopTrace();
             }
             else
             {
-                if (strlen(trace_filename) > 0)
+                if (strlen(g_sim_core.m_trace_filename) > 0)
                 {
-                    tfp = std::make_unique<VerilatedFstC>();
-                    top->trace(tfp.get(), trace_depth);
-                    tfp->open(trace_filename);
+                    g_sim_core.StartTrace(g_sim_core.m_trace_filename, g_sim_core.m_trace_depth);
                 }
             }
         }
@@ -272,14 +252,14 @@ void ui_draw()
             if (ImGui::BeginTabItem("Extension RAM"))
             {
                 extension_ram.DrawContents(
-                    top->rootp->F2_SIGNAL(tc0200obj_extender, extension_ram, ram).m_storage,
+                    g_sim_core.top->rootp->F2_SIGNAL(tc0200obj_extender, extension_ram, ram).m_storage,
                     4 * 1024);
                 ImGui::EndTabItem();
             }
 
             if (ImGui::BeginTabItem("CPU ROM"))
             {
-                rom_mem.DrawContents(sdram.data + CPU_ROM_SDR_BASE,
+                rom_mem.DrawContents(g_sim_core.sdram->data + CPU_ROM_SDR_BASE,
                                      1024 * 1024);
                 ImGui::EndTabItem();
             }
@@ -298,15 +278,15 @@ void ui_draw()
 
             if (ImGui::BeginTabItem("DDR"))
             {
-                ddr_mem_editor.DrawContents(ddr_memory.memory.data(),
-                                            ddr_memory.size);
+                ddr_mem_editor.DrawContents(g_sim_core.ddr_memory->memory.data(),
+                                            g_sim_core.ddr_memory->size);
                 ImGui::EndTabItem();
             }
 
             if (ImGui::BeginTabItem("Sound RAM"))
             {
                 sound_ram.DrawContents(
-                    top->rootp->F2_SIGNAL(sound_ram, ram).m_storage,
+                    g_sim_core.top->rootp->F2_SIGNAL(sound_ram, ram).m_storage,
                     16 * 1024);
                 ImGui::EndTabItem();
             }
@@ -314,7 +294,7 @@ void ui_draw()
             if (ImGui::BeginTabItem("Sound ROM"))
             {
                 sound_rom.DrawContents(
-                    top->rootp->F2_SIGNAL(sound_rom, ram).m_storage,
+                    g_sim_core.top->rootp->F2_SIGNAL(sound_rom, ram).m_storage,
                     128 * 1024);
                 ImGui::EndTabItem();
             }

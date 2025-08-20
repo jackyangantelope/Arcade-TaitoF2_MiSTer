@@ -1,7 +1,7 @@
 #include "file_search.h"
-#include <iostream>
 #include <fstream>
 #include <filesystem>
+#include <cstdio>
 
 namespace fs = std::filesystem;
 
@@ -27,7 +27,7 @@ bool FileSearch::addSearchPath(const std::string &path)
 {
     if (!fs::exists(path))
     {
-        std::cerr << "Search path does not exist: " << path << std::endl;
+        printf("Search path does not exist: %s\n", path.c_str());
         return false;
     }
 
@@ -38,7 +38,7 @@ bool FileSearch::addSearchPath(const std::string &path)
         searchPath.path = path;
         searchPath.type = PathType::Directory;
         m_searchPaths.push_back(searchPath);
-        std::cout << "Added directory to search path: " << path << std::endl;
+        printf("Added directory to search path: %s\n", path.c_str());
         return true;
     }
     else if (fs::is_regular_file(path))
@@ -52,7 +52,7 @@ bool FileSearch::addSearchPath(const std::string &path)
             // Try to open the zip file
             if (!mz_zip_reader_init_file(&zipInfo->archive, path.c_str(), 0))
             {
-                std::cerr << "Failed to open zip file: " << path << std::endl;
+                printf("Failed to open zip file: %s\n", path.c_str());
                 delete zipInfo;
                 return false;
             }
@@ -66,18 +66,17 @@ bool FileSearch::addSearchPath(const std::string &path)
             searchPath.type = PathType::ZipFile;
             m_searchPaths.push_back(searchPath);
 
-            std::cout << "Added zip file to search path: " << path << std::endl;
+            printf("Added zip file to search path: %s\n", path.c_str());
             return true;
         }
         else
         {
-            std::cerr << "Path is a file but not a zip: " << path << std::endl;
+            printf("Path is a file but not a zip: %s\n", path.c_str());
             return false;
         }
     }
 
-    std::cerr << "Path is neither a directory nor a file: " << path
-              << std::endl;
+    printf("Path is neither a directory nor a file: %s\n", path.c_str());
     return false;
 }
 
@@ -135,7 +134,7 @@ bool FileSearch::loadFromDirectory(const std::string &dirPath,
     std::ifstream file(filePath, std::ios::binary);
     if (!file)
     {
-        std::cerr << "Failed to open file: " << filePath << std::endl;
+        printf("Failed to open file: %s\n", filePath.c_str());
         return false;
     }
 
@@ -148,11 +147,11 @@ bool FileSearch::loadFromDirectory(const std::string &dirPath,
     buffer.resize(size);
     if (!file.read(reinterpret_cast<char *>(buffer.data()), size))
     {
-        std::cerr << "Failed to read file: " << filePath << std::endl;
+        printf("Failed to read file: %s\n", filePath.c_str());
         return false;
     }
 
-    std::cout << "Loaded file from directory: " << filePath << std::endl;
+    printf("Loaded file from directory: %s\n", filePath.c_str());
     return true;
 }
 
@@ -178,8 +177,7 @@ bool FileSearch::loadFromZip(const std::string &zipPath,
     mz_zip_archive_file_stat file_stat;
     if (!mz_zip_reader_file_stat(&zipInfo->archive, file_index, &file_stat))
     {
-        std::cerr << "Failed to get file info from zip: " << zipPath << " -> "
-                  << filename << std::endl;
+        printf("Failed to get file info from zip: %s -> %s\n", zipPath.c_str(), filename.c_str());
         return false;
     }
 
@@ -190,13 +188,11 @@ bool FileSearch::loadFromZip(const std::string &zipPath,
     if (!mz_zip_reader_extract_to_mem(&zipInfo->archive, file_index,
                                       buffer.data(), buffer.size(), 0))
     {
-        std::cerr << "Failed to extract file from zip: " << zipPath << " -> "
-                  << filename << std::endl;
+        printf("Failed to extract file from zip: %s -> %s\n", zipPath.c_str(), filename.c_str());
         return false;
     }
 
-    std::cout << "Loaded file from zip: " << zipPath << " -> " << filename
-              << std::endl;
+    printf("Loaded file from zip: %s -> %s\n", zipPath.c_str(), filename.c_str());
     return true;
 }
 

@@ -2,11 +2,10 @@
 
 #include "imgui_wrap.h"
 #include "tc0200obj.h"
+#include "sim_core.h"
 
 #include "F2.h"
 #include "F2___024root.h"
-
-extern F2 *top;
 
 static SDL_Renderer *s_renderer = nullptr;
 static uint64_t s_used_idx = 0;
@@ -163,18 +162,18 @@ void get_obj_inst(uint16_t index, TC0200OBJ_Inst *inst)
     for (int i = 0; i < 8; i++)
     {
         inst_data[(i * 2) + 0] =
-            top->rootp->sim_top__DOT__f2_inst__DOT__obj_ram__DOT__ram_l.m_storage[offset + i];
+            g_sim_core.top->rootp->sim_top__DOT__f2_inst__DOT__obj_ram__DOT__ram_l.m_storage[offset + i];
         inst_data[(i * 2) + 1] =
-            top->rootp->sim_top__DOT__f2_inst__DOT__obj_ram__DOT__ram_h.m_storage[offset + i];
+            g_sim_core.top->rootp->sim_top__DOT__f2_inst__DOT__obj_ram__DOT__ram_h.m_storage[offset + i];
     }
 }
 
 uint16_t extended_code(uint16_t index, uint16_t code)
 {
-    if (top->rootp->sim_top__DOT__f2_inst__DOT__cfg_obj_extender == 1)
+    if (g_sim_core.top->rootp->sim_top__DOT__f2_inst__DOT__cfg_obj_extender == 1)
     {
         uint8_t ext =
-            top->rootp
+            g_sim_core.top->rootp
                 ->sim_top__DOT__f2_inst__DOT__tc0200obj_extender__DOT__extension_ram__DOT__ram
                 .m_storage[index];
         return (code & 0xff) | (ext << 8);
@@ -332,15 +331,15 @@ void draw_obj_window()
                 ImGui::TableNextColumn();
                 ImGui::Text("%02X", inst.zoom_y);
                 ImGui::TableNextColumn();
-                bool is_debug = index == top->obj_debug_idx;
+                bool is_debug = index == g_sim_core.top->obj_debug_idx;
                 char id[16];
                 snprintf(id, 16, "##debug%d", index);
                 if (ImGui::RadioButton(id, is_debug))
                 {
                     if (is_debug)
-                        top->obj_debug_idx = -1;
+                        g_sim_core.top->obj_debug_idx = -1;
                     else
-                        top->obj_debug_idx = index;
+                        g_sim_core.top->obj_debug_idx = index;
                 }
             }
         }

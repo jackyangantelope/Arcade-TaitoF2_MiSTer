@@ -3,6 +3,6 @@
 
 #include <functional>
 
-void sim_tick_until(std::function<bool()> until);
+// Legacy sim.h - now use SimCore methods directly
 
 #endif // SIM_H

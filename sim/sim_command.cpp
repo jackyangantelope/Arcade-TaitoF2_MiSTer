@@ -1,9 +1,9 @@
 #include "sim_command.h"
-#include <iostream>
 #include <fstream>
 #include <sstream>
 #include <getopt.h>
 #include <cstring>
+#include <cstdio>
 
 void CommandQueue::add(const Command& cmd)
 {
@@ -41,19 +41,19 @@ bool CommandQueue::parse_arguments(int argc, char** argv, std::string& game_name
         {
         case 'l':
             add(Command(CommandType::LOAD_STATE, optarg));
-            if (verbose) std::cout << "Command: Load state from " << optarg << std::endl;
+            if (verbose) printf("Command: Load state from %s\n", optarg);
             break;
             
         case 's':
             add(Command(CommandType::SAVE_STATE, optarg));
-            if (verbose) std::cout << "Command: Save state to " << optarg << std::endl;
+            if (verbose) printf("Command: Save state to %s\n", optarg);
             break;
             
         case 'c':
             {
                 uint64_t cycles = std::stoull(optarg);
                 add(Command(CommandType::RUN_CYCLES, cycles));
-                if (verbose) std::cout << "Command: Run for " << cycles << " cycles" << std::endl;
+                if (verbose) printf("Command: Run for %llu cycles\n", cycles);
             }
             break;
             
@@ -61,41 +61,41 @@ bool CommandQueue::parse_arguments(int argc, char** argv, std::string& game_name
             {
                 uint64_t frames = std::stoull(optarg);
                 add(Command(CommandType::RUN_FRAMES, frames));
-                if (verbose) std::cout << "Command: Run for " << frames << " frames" << std::endl;
+                if (verbose) printf("Command: Run for %llu frames\n", frames);
             }
             break;
             
         case 'p':
             add(Command(CommandType::SCREENSHOT, optarg));
-            if (verbose) std::cout << "Command: Save screenshot to " << optarg << std::endl;
+            if (verbose) printf("Command: Save screenshot to %s\n", optarg);
             break;
             
         case 't':
             add(Command(CommandType::TRACE_START, optarg));
-            if (verbose) std::cout << "Command: Start trace to " << optarg << std::endl;
+            if (verbose) printf("Command: Start trace to %s\n", optarg);
             break;
             
         case 'T':
             add(Command(CommandType::TRACE_STOP));
-            if (verbose) std::cout << "Command: Stop trace" << std::endl;
+            if (verbose) printf("Command: Stop trace\n");
             break;
             
         case 'x':
             if (!parse_script_file(optarg))
             {
-                std::cerr << "Error: Failed to parse script file: " << optarg << std::endl;
+                printf("Error: Failed to parse script file: %s\n", optarg);
                 return false;
             }
             break;
             
         case 'h':
             headless = true;
-            if (verbose) std::cout << "Running in headless mode" << std::endl;
+            if (verbose) printf("Running in headless mode\n");
             break;
             
         case 'v':
             verbose = true;
-            std::cout << "Verbose mode enabled" << std::endl;
+            printf("Verbose mode enabled\n");
             break;
             
         case '?':
@@ -104,7 +104,7 @@ bool CommandQueue::parse_arguments(int argc, char** argv, std::string& game_name
             break;
             
         default:
-            std::cerr << "Unknown option: " << c << std::endl;
+            printf("Unknown option: %c\n", c);
             print_usage(argv[0]);
             return false;
         }
@@ -134,11 +134,11 @@ bool CommandQueue::parse_script_file(const std::string& filename)
     std::ifstream file(filename);
     if (!file.is_open())
     {
-        std::cerr << "Error: Cannot open script file: " << filename << std::endl;
+        printf("Error: Cannot open script file: %s\n", filename.c_str());
         return false;
     }
     
-    if (verbose) std::cout << "Parsing script file: " << filename << std::endl;
+    if (verbose) printf("Parsing script file: %s\n", filename.c_str());
     
     std::string line;
     int line_num = 0;
@@ -154,7 +154,7 @@ bool CommandQueue::parse_script_file(const std::string& filename)
             
         if (!parse_script_line(line))
         {
-            std::cerr << "Error in script file " << filename << " at line " << line_num << ": " << line << std::endl;
+            printf("Error in script file %s at line %d: %s\n", filename.c_str(), line_num, line.c_str());
             return false;
         }
     }
@@ -174,7 +174,7 @@ bool CommandQueue::parse_script_line(const std::string& line)
         iss >> filename;
         if (filename.empty()) return false;
         add(Command(CommandType::LOAD_STATE, filename));
-        if (verbose) std::cout << "Script: Load state from " << filename << std::endl;
+        if (verbose) printf("Script: Load state from %s\n", filename.c_str());
     }
     else if (command == "save-state" || command == "save_state")
     {
@@ -182,7 +182,7 @@ bool CommandQueue::parse_script_line(const std::string& line)
         iss >> filename;
         if (filename.empty()) return false;
         add(Command(CommandType::SAVE_STATE, filename));
-        if (verbose) std::cout << "Script: Save state to " << filename << std::endl;
+        if (verbose) printf("Script: Save state to %s\n", filename.c_str());
     }
     else if (command == "run-cycles" || command == "run_cycles")
     {
@@ -190,7 +190,7 @@ bool CommandQueue::parse_script_line(const std::string& line)
         iss >> cycles;
         if (iss.fail()) return false;
         add(Command(CommandType::RUN_CYCLES, cycles));
-        if (verbose) std::cout << "Script: Run for " << cycles << " cycles" << std::endl;
+        if (verbose) printf("Script: Run for %llu cycles\n", cycles);
     }
     else if (command == "run-frames" || command == "run_frames")
     {
@@ -198,7 +198,7 @@ bool CommandQueue::parse_script_line(const std::string& line)
         iss >> frames;
         if (iss.fail()) return false;
         add(Command(CommandType::RUN_FRAMES, frames));
-        if (verbose) std::cout << "Script: Run for " << frames << " frames" << std::endl;
+        if (verbose) printf("Script: Run for %llu frames\n", frames);
     }
     else if (command == "screenshot")
     {
@@ -206,7 +206,7 @@ bool CommandQueue::parse_script_line(const std::string& line)
         iss >> filename;
         if (filename.empty()) return false;
         add(Command(CommandType::SCREENSHOT, filename));
-        if (verbose) std::cout << "Script: Save screenshot to " << filename << std::endl;
+        if (verbose) printf("Script: Save screenshot to %s\n", filename.c_str());
     }
     else if (command == "trace-start" || command == "trace_start")
     {
@@ -214,12 +214,12 @@ bool CommandQueue::parse_script_line(const std::string& line)
         iss >> filename;
         if (filename.empty()) return false;
         add(Command(CommandType::TRACE_START, filename));
-        if (verbose) std::cout << "Script: Start trace to " << filename << std::endl;
+        if (verbose) printf("Script: Start trace to %s\n", filename.c_str());
     }
     else if (command == "trace-stop" || command == "trace_stop")
     {
         add(Command(CommandType::TRACE_STOP));
-        if (verbose) std::cout << "Script: Stop trace" << std::endl;
+        if (verbose) printf("Script: Stop trace\n");
     }
     else if (command == "wait" || command == "delay")
     {
@@ -229,11 +229,11 @@ bool CommandQueue::parse_script_line(const std::string& line)
         // Convert milliseconds to cycles (assuming 12MHz)
         uint64_t cycles = ms * 12000;
         add(Command(CommandType::RUN_CYCLES, cycles));
-        if (verbose) std::cout << "Script: Wait for " << ms << " ms (" << cycles << " cycles)" << std::endl;
+        if (verbose) printf("Script: Wait for %llu ms (%llu cycles)\n", ms, cycles);
     }
     else
     {
-        std::cerr << "Unknown command: " << command << std::endl;
+        printf("Unknown command: %s\n", command.c_str());
         return false;
     }
     
@@ -242,29 +242,29 @@ bool CommandQueue::parse_script_line(const std::string& line)
 
 void CommandQueue::print_usage(const char* program_name)
 {
-    std::cout << "Usage: " << program_name << " [options] [game_name]\n"
-              << "\nOptions:\n"
-              << "  --load-state <file>    Load savestate from file\n"
-              << "  --save-state <file>    Save current state to file\n"
-              << "  --run-cycles <N>       Run simulation for N cycles\n"
-              << "  --run-frames <N>       Run simulation for N frames\n"
-              << "  --screenshot <file>    Save screenshot to file\n"
-              << "  --trace-start <file>   Start FST trace to file\n"
-              << "  --trace-stop           Stop FST trace\n"
-              << "  --script <file>        Execute commands from script file\n"
-              << "  --headless             Run without GUI (batch mode only)\n"
-              << "  --verbose              Print command execution details\n"
-              << "  --help                 Show this help message\n"
-              << "\nScript file format:\n"
-              << "  # Comments start with #\n"
-              << "  load-state checkpoint.state\n"
-              << "  run-frames 100\n"
-              << "  trace-start debug.fst\n"
-              << "  run-frames 50\n"
-              << "  trace-stop\n"
-              << "  screenshot test.png\n"
-              << "  save-state final.state\n"
-              << "\nExample:\n"
-              << "  " << program_name << " finalb --load-state test.state --run-frames 60 --screenshot out.png\n"
-              << "  " << program_name << " driftout --script test_sequence.txt\n";
+    printf("Usage: %s [options] [game_name]\n", program_name);
+    printf("\nOptions:\n");
+    printf("  --load-state <file>    Load savestate from file\n");
+    printf("  --save-state <file>    Save current state to file\n");
+    printf("  --run-cycles <N>       Run simulation for N cycles\n");
+    printf("  --run-frames <N>       Run simulation for N frames\n");
+    printf("  --screenshot <file>    Save screenshot to file\n");
+    printf("  --trace-start <file>   Start FST trace to file\n");
+    printf("  --trace-stop           Stop FST trace\n");
+    printf("  --script <file>        Execute commands from script file\n");
+    printf("  --headless             Run without GUI (batch mode only)\n");
+    printf("  --verbose              Print command execution details\n");
+    printf("  --help                 Show this help message\n");
+    printf("\nScript file format:\n");
+    printf("  # Comments start with #\n");
+    printf("  load-state checkpoint.state\n");
+    printf("  run-frames 100\n");
+    printf("  trace-start debug.fst\n");
+    printf("  run-frames 50\n");
+    printf("  trace-stop\n");
+    printf("  screenshot test.png\n");
+    printf("  save-state final.state\n");
+    printf("\nExample:\n");
+    printf("  %s finalb --load-state test.state --run-frames 60 --screenshot out.png\n", program_name);
+    printf("  %s driftout --script test_sequence.txt\n", program_name);
 }

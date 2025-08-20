@@ -17,26 +17,17 @@
 #include "verilated_fst_c.h"
 
 #include <stdio.h>
-#include <iostream>
 #include <memory>
 #include <SDL.h>
 
-extern SimVideo video;
-extern SimDDR ddr_memory;
-extern SimSDRAM sdram;
-extern F2 *top;
-extern std::unique_ptr<VerilatedFstC> tfp;
+// Access via global SimCore instance
 
 SimState *state_manager = nullptr;
 
 uint32_t dipswitch_a = 0;
 uint32_t dipswitch_b = 0;
 
-extern bool simulation_run;
-extern bool simulation_step;
-extern bool simulation_step_vblank;
-extern int simulation_step_size;
-extern bool system_pause;
+// Access simulation state via global SimCore instance
 
 struct SimDebug
 {
@@ -79,7 +70,7 @@ int main(int argc, char **argv)
         snprintf(title, 64, "F2 - %s", game_name);
     }
 
-    sim_init();
+    g_sim_core.Init();
     
     // Only initialize UI if not in headless mode
     if (!command_queue.is_headless())
@@ -90,42 +81,42 @@ int main(int argc, char **argv)
     // Set the game parameter on the core
     if (use_mra) {
         // For MRA mode, set game to a default value (will be overridden by MRA data)
-        top->game = GAME_FINALB;  // Default, ROM loader will determine actual config
+        g_sim_core.top->game = GAME_FINALB;  // Default, ROM loader will determine actual config
         if (!game_init_mra(game_name)) {
             printf("Failed to initialize from MRA file: %s\n", game_name);
             return -1;
         }
     } else {
-        top->game = game;
+        g_sim_core.top->game = game;
         game_init(game);
     }
 
     g_fs.addSearchPath(".");
 
-    sim_debug_data = (SimDebug *)(sdram.data + 0x80000);
+    sim_debug_data = (SimDebug *)(g_sim_core.sdram->data + 0x80000);
 
-    top->ss_do_save = 0;
-    top->ss_do_restore = 0;
-    top->obj_debug_idx = -1;
+    g_sim_core.top->ss_do_save = 0;
+    g_sim_core.top->ss_do_restore = 0;
+    g_sim_core.top->obj_debug_idx = -1;
 
-    top->joystick_p1 = 0;
-    top->joystick_p2 = 0;
+    g_sim_core.top->joystick_p1 = 0;
+    g_sim_core.top->joystick_p2 = 0;
 
-    state_manager = new SimState(top, &ddr_memory, 0, 512 * 1024);
+    state_manager = new SimState(g_sim_core.top, g_sim_core.ddr_memory, 0, 512 * 1024);
     state_manager->set_game_name(::game_name(game));
 
     if (!command_queue.is_headless())
     {
-        video.init(320, 224, imgui_get_renderer());
+        g_sim_core.video->init(320, 224, imgui_get_renderer());
         init_obj_cache(imgui_get_renderer(),
-                       ddr_memory.memory.data() + OBJ_DATA_DDR_BASE,
-                       top->rootp->F2_SIGNAL(color_ram, ram_l).m_storage,
-                       top->rootp->F2_SIGNAL(color_ram, ram_h).m_storage);
+                       g_sim_core.ddr_memory->memory.data() + OBJ_DATA_DDR_BASE,
+                       g_sim_core.top->rootp->F2_SIGNAL(color_ram, ram_l).m_storage,
+                       g_sim_core.top->rootp->F2_SIGNAL(color_ram, ram_h).m_storage);
     }
     else
     {
         // Minimal init for headless mode
-        video.init(320, 224, nullptr);
+        g_sim_core.video->init(320, 224, nullptr);
     }
 
     Verilated::traceEverOn(true);
@@ -140,7 +131,7 @@ int main(int argc, char **argv)
         if (cmd.type == CommandType::LOAD_STATE)
         {
             if (command_queue.is_verbose())
-                std::cout << "Loading state from: " << cmd.filename << std::endl;
+                printf("Loading state from: %s\n", cmd.filename.c_str());
             state_manager->restore_state(cmd.filename.c_str());
             command_queue.pop();
         }
@@ -166,92 +157,84 @@ int main(int argc, char **argv)
             {
             case CommandType::RUN_CYCLES:
                 if (command_queue.is_verbose())
-                    std::cout << "Running " << cmd.count << " cycles..." << std::endl;
-                sim_tick(cmd.count);
+                    printf("Running %llu cycles...\n", cmd.count);
+                g_sim_core.Tick(cmd.count);
                 if (command_queue.is_verbose())
-                    std::cout << "Completed running " << cmd.count << " cycles" << std::endl;
+                    printf("Completed running %llu cycles\n", cmd.count);
                 command_queue.pop();
                 break;
                 
             case CommandType::RUN_FRAMES:
                 if (command_queue.is_verbose())
-                    std::cout << "Running " << cmd.count << " frames..." << std::endl;
+                    printf("Running %llu frames...\n", cmd.count);
                 for (uint64_t i = 0; i < cmd.count; i++)
                 {
-                    sim_tick_until([&] { return top->vblank == 0; });
-                    sim_tick_until([&] { return top->vblank != 0; });
+                    g_sim_core.TickUntil([&] { return g_sim_core.top->vblank == 0; });
+                    g_sim_core.TickUntil([&] { return g_sim_core.top->vblank != 0; });
                 }
                 if (command_queue.is_verbose())
-                    std::cout << "Completed running " << cmd.count << " frames" << std::endl;
+                    printf("Completed running %llu frames\n", cmd.count);
                 command_queue.pop();
                 break;
                 
             case CommandType::SCREENSHOT:
-                video.update_texture();
+                g_sim_core.video->update_texture();
                 if (command_queue.is_verbose())
-                    std::cout << "Saving screenshot to: " << cmd.filename << std::endl;
-                if (video.save_screenshot(cmd.filename.c_str()))
+                    printf("Saving screenshot to: %s\n", cmd.filename.c_str());
+                if (g_sim_core.video->save_screenshot(cmd.filename.c_str()))
                 {
                     if (command_queue.is_verbose())
-                        std::cout << "Screenshot saved successfully" << std::endl;
+                        printf("Screenshot saved successfully\n");
                 }
                 else
                 {
-                    std::cerr << "Failed to save screenshot" << std::endl;
+                    printf("Failed to save screenshot\n");
                 }
                 command_queue.pop();
                 break;
                 
             case CommandType::SAVE_STATE:
                 if (command_queue.is_verbose())
-                    std::cout << "Saving state to: " << cmd.filename << std::endl;
+                    printf("Saving state to: %s\n", cmd.filename.c_str());
                 state_manager->save_state(cmd.filename.c_str());
                 command_queue.pop();
                 break;
                 
             case CommandType::TRACE_START:
                 if (command_queue.is_verbose())
-                    std::cout << "Starting trace to: " << cmd.filename << std::endl;
-                if (tfp)
-                {
-                    tfp->close();
-                    tfp.reset();
-                }
-                tfp = std::make_unique<VerilatedFstC>();
-                top->trace(tfp.get(), 99);  // Default depth 99
-                tfp->open(cmd.filename.c_str());
+                    printf("Starting trace to: %s\n", cmd.filename.c_str());
+                g_sim_core.StartTrace(cmd.filename.c_str(), 99);
                 if (command_queue.is_verbose())
-                    std::cout << "Trace started successfully" << std::endl;
+                    printf("Trace started successfully\n");
                 command_queue.pop();
                 break;
                 
             case CommandType::TRACE_STOP:
                 if (command_queue.is_verbose())
-                    std::cout << "Stopping trace" << std::endl;
-                if (tfp)
+                    printf("Stopping trace\n");
+                if (g_sim_core.IsTraceActive())
                 {
-                    tfp->close();
-                    tfp.reset();
+                    g_sim_core.StopTrace();
                     if (command_queue.is_verbose())
-                        std::cout << "Trace stopped successfully" << std::endl;
+                        printf("Trace stopped successfully\n");
                 }
                 else
                 {
                     if (command_queue.is_verbose())
-                        std::cout << "No trace was active" << std::endl;
+                        printf("No trace was active\n");
                 }
                 command_queue.pop();
                 break;
                 
             case CommandType::EXIT:
                 if (command_queue.is_verbose())
-                    std::cout << "Exiting..." << std::endl;
+                    printf("Exiting...\n");
                 running = false;
                 command_queue.pop();
                 break;
                 
             default:
-                std::cerr << "Unhandled command type" << std::endl;
+                printf("Unhandled command type\n");
                 command_queue.pop();
                 break;
             }
@@ -268,8 +251,8 @@ int main(int argc, char **argv)
             // Handle F12 screenshot key
             if (keyboard_state && keyboard_state[SDL_SCANCODE_F12] && !screenshot_key_pressed)
             {
-                std::string filename = video.generate_screenshot_filename(game_name);
-                video.save_screenshot(filename.c_str());
+                std::string filename = g_sim_core.video->generate_screenshot_filename(game_name);
+                g_sim_core.video->save_screenshot(filename.c_str());
                 screenshot_key_pressed = true;
             }
             else if (keyboard_state && !keyboard_state[SDL_SCANCODE_F12])
@@ -279,30 +262,30 @@ int main(int argc, char **argv)
             
             prune_obj_cache();
 
-            top->dswa = dipswitch_a & 0xff;
-            top->dswb = dipswitch_b & 0xff;
-            top->pause = system_pause;
+            g_sim_core.top->dswa = dipswitch_a & 0xff;
+            g_sim_core.top->dswb = dipswitch_b & 0xff;
+            g_sim_core.top->pause = g_sim_core.m_system_pause;
 
-            top->joystick_p1 = imgui_get_buttons();
+            g_sim_core.top->joystick_p1 = imgui_get_buttons();
 
-            if (simulation_run || simulation_step)
+            if (g_sim_core.m_simulation_run || g_sim_core.m_simulation_step)
             {
-                if (simulation_step_vblank)
+                if (g_sim_core.m_simulation_step_vblank)
                 {
-                    sim_tick_until([&] { return top->vblank == 0; });
-                    sim_tick_until([&] { return top->vblank != 0; });
+                    g_sim_core.TickUntil([&] { return g_sim_core.top->vblank == 0; });
+                    g_sim_core.TickUntil([&] { return g_sim_core.top->vblank != 0; });
                 }
                 else
                 {
-                    sim_tick(simulation_step_size);
+                    g_sim_core.Tick(g_sim_core.m_simulation_step_size);
                 }
-                video.update_texture();
+                g_sim_core.video->update_texture();
             }
-            simulation_step = false;
+            g_sim_core.m_simulation_step = false;
 
             ui_draw();
             hw_ui_draw();
-            video.draw();
+            g_sim_core.video->draw();
 
             ui_end_frame();
         }
@@ -313,8 +296,8 @@ int main(int argc, char **argv)
         }
     }
 
-    sim_shutdown();
-    video.deinit();
+    g_sim_core.Shutdown();
+    g_sim_core.video->deinit();
 
     delete state_manager;
     return 0;

@@ -211,6 +211,6 @@ class SimSDRAM
     int delay[8];
 };
 
-extern SimSDRAM sdram;
+// SimSDRAM global instance is now provided via sim_core.h
 
 #endif
