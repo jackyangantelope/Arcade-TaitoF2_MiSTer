@@ -17,9 +17,10 @@ public:
      * Load an MRA file and assemble the ROM data
      * @param mraPath Path to the .mra file
      * @param romData Output vector to store the assembled ROM data
+     * @param address Output DDR address to load the data at (0 if not used)
      * @return true if successful, false on error
      */
-    bool load(const std::string& mraPath, std::vector<uint8_t>& romData);
+    bool load(const std::string& mraPath, std::vector<uint8_t>& romData, uint32_t& address);
     
     /**
      * Get the last error message

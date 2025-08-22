@@ -79,6 +79,7 @@ wire [1:0] cfg_obj_extender /* verilator public_flat */;
 
 wire [15:0] cfg_addr_rom;
 wire [15:0] cfg_addr_rom1;
+wire [15:0] cfg_addr_extra_rom;
 wire [15:0] cfg_addr_work_ram;
 wire [15:0] cfg_addr_screen0;
 wire [15:0] cfg_addr_screen1;
@@ -115,6 +116,7 @@ game_board_config game_board_config(
 
     .cfg_addr_rom,
     .cfg_addr_rom1,
+    .cfg_addr_extra_rom,
     .cfg_addr_work_ram,
     .cfg_addr_screen0,
     .cfg_addr_screen1,
@@ -389,6 +391,7 @@ logic EXTENSIONn;
 logic CCHIPn;
 logic PIVOTn;
 logic GROWL_HACKn;
+logic EXTRA_ROMn; // CPU ROM "extra" region (ROMn will be asserted also)
 
 wire SDTACK0n, SDTACK1n, VDTACKn, CDTACKn, CPUENn, dar_dtack_n, pivot_dtack_n;
 
@@ -1266,7 +1269,7 @@ TC0260DAR tc0260dar(
     .OHBLANKn(dar_hblank_n),
     .OVBLANKn(dar_vblank_n),
 
-    .IM(cfg_360pri ? { 1'b0, pri360_color[12:0] } : { 2'b00, obj_dot }),
+    .IM(cfg_360pri ? { 1'b0, pri360_color[12:0] } : (|obj_dot[3:0]) ? { 2'b00, obj_dot } : { 1'b0, scn0_dot_color[12:0] } ),
 
     .VIDEOR(dar_red),
     .VIDEOG(dar_green),
@@ -1331,6 +1334,7 @@ address_translator address_translator(
 
     .cfg_addr_rom,
     .cfg_addr_rom1,
+    .cfg_addr_extra_rom,
     .cfg_addr_work_ram,
     .cfg_addr_screen0,
     .cfg_addr_screen1,
@@ -1346,6 +1350,7 @@ address_translator address_translator(
 
     .WORKn,
     .ROMn,
+    .EXTRA_ROMn,
     .SCREEN0n,
     .SCREEN1n,
     .COLORn,
@@ -1424,6 +1429,8 @@ rom_cache rom_cache(
     .sdr_data(sdr_cpu_q),
     .sdr_req(sdr_cpu_req),
     .sdr_ack(sdr_cpu_ack),
+
+    .extra_rom_n(EXTRA_ROMn),
 
     .as_n(ROMn | cpu_as_n),
     .dtack_n(sdr_dtack_n),

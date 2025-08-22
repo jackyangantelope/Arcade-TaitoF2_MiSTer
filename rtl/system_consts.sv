@@ -19,23 +19,19 @@ package system_consts;
     parameter int SSIDX_480SCP = 17;
 
 
-`ifdef VERILATOR
-    parameter bit [31:0] SS_DDR_BASE       = 32'h0000_0000;
-    parameter bit [31:0] OBJ_FB_DDR_BASE   = 32'h0010_0000;
-    parameter bit [31:0] OBJ_DATA_DDR_BASE = 32'h0020_0000;
-`else
     parameter bit [31:0] SS_DDR_BASE       = 32'h3E00_0000;
     parameter bit [31:0] OBJ_FB_DDR_BASE   = 32'h3800_0000;
     parameter bit [31:0] OBJ_DATA_DDR_BASE = 32'h3810_0000;
-`endif
+    parameter bit [31:0] DOWNLOAD_DDR_BASE = 32'h3000_0000;
 
-    parameter bit [31:0] CPU_ROM_SDR_BASE     = 32'h0000_0000;
-    parameter bit [31:0] SCN0_ROM_SDR_BASE    = 32'h0090_0000;
-    parameter bit [31:0] SCN1_ROM_SDR_BASE    = 32'h0120_0000;
-    parameter bit [31:0] ADPCMA_ROM_SDR_BASE  = 32'h00b0_0000;
-    parameter bit [31:0] ADPCMB_ROM_SDR_BASE  = 32'h00d0_0000;
-    parameter bit [31:0] AUDIO_ROM_BLOCK_BASE = 32'h0010_0000;
-    parameter bit [31:0] PIVOT_ROM_SDR_BASE   = 32'h0100_0000;
+    parameter bit [31:0] CPU_ROM_SDR_BASE       = 32'h0000_0000;
+    parameter bit [31:0] SCN0_ROM_SDR_BASE      = 32'h0090_0000;
+    parameter bit [31:0] SCN1_ROM_SDR_BASE      = 32'h0120_0000;
+    parameter bit [31:0] ADPCMA_ROM_SDR_BASE    = 32'h00b0_0000;
+    parameter bit [31:0] ADPCMB_ROM_SDR_BASE    = 32'h00d0_0000;
+    parameter bit [31:0] AUDIO_ROM_BLOCK_BASE   = 32'h0010_0000;
+    parameter bit [31:0] PIVOT_ROM_SDR_BASE     = 32'h0100_0000;
+    parameter bit [31:0] CPU_EXTRA_ROM_SDR_BASE = 32'h0140_0000;
 
     typedef enum bit [3:0] {
         STORAGE_SDR,
@@ -53,16 +49,17 @@ package system_consts;
         region_encoding_t encoding;
     } region_t;
 
-    parameter region_t REGION_CPU_ROM   = '{ base_addr:CPU_ROM_SDR_BASE,     storage:STORAGE_SDR,   encoding:ENCODING_NORMAL };
-    parameter region_t REGION_SCN0      = '{ base_addr:SCN0_ROM_SDR_BASE,    storage:STORAGE_SDR,   encoding:ENCODING_NORMAL };
-    parameter region_t REGION_OBJ0      = '{ base_addr:OBJ_DATA_DDR_BASE,    storage:STORAGE_DDR,   encoding:ENCODING_NORMAL };
-    parameter region_t REGION_AUDIO_ROM = '{ base_addr:AUDIO_ROM_BLOCK_BASE, storage:STORAGE_BLOCK, encoding:ENCODING_NORMAL };
-    parameter region_t REGION_ADPCMA    = '{ base_addr:ADPCMA_ROM_SDR_BASE,  storage:STORAGE_SDR,   encoding:ENCODING_NORMAL };
-    parameter region_t REGION_ADPCMB    = '{ base_addr:ADPCMB_ROM_SDR_BASE,  storage:STORAGE_SDR,   encoding:ENCODING_NORMAL };
-    parameter region_t REGION_PIVOT     = '{ base_addr:PIVOT_ROM_SDR_BASE,   storage:STORAGE_SDR,   encoding:ENCODING_NORMAL };
-    parameter region_t REGION_SCN1      = '{ base_addr:SCN1_ROM_SDR_BASE,    storage:STORAGE_SDR,   encoding:ENCODING_NORMAL };
+    parameter region_t REGION_CPU_ROM       = '{ base_addr:CPU_ROM_SDR_BASE,       storage:STORAGE_SDR,   encoding:ENCODING_NORMAL };
+    parameter region_t REGION_SCN0          = '{ base_addr:SCN0_ROM_SDR_BASE,      storage:STORAGE_SDR,   encoding:ENCODING_NORMAL };
+    parameter region_t REGION_OBJ0          = '{ base_addr:OBJ_DATA_DDR_BASE,      storage:STORAGE_DDR,   encoding:ENCODING_NORMAL };
+    parameter region_t REGION_AUDIO_ROM     = '{ base_addr:AUDIO_ROM_BLOCK_BASE,   storage:STORAGE_BLOCK, encoding:ENCODING_NORMAL };
+    parameter region_t REGION_ADPCMA        = '{ base_addr:ADPCMA_ROM_SDR_BASE,    storage:STORAGE_SDR,   encoding:ENCODING_NORMAL };
+    parameter region_t REGION_ADPCMB        = '{ base_addr:ADPCMB_ROM_SDR_BASE,    storage:STORAGE_SDR,   encoding:ENCODING_NORMAL };
+    parameter region_t REGION_PIVOT         = '{ base_addr:PIVOT_ROM_SDR_BASE,     storage:STORAGE_SDR,   encoding:ENCODING_NORMAL };
+    parameter region_t REGION_SCN1          = '{ base_addr:SCN1_ROM_SDR_BASE,      storage:STORAGE_SDR,   encoding:ENCODING_NORMAL };
+    parameter region_t REGION_CPU_EXTRA_ROM = '{ base_addr:CPU_EXTRA_ROM_SDR_BASE, storage:STORAGE_SDR,   encoding:ENCODING_NORMAL };
 
-    parameter region_t LOAD_REGIONS[8] = '{
+    parameter region_t LOAD_REGIONS[9] = '{
         REGION_CPU_ROM,
         REGION_SCN0,
         REGION_OBJ0,
@@ -70,7 +67,8 @@ package system_consts;
         REGION_ADPCMA,
         REGION_ADPCMB,
         REGION_PIVOT,
-        REGION_SCN1
+        REGION_SCN1,
+        REGION_CPU_EXTRA_ROM
     };
 
     typedef enum bit [7:0] {

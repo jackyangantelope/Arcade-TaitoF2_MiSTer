@@ -82,13 +82,13 @@ int main(int argc, char **argv)
     g_sim_core.top->joystick_p1 = 0;
     g_sim_core.top->joystick_p2 = 0;
 
-    state_manager = new SimState(g_sim_core.top, g_sim_core.ddr_memory, 0, 512 * 1024);
+    state_manager = new SimState(g_sim_core.top, g_sim_core.ddr_memory, 0x3E000000, 512 * 1024);
 
     if (!command_queue.is_headless())
     {
         g_sim_core.video->init(320, 224, imgui_get_renderer());
         init_obj_cache(imgui_get_renderer(),
-                       g_sim_core.ddr_memory->memory.data() + OBJ_DATA_DDR_BASE,
+                       &(*g_sim_core.ddr_memory)[OBJ_DATA_DDR_BASE],
                        g_sim_core.top->rootp->F2_SIGNAL(color_ram, ram_l).m_storage,
                        g_sim_core.top->rootp->F2_SIGNAL(color_ram, ram_h).m_storage);
     }

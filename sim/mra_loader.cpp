@@ -9,7 +9,7 @@
 #include <algorithm>
 #include <cctype>
 
-bool MRALoader::load(const std::string& mraPath, std::vector<uint8_t>& romData)
+bool MRALoader::load(const std::string& mraPath, std::vector<uint8_t>& romData, uint32_t& address)
 {
     romData.clear();
     m_lastError.clear();
@@ -48,7 +48,14 @@ bool MRALoader::load(const std::string& mraPath, std::vector<uint8_t>& romData)
         g_fs.restoreSearchPaths(savedPaths);
         return false;
     }
-    
+   
+    std::string addressStr = romNode.attribute("address").as_string("");
+    try {
+        address = std::stoul(addressStr, nullptr, 16);
+    } catch (...) {
+        address = 0;
+    }
+
     // Get the zip file path(s) if specified and add them to search paths
     std::string zipAttr = romNode.attribute("zip").as_string("");
     if (!zipAttr.empty()) {

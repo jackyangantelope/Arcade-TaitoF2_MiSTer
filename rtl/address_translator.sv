@@ -9,6 +9,7 @@ module address_translator(
 
     input [15:0] cfg_addr_rom,
     input [15:0] cfg_addr_rom1,
+    input [15:0] cfg_addr_extra_rom,
     input [15:0] cfg_addr_work_ram,
     input [15:0] cfg_addr_screen0,
     input [15:0] cfg_addr_screen1,
@@ -24,6 +25,7 @@ module address_translator(
 
     output logic WORKn,
     output logic ROMn,
+    output logic EXTRA_ROMn,
     output logic SCREEN0n,
     output logic SCREEN1n,
     output logic COLORn,
@@ -90,7 +92,9 @@ always_comb begin
 
     if (~&cpu_ds_n) begin
         ROMn = match_addr_n(cpu_word_addr, cfg_addr_rom)
-                & match_addr_n(cpu_word_addr, cfg_addr_rom1);
+                & match_addr_n(cpu_word_addr, cfg_addr_rom1)
+                & match_addr_n(cpu_word_addr, cfg_addr_extra_rom);
+        EXTRA_ROMn = match_addr_n(cpu_word_addr, cfg_addr_extra_rom);
         WORKn = match_addr_n(cpu_word_addr, cfg_addr_work_ram);
         SCREEN0n = match_addr_n(cpu_word_addr, cfg_addr_screen0);
         SCREEN1n = match_addr_n(cpu_word_addr, cfg_addr_screen1);

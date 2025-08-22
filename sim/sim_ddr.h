@@ -11,11 +11,12 @@
 class SimDDR
 {
   public:
-    SimDDR(size_t size_bytes)
+    SimDDR(uint32_t base, uint32_t size_bytes)
     {
         // Initialize memory with size rounded up to multiple of 8 bytes
         size = (size_bytes + 7) & ~7; // Round up to multiple of 8
         memory.resize(size, 0);
+        base_addr = base;
 
         // Reset state
         read_complete = false;
@@ -23,6 +24,35 @@ class SimDDR
         busy_counter = 0;
         burst_counter = 0;
         burst_size = 0;
+    }
+
+    bool load_data(const std::vector<uint8_t>& data, uint32_t offset = 0, uint32_t stride = 1)
+    {
+        uint32_t mem_offset = offset - base_addr;
+
+        // Check if the file will fit in memory with the stride
+        if (mem_offset + (data.size() - 1) * stride + 1 > size)
+        {
+            printf("Data too large (%u) to fit in memory at specified offset 0x%08x (0x%08x) with "
+                   "stride %u\n",
+                   (uint32_t)data.size(), offset, mem_offset, stride);
+            return false;
+        }
+
+        if (stride == 1)
+        {
+            // Fast path for stride=1 (contiguous data)
+            std::copy(data.begin(), data.end(), memory.begin() + mem_offset);
+        }
+        else
+        {
+            // Copy to memory with stride
+            for (size_t i = 0; i < data.size(); i++)
+            {
+                memory[mem_offset + i * stride] = data[i];
+            }
+        }
+        return true;
     }
 
     // Load data from a file into memory at specified offset with optional
@@ -37,42 +67,25 @@ class SimDDR
             return false;
         }
 
-        // Check if the file will fit in memory with the stride
-        if (offset + (buffer.size() - 1) * stride + 1 > size)
+        if (load_data(buffer, offset, stride))
         {
-            printf("File too large to fit in memory at specified offset with "
-                   "stride %u\n",
-                   stride);
-            return false;
+            printf("Loaded %zu bytes from %s at offset 0x%08X with stride %u\n",
+                buffer.size(), filename.c_str(), offset, stride);
+            return true;
         }
-
-        if (stride == 1)
-        {
-            // Fast path for stride=1 (contiguous data)
-            std::copy(buffer.begin(), buffer.end(), memory.begin() + offset);
-        }
-        else
-        {
-            // Copy to memory with stride
-            for (size_t i = 0; i < buffer.size(); i++)
-            {
-                memory[offset + i * stride] = buffer[i];
-            }
-        }
-
-        printf("Loaded %zu bytes from %s at offset 0x%08X with stride %u\n",
-               buffer.size(), filename.c_str(), offset, stride);
-        return true;
+        return false;
     }
 
     // Save memory data to a file
     bool save_data(const std::string &filename, uint32_t offset = 0,
                    size_t length = 0)
     {
-        if (length == 0)
-            length = size - offset;
+        uint32_t mem_offset = offset - base_addr;
 
-        if (offset + length > size)
+        if (length == 0)
+            length = size - mem_offset;
+
+        if (mem_offset + length > size)
         {
             printf("Invalid offset/length for memory save\n");
             return false;
@@ -86,7 +99,7 @@ class SimDDR
             return false;
         }
 
-        size_t bytes_written = fwrite(&memory[offset], 1, length, fp);
+        size_t bytes_written = fwrite(&memory[mem_offset], 1, length, fp);
         fclose(fp);
 
         if (bytes_written != length)
@@ -118,9 +131,8 @@ class SimDDR
                     read_complete = true;
 
                     // Prepare read data from the current burst address
-                    uint32_t current_burst_addr =
-                        (pending_addr & ~0x7) +
-                        (burst_size - burst_counter) * 8;
+                    uint32_t current_burst_addr = (pending_addr & ~0x7) + (burst_size - burst_counter) * 8;
+                    current_burst_addr -= base_addr;
                     if (current_burst_addr + 8 <= size)
                     {
                         // Assemble 64-bit word from memory
@@ -199,13 +211,13 @@ class SimDDR
                     pending_addr = addr;
                     burst_counter = burstcnt - 1; // First word is written now
                     burst_size = burstcnt;
-                    current_burst_addr = addr & ~0x7;
+                    current_burst_addr = (addr & ~0x7) - base_addr;
                 }
                 else
                 {
                     // Writing next word in an existing burst
-                    current_burst_addr = (pending_addr & ~0x7) +
-                                         (burst_size - burst_counter) * 8;
+                    current_burst_addr = (pending_addr & ~0x7) + (burst_size - burst_counter) * 8;
+                    current_burst_addr -= base_addr;
                     burst_counter--;
                 }
 
@@ -220,8 +232,7 @@ class SimDDR
                         // set
                         if (byteenable & (1 << i))
                         {
-                            memory[current_burst_addr + i] =
-                                (wdata >> (i * 8)) & 0xFF;
+                            memory[current_burst_addr + i] = (wdata >> (i * 8)) & 0xFF;
                         }
                     }
                 }
@@ -239,8 +250,7 @@ class SimDDR
         }
 
         // Set outputs
-        busy_out =
-            0; // busy ? 1 : 0; // TODO - busy_out doesn't match DE-10 DDR
+        busy_out = 0; // busy ? 1 : 0; // TODO - busy_out doesn't match DE-10 DDR
         read_complete_out = read_complete ? 1 : 0;
 
         if (read_complete)
@@ -251,9 +261,13 @@ class SimDDR
     }
 
     // Direct access to memory for debugging/testing
-    uint8_t &operator[](size_t index)
+    uint8_t &operator[](size_t addr)
     {
-        return memory[index];
+        static uint8_t dummy = 0;
+        if (addr < base_addr) return dummy;
+        size_t offset = addr - base_addr;
+        if (offset >= size) return dummy;
+        return memory[offset];
     }
 
     // Memory parameters
@@ -266,10 +280,11 @@ class SimDDR
         write_latency = cycles;
     }
 
-    std::vector<uint8_t> memory;
-    size_t size;
-
   private:
+    std::vector<uint8_t> memory;
+    uint32_t size;
+    uint32_t base_addr;
+
     // Memory timing parameters
     int read_latency = 2;  // Default read latency in clock cycles
     int write_latency = 1; // Default write latency in clock cycles

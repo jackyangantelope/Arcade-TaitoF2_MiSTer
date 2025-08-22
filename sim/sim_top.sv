@@ -111,7 +111,7 @@ assign ddr_host.rdata = ddr_rdata;
 assign ddr_host.rdata_ready = ddr_read_complete;
 assign ddr_host.busy = ddr_busy;
 
-wire rom_load_busy;
+wire rom_load_busy /* verilator public_flat */;
 wire rom_data_wait;
 wire rom_data_strobe;
 wire [7:0] rom_data;
@@ -169,7 +169,7 @@ rom_loader rom_loader(
 // Instantiate the F2 module
 F2 f2_inst(
     .clk(clk),
-    .reset(reset),
+    .reset(reset | rom_load_busy),
     .game(board_cfg.game),
     
     .ce_pixel(ce_pixel),

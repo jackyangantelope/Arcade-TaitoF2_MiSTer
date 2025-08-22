@@ -465,19 +465,26 @@ bool game_init_mra(const char *mra_path)
     // Load the MRA file
     MRALoader loader;
     std::vector<uint8_t> romData;
+    uint32_t address = 0;
     
-    if (!loader.load(mra_path, romData)) {
+    if (!loader.load(mra_path, romData, address)) {
         printf("Failed to load MRA file '%s': %s\n", mra_path, loader.getLastError().c_str());
         return false;
     }
     
     printf("Loaded MRA: %s\n", mra_path);
     printf("ROM data size: %zu bytes\n", romData.size());
-    
-    // Send ROM data via ioctl interface (index 0)
-    if (!g_sim_core.SendIOCTLData(0, romData)) {
-        printf("Failed to send ROM data via ioctl\n");
-        return false;
+   
+    if (address == 0) {
+        if (!g_sim_core.SendIOCTLData(0, romData)) {
+            printf("Failed to send ROM data via ioctl\n");
+            return false;
+        }
+    } else {
+        if (!g_sim_core.SendIOCTLDataDDR(0, address, romData)) {
+            printf("Failed to send ROM data via DDR\n");
+            return false;
+        }
     }
     
     printf("Successfully loaded MRA: %s\n", mra_path);

@@ -61,7 +61,6 @@ blockram_16_rw(pivot_ram, 8 * 1024);
 
 MemoryEditor scn_main_rom;
 MemoryEditor rom_mem;
-MemoryEditor ddr_mem_editor;
 MemoryEditor sound_ram;
 MemoryEditor sound_rom;
 MemoryEditor extension_ram;
@@ -292,13 +291,6 @@ void ui_draw()
             if (ImGui::BeginTabItem("Pivot RAM"))
             {
                 pivot_ram.DrawContents();
-                ImGui::EndTabItem();
-            }
-
-            if (ImGui::BeginTabItem("DDR"))
-            {
-                ddr_mem_editor.DrawContents(g_sim_core.ddr_memory->memory.data(),
-                                            g_sim_core.ddr_memory->size);
                 ImGui::EndTabItem();
             }
 

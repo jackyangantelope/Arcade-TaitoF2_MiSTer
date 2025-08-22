@@ -38,7 +38,7 @@ void SimCore::Init()
     
     // Create memory subsystems
     m_sdram_impl = std::make_unique<SimSDRAM>(128 * 1024 * 1024);
-    m_ddr_memory_impl = std::make_unique<SimDDR>(16 * 1024 * 1024);
+    m_ddr_memory_impl = std::make_unique<SimDDR>(0x30000000, 256 * 1024 * 1024);
     m_video_impl = std::make_unique<SimVideo>();
     
     // Set public pointers
@@ -161,7 +161,7 @@ bool SimCore::SendIOCTLData(uint8_t index, const std::vector<uint8_t>& data)
     if (!top) {
         return false;
     }
-    
+   
     printf("Starting ioctl download (index=%d, size=%zu)\n", (int)index, data.size());
     
     // Start download sequence
@@ -204,6 +204,32 @@ bool SimCore::SendIOCTLData(uint8_t index, const std::vector<uint8_t>& data)
     printf("ioctl download complete\n");
     return true;
 }
+
+bool SimCore::SendIOCTLDataDDR(uint8_t index, uint32_t addr, const std::vector<uint8_t>& data)
+{
+    printf("Starting DDR ioctl download (index=%d, size=%zu, addr=%08x)\n", (int)index, data.size(), addr);
+    
+    ddr_memory->load_data(data, addr, 1);
+    top->reset = 1;
+    top->ioctl_download = 1;
+    top->ioctl_index = index;
+    top->ioctl_wr = 0;
+    top->ioctl_addr = data.size();
+    top->ioctl_dout = 0;
+    
+    Tick(1);
+    
+    top->ioctl_download = 0;
+    Tick(2);
+
+    TickUntil( [&]{ return top->rootp->sim_top__DOT__rom_load_busy == 0; } );
+
+    top->reset = 0;
+
+    printf("ioctl download complete\n");
+    return true;
+}
+
 
 void SimCore::WaitForIOCTLReady()
 {

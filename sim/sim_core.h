@@ -30,7 +30,6 @@ public:
     bool m_simulation_step;
     int m_simulation_step_size;
     bool m_simulation_step_vblank;
-    uint64_t m_simulation_reset_until;
     bool m_system_pause;
     bool m_simulation_wp_set;
     int m_simulation_wp_addr;
@@ -55,6 +54,7 @@ public:
     
     // IOCTL methods  
     bool SendIOCTLData(uint8_t index, const std::vector<uint8_t>& data);
+    bool SendIOCTLDataDDR(uint8_t index, uint32_t addr, const std::vector<uint8_t>& data);
     
     // Stats
     uint64_t GetTotalTicks() const { return m_total_ticks; }

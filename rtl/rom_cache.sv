@@ -9,6 +9,8 @@ module rom_cache(
     output reg          sdr_req,
     input               sdr_ack,
 
+    input               extra_rom_n,
+
     input               as_n,
     output              dtack_n,
     input  [22:0]       cpu_addr,
@@ -58,7 +60,11 @@ always_ff @(posedge clk) begin
             if (cached_tag == tag) begin
                 state <= READY;
             end else begin
-                sdr_addr <= CPU_ROM_SDR_BASE[26:0] + { 3'b0, cpu_addr[22:2], 3'b000 };
+                if (~extra_rom_n) begin
+                    sdr_addr <= CPU_EXTRA_ROM_SDR_BASE[26:0] + { 3'b0, cpu_addr[22:2], 3'b000 };
+                end else begin
+                    sdr_addr <= CPU_ROM_SDR_BASE[26:0] + { 3'b0, cpu_addr[22:2], 3'b000 };
+                end
                 sdr_req <= ~sdr_req;
                 state <= SDR_WAIT;
             end

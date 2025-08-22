@@ -23,6 +23,7 @@ module game_board_config(
 
     output reg [15:0] cfg_addr_rom,
     output reg [15:0] cfg_addr_rom1,
+    output reg [15:0] cfg_addr_extra_rom,
     output reg [15:0] cfg_addr_work_ram,
     output reg [15:0] cfg_addr_screen0,
     output reg [15:0] cfg_addr_screen1,
@@ -60,7 +61,13 @@ always @(posedge clk) begin
         GAME_SSI:      c = 17'b00_01_0_0_00_0_0_0_0_0_0_0_0_0;
         GAME_GUNFRONT: c = 17'b01_01_0_0_00_0_0_1_0_0_0_0_0_0;
         GAME_GROWL:    c = 17'b01_01_0_1_00_1_0_0_0_0_0_0_1_1;
-
+        
+        GAME_FOOTCHMP: c = 17'b01_11_0_1_00_0_1_0_0_0_1_0_0_0;
+        GAME_KOSHIEN:  c = 17'b01_01_0_1_00_0_0_0_0_0_0_0_1_1;
+        GAME_YUYUGOGO: c = 17'b00_01_0_0_01_0_0_0_0_0_0_0_0_0;
+        GAME_QZQUEST:  c = 17'b00_01_0_0_00_0_0_0_0_0_0_0_1_0;
+        GAME_QZCHIKYU: c = 17'b00_01_0_0_00_0_0_0_0_0_0_0_1_0;
+        
         GAME_NINJAK:   c = 17'b01_01_0_1_00_0_1_1_0_0_0_0_0_0;
         GAME_SOLFIGTR: c = 17'b01_01_0_1_00_1_0_0_0_0_0_0_1_1;
 
@@ -68,6 +75,8 @@ always @(posedge clk) begin
 
         GAME_DINOREX:  c = 17'b01_01_0_0_01_0_0_0_0_0_0_0_1_1;
         GAME_QJINSEI:  c = 17'b01_01_0_0_01_0_0_0_0_0_0_0_1_1;
+        GAME_QCRAYON:  c = 17'b01_01_0_0_01_0_0_0_0_0_0_0_1_1;
+        GAME_QCRAYON2: c = 17'b01_01_0_0_01_0_0_0_0_0_0_0_1_1;
 
         GAME_DEADCONX: c = 17'b01_11_0_1_00_0_1_0_0_0_1_0_1_1;
         GAME_DEADCONXJ:c = 17'b01_11_0_1_00_0_1_0_0_0_1_0_1_1;
@@ -85,13 +94,14 @@ end
 always_ff @(posedge clk) begin
     cfg_addr_rom       <= 16'hff00;
     cfg_addr_rom1      <= 16'hff00;
+    cfg_addr_extra_rom <= 16'hff00;
     cfg_addr_work_ram  <= 16'hff00;
     cfg_addr_color     <= 16'hff00;
     cfg_addr_io0       <= 16'hff00;
     cfg_addr_io1       <= 16'hff00;
     cfg_addr_sound     <= 16'hff00;
-    cfg_addr_screen0    <= 16'hff00;
-    cfg_addr_screen1    <= 16'hff00;
+    cfg_addr_screen0   <= 16'hff00;
+    cfg_addr_screen1   <= 16'hff00;
     cfg_addr_obj       <= 16'hff00;
     cfg_addr_priority  <= 16'hff00;
     cfg_addr_extension <= 16'hff00;
@@ -259,8 +269,8 @@ always_ff @(posedge clk) begin
         cfg_addr_rom      <= {8'h00, 8'hF8}; // 0x000000 - 0x07FFFF
         cfg_addr_work_ram      <= {8'h10, 8'hFF}; // 0x100000 - 0x10FFFF
         cfg_addr_obj    <= {8'h20, 8'hFF}; // 0x200000 - 0x20FFFF
-        //cfg_addr_spritebank_sel<= {8'h30, 8'hFF}; // 0x300000 - 0x30000F
-        //cfg_addr_screen0  <= {8'h40, 8'hF0}; // 0x40xxxx TC0480SCP RAM, 0x43xxxx TC0480SCP CTRL
+        cfg_addr_extension <= {8'h30, 8'hFF}; // 0x300000 - 0x30000F
+        cfg_addr_screen1  <= {8'h40, 8'hF0}; // 0x40xxxx TC0480SCP RAM, 0x43xxxx TC0480SCP CTRL
         cfg_addr_priority <= {8'h50, 8'hFF}; // 0x500000 - 0x50001F (TC0360PRI)
         cfg_addr_color       <= {8'h60, 8'hFE}; // 0x600000 - 0x601FFF (Palette RAM)
         cfg_addr_io0       <= {8'h70, 8'hFF}; // 0x700000 - 0x70001F (TE7750)
@@ -275,7 +285,7 @@ always_ff @(posedge clk) begin
         cfg_addr_sound    <= {8'h32, 8'hFF}; // 0x320000, 0x320002 (TC0140SYT)
         cfg_addr_screen0  <= {8'h80, 8'hF0}; // 0x800000 - 0x80FFFF (TC0100SCN RAM)
         cfg_addr_obj    <= {8'h90, 8'hFF}; // 0x900000 - 0x90FFFF
-        //cfg_addr_spritebank_sel<= {8'hA2, 8'hFF}; // 0xA20000 - 0xA20001
+        cfg_addr_extension<= {8'hA2, 8'hFF}; // 0xA20000 - 0xA20001
         cfg_addr_priority <= {8'hB0, 8'hFF}; // 0xB00000 - 0xB0001F (TC0360PRI)
       end
 
@@ -288,7 +298,7 @@ always_ff @(posedge clk) begin
         cfg_addr_color       <= {8'hA0, 8'hFE}; // 0xA00000 - 0xA01FFF (Palette RAM)
         cfg_addr_work_ram      <= {8'hB0, 8'hFE}; // 0xB00000 - 0xB10FFF
         cfg_addr_extension<= {8'hC0, 8'hF0}; // 0xC00000 - 0xC01FFF
-        //cfg_addr_extra_rom     <= {8'hD0, 8'hF0}; // 0xD00000 - 0xDFFFFF
+        cfg_addr_extra_rom     <= {8'hD0, 8'hF0}; // 0xD00000 - 0xDFFFFF
       end
 
       GAME_NINJAK: begin
@@ -359,8 +369,7 @@ always_ff @(posedge clk) begin
         cfg_addr_color       <= {8'h40, 8'hFE}; // 0x400000 - 0x401FFF (Palette RAM)
         cfg_addr_work_ram      <= {8'h50, 8'hFF}; // 0x500000 - 0x50FFFF
         cfg_addr_obj    <= {8'h60, 8'hFF}; // 0x600000 - 0x60FFFF
-        cfg_addr_screen0  <= {8'h70, 8'hFD}; // 0x700000 - 0x70FFFF (TC0100SCN RAM)
-        cfg_addr_screen0 <= {8'h72, 8'hFF}; // 0x720000 - 0x72000F (TC0100SCN CTRL)
+        cfg_addr_screen0  <= {8'h70, 8'hF0}; // 0x700000 - 0x70FFFF (TC0100SCN RAM)
       end
 
       GAME_YESNOJ: begin
@@ -420,7 +429,7 @@ always_ff @(posedge clk) begin
       GAME_QCRAYON: begin
         cfg_addr_rom      <= {8'h00, 8'hF8}; // 0x000000 - 0x07FFFF
         cfg_addr_work_ram      <= {8'h10, 8'hFF}; // 0x100000 - 0x10FFFF
-        //cfg_addr_extra_rom     <= {8'h30, 8'hF0}; // 0x300000 - 0x3FFFFF
+        cfg_addr_extra_rom     <= {8'h30, 8'hF0}; // 0x300000 - 0x3FFFFF
         cfg_addr_sound    <= {8'h50, 8'hFF}; // 0x500000, 0x500002 (TC0140SYT)
         cfg_addr_extension<= {8'h60, 8'hFC}; // 0x600000 - 0x603FFF
         cfg_addr_color       <= {8'h70, 8'hFF}; // 0x700000 - 0x701FFF (Palette RAM)
@@ -436,7 +445,7 @@ always_ff @(posedge clk) begin
         cfg_addr_color       <= {8'h30, 8'hFF}; // 0x300000 - 0x301FFF (Palette RAM)
         cfg_addr_obj    <= {8'h40, 8'hFF}; // 0x400000 - 0x40FFFF
         cfg_addr_screen0  <= {8'h50, 8'hF0}; // 0x500000 - 0x50FFFF (TC0100SCN RAM)
-        //cfg_addr_extra_rom     <= {8'h60, 8'hF8}; // 0x600000 - 0x67FFFF
+        cfg_addr_extra_rom     <= {8'h60, 8'hF8}; // 0x600000 - 0x67FFFF
         cfg_addr_io0       <= {8'h70, 8'hFF}; // 0x700000 - 0x70000F (TC0510NIO)
         cfg_addr_priority <= {8'h90, 8'hFF}; // 0x900000 - 0x90001F (TC0360PRI)
         cfg_addr_sound    <= {8'hA0, 8'hFF}; // 0xA00000, 0xA00002 (TC0140SYT)
