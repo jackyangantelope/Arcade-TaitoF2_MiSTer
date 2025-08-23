@@ -688,17 +688,7 @@ F2 F2(
     .sdr_scn_mux_req(sdr_ch4_req),
     .sdr_scn_mux_ack(sdr_ch4_ack),
 
-    // Memory stream interface
-    .ddr_acquire(ddr_f2.acquire),
-    .ddr_addr(ddr_f2.addr),
-    .ddr_wdata(ddr_f2.wdata),
-    .ddr_rdata(ddr_f2.rdata),
-    .ddr_read(ddr_f2.read),
-    .ddr_write(ddr_f2.write),
-    .ddr_burstcnt(ddr_f2.burstcnt),
-    .ddr_byteenable(ddr_f2.byteenable),
-    .ddr_busy(ddr_f2.busy),
-    .ddr_read_complete(ddr_f2.rdata_ready),
+    .ddr(ddr_f2),
 
     .obj_debug_idx(13'h1fff),
 

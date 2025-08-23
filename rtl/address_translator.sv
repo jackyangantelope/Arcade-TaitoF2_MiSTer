@@ -55,6 +55,7 @@ endfunction
 always_comb begin
     WORKn = 1;
     ROMn = 1;
+    EXTRA_ROMn = 1;
     SCREEN0n = 1;
     SCREEN1n = 1;
     COLORn = 1;
