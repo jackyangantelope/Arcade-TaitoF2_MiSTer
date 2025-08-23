@@ -133,6 +133,8 @@ module tc0480scp_counter #(
     input line_strobe,
     input frame_strobe,
 
+    input flip,
+
     input [15:0] xbase,
     input [15:0] ybase,
 
@@ -154,9 +156,9 @@ reg [16:0] xcnt0, xcnt1;
 reg [15:0] ycnt;
 reg [7:0] readcnt;
 
-assign xread = xcnt0[16:8];
-assign xdraw  = xcnt1[16:8];
-assign y = ycnt[15:7];
+assign xread = flip ? ~xcnt0[16:8] : xcnt0[16:8];
+assign xdraw  = flip ? ~xcnt1[16:8] : xcnt1[16:8];
+assign y = flip ? ~ycnt[15:7] : ycnt[15:7];
 
 wire [8:0] xstart = xbase[8:0] - xofs[8:0];
 wire [8:0] ystart = ybase[8:0] + yofs[8:0];
@@ -203,6 +205,8 @@ module tc0480scp_simple_counter #(
     input line_strobe,
     input frame_strobe,
 
+    input flip,
+
     input [15:0] xbase,
     input [15:0] ybase,
 
@@ -218,9 +222,9 @@ reg [8:0] xcnt0, xcnt1;
 reg [8:0] ycnt;
 reg [7:0] readcnt;
 
-assign xread = xcnt0;
-assign xdraw  = xcnt1;
-assign y = ycnt;
+assign xread = flip ? ~xcnt0 : xcnt0;
+assign xdraw  = flip ? ~xcnt1 : xcnt1;
+assign y = flip ? ~ycnt : ycnt;
 
 wire [8:0] xstart = xbase[8:0] - xofs[8:0];
 wire [8:0] ystart = ybase[8:0] + yofs[8:0];
@@ -333,6 +337,7 @@ tc0480scp_simple_counter raw_counter(
     .line_next,
     .line_strobe,
     .frame_strobe,
+    .flip(0),
     .xbase(sync_xofs),
     .ybase(sync_yofs),
     .xofs(0),
@@ -348,6 +353,7 @@ tc0480scp_simple_counter #(.READAHEAD(16)) fg0_counter(
     .line_next,
     .line_strobe(dispx == 0),
     .frame_strobe(dispy == 0),
+    .flip(ctrl_flip),
     .xbase(1),
     .ybase(1),
     .xofs(ctrl[12]),
@@ -407,6 +413,7 @@ for (bg_index = 0; bg_index < 4; bg_index = bg_index + 1) begin:bg_layers
         .line_next,
         .line_strobe(dispx == 0),
         .frame_strobe(dispy == 0),
+        .flip(ctrl_flip),
         .xbase(15),
         .ybase(0),
         .xofs(ctrl[0+bg_index] + bg_row_scroll[bg_index]),
