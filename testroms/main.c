@@ -112,30 +112,24 @@ extern char _binary_font_chr_end[];
 
 static uint32_t frame_count;
 
-void reset_screen()
+void reset_screen_config()
 {
-#if HAS_TC0480SCP
-    memset(TC0480SCP, 0, sizeof(TC0480SCP_Layout));
-#else
-    memset(TC0100SCN, 0, sizeof(TC0100SCN_Layout));
-#endif
-
-    *(uint16_t *)0x300006 = 2;
+    bool flip = (input_dsw() & 0x40) == 0;
 
 #if HAS_TC0480SCP
-    int16_t base_x = 0x31;
-    int16_t base_y = 13;
-    TC0480SCP_Ctrl->fg0_y = base_y;
-    TC0480SCP_Ctrl->fg0_x = base_x;
-    TC0480SCP_Ctrl->bg0_y = 8 - base_y;
-    TC0480SCP_Ctrl->bg0_x = base_x - 10;
-    TC0480SCP_Ctrl->bg1_y = 8 - base_y;
-    TC0480SCP_Ctrl->bg1_x = base_x - 14;
-    TC0480SCP_Ctrl->bg2_y = 8 - base_y;
-    TC0480SCP_Ctrl->bg2_x = base_x - 18;
-    TC0480SCP_Ctrl->bg3_y = 8 - base_y;
-    TC0480SCP_Ctrl->bg3_x = base_x - 22;
-    TC0480SCP_Ctrl->system_flags = TC0480SCP_SYSTEM_EXT_SYNC;
+    int16_t base_x = flip ? -122 : 39;
+    int16_t base_y = flip ? (-261) : -5;
+    TC0480SCP_Ctrl->fg0_y = flip ? -253 : 13;
+    TC0480SCP_Ctrl->fg0_x = flip ? 134 : 49;
+    TC0480SCP_Ctrl->bg0_y = base_y;
+    TC0480SCP_Ctrl->bg0_x = base_x - 00;
+    TC0480SCP_Ctrl->bg1_y = base_y;
+    TC0480SCP_Ctrl->bg1_x = base_x - 4;
+    TC0480SCP_Ctrl->bg2_y = base_y;
+    TC0480SCP_Ctrl->bg2_x = base_x - 8;
+    TC0480SCP_Ctrl->bg3_y = base_y;
+    TC0480SCP_Ctrl->bg3_x = base_x - 12;
+    TC0480SCP_Ctrl->system_flags = TC0480SCP_SYSTEM_EXT_SYNC | ( flip ? TC0480SCP_SYSTEM_FLIP : 0 );
     TC0480SCP_Ctrl->bg0_zoom = 0x7f;
     TC0480SCP_Ctrl->bg1_zoom = 0x7f;
     TC0480SCP_Ctrl->bg2_zoom = 0x7f;
@@ -152,8 +146,6 @@ void reset_screen()
     int16_t base_x;
     int16_t base_y;
     uint16_t system_flags;
-
-    bool flip = 0; //(input_dsw() & 0x02) == 0;
 
     if (flip)
     {
@@ -181,6 +173,20 @@ void reset_screen()
     TC0100SCN_Ctrl->bg0_y = base_y;
     TC0100SCN_Ctrl->bg0_x = base_x;
 #endif
+
+}
+
+void reset_screen()
+{
+#if HAS_TC0480SCP
+    memset(TC0480SCP, 0, sizeof(TC0480SCP_Layout));
+#else
+    memset(TC0100SCN, 0, sizeof(TC0100SCN_Layout));
+#endif
+
+    *(uint16_t *)0x300006 = 2;
+
+    reset_screen_config();
 
     fg0_gfx(0x20);
     uint16_t *fgptr = (uint16_t *)_binary_font_chr_start;
@@ -1450,6 +1456,15 @@ void update_480scp()
 {
     static uint16_t prio = 0;
     static uint16_t test_value = 0;
+    static uint16_t prev_dsw = 0;
+
+    uint16_t dsw = input_dsw();
+
+    if (prev_dsw != dsw)
+    {
+        reset_screen_config();
+        prev_dsw = dsw;
+    }
 
     //wait_vblank();
   
@@ -1462,7 +1477,7 @@ void update_480scp()
 
     prio &= 0x7;
 
-    TC0480SCP_Ctrl->system_flags = TC0480SCP_SYSTEM_EXT_SYNC | (prio << 2);
+    //TC0480SCP_Ctrl->system_flags = TC0480SCP_SYSTEM_EXT_SYNC | (prio << 2);
 
     test_value += 0x0101;
     for( int i = 0; i < 256; i++ )
@@ -1822,6 +1837,8 @@ int main(int argc, char *argv[])
     int current_screen = 10;
 
     init_screen(current_screen);
+
+    input_update();
     
     while(1)
     {

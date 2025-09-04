@@ -222,9 +222,9 @@ reg [8:0] xcnt0, xcnt1;
 reg [8:0] ycnt;
 reg [7:0] readcnt;
 
-assign xread = flip ? ~xcnt0 : xcnt0;
-assign xdraw  = flip ? ~xcnt1 : xcnt1;
-assign y = flip ? ~ycnt : ycnt;
+assign xread = flip ? 9'd250 - xcnt0 : xcnt0;
+assign xdraw  = flip ? 9'd250 - xcnt1 : xcnt1;
+assign y = flip ? 9'd505 - ycnt : ycnt;
 
 wire [8:0] xstart = xbase[8:0] - xofs[8:0];
 wire [8:0] ystart = ybase[8:0] + yofs[8:0];

@@ -26,6 +26,8 @@ bool CommandQueue::parse_arguments(int argc, char** argv, std::string& game_name
         {"load-game", required_argument, 0, 'g'},
         {"load-mra", required_argument, 0, 'm'},
         {"reset", required_argument, 0, 'r'},
+        {"dipswitch-a", required_argument, 0, 'A'},
+        {"dipswitch-b", required_argument, 0, 'B'},
         {"headless", no_argument, 0, 'h'},
         {"verbose", no_argument, 0, 'v'},
         {"help", no_argument, 0, '?'},
@@ -38,7 +40,7 @@ bool CommandQueue::parse_arguments(int argc, char** argv, std::string& game_name
     // Reset getopt
     optind = 1;
     
-    while ((c = getopt_long(argc, argv, "l:s:c:f:p:t:Tx:g:m:r:hv?", long_options, &option_index)) != -1)
+    while ((c = getopt_long(argc, argv, "l:s:c:f:p:t:Tx:g:m:r:A:B:hv?", long_options, &option_index)) != -1)
     {
         switch (c)
         {
@@ -106,6 +108,22 @@ bool CommandQueue::parse_arguments(int argc, char** argv, std::string& game_name
                 uint64_t cycles = std::stoull(optarg);
                 add(Command(CommandType::RESET, cycles));
                 if (verbose) printf("Command: Reset for %llu cycles\n", cycles);
+            }
+            break;
+            
+        case 'A':
+            {
+                uint64_t value = std::stoull(optarg, nullptr, 16);
+                add(Command(CommandType::SET_DIPSWITCH_A, value));
+                if (verbose) printf("Command: Set dipswitch A to 0x%llx\n", value);
+            }
+            break;
+            
+        case 'B':
+            {
+                uint64_t value = std::stoull(optarg, nullptr, 16);
+                add(Command(CommandType::SET_DIPSWITCH_B, value));
+                if (verbose) printf("Command: Set dipswitch B to 0x%llx\n", value);
             }
             break;
             
@@ -266,6 +284,24 @@ bool CommandQueue::parse_script_line(const std::string& line)
         add(Command(CommandType::RESET, cycles));
         if (verbose) printf("Script: Reset for %llu cycles\n", cycles);
     }
+    else if (command == "dipswitch-a" || command == "dipswitch_a")
+    {
+        std::string hex_value;
+        iss >> hex_value;
+        if (hex_value.empty()) return false;
+        uint64_t value = std::stoull(hex_value, nullptr, 16);
+        add(Command(CommandType::SET_DIPSWITCH_A, value));
+        if (verbose) printf("Script: Set dipswitch A to 0x%llx\n", value);
+    }
+    else if (command == "dipswitch-b" || command == "dipswitch_b")
+    {
+        std::string hex_value;
+        iss >> hex_value;
+        if (hex_value.empty()) return false;
+        uint64_t value = std::stoull(hex_value, nullptr, 16);
+        add(Command(CommandType::SET_DIPSWITCH_B, value));
+        if (verbose) printf("Script: Set dipswitch B to 0x%llx\n", value);
+    }
     else if (command == "wait" || command == "delay")
     {
         uint64_t ms;
@@ -300,12 +336,16 @@ void CommandQueue::print_usage(const char* program_name)
     printf("  --load-game <name>     Load game by name (e.g. finalb, cameltry)\n");
     printf("  --load-mra <file>      Load game from MRA file\n");
     printf("  --reset <cycles>       Reset for specified number of cycles\n");
+    printf("  --dipswitch-a <hex>    Set dipswitch A value (hex, e.g. ff)\n");
+    printf("  --dipswitch-b <hex>    Set dipswitch B value (hex, e.g. 00)\n");
     printf("  --headless             Run without GUI (batch mode only)\n");
     printf("  --verbose              Print command execution details\n");
     printf("  --help                 Show this help message\n");
     printf("\nScript file format:\n");
     printf("  # Comments start with #\n");
     printf("  load-game finalb\n");
+    printf("  dipswitch-a ff\n");
+    printf("  dipswitch-b 00\n");
     printf("  reset 100\n");
     printf("  load-state checkpoint.state\n");
     printf("  run-frames 100\n");

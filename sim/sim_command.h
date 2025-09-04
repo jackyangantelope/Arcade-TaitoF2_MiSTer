@@ -18,6 +18,8 @@ enum class CommandType
     LOAD_GAME,
     LOAD_MRA,
     RESET,
+    SET_DIPSWITCH_A,
+    SET_DIPSWITCH_B,
     EXIT
 };
 

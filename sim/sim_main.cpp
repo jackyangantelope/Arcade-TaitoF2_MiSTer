@@ -103,23 +103,6 @@ int main(int argc, char **argv)
     const Uint8 *keyboard_state = command_queue.is_headless() ? nullptr : SDL_GetKeyboardState(NULL);
     bool screenshot_key_pressed = false;
     
-    // Execute pre-simulation commands (like load-state)
-    while (!command_queue.empty())
-    {
-        Command& cmd = command_queue.front();
-        if (cmd.type == CommandType::LOAD_STATE)
-        {
-            if (command_queue.is_verbose())
-                printf("Loading state from: %s\n", cmd.filename.c_str());
-            state_manager->restore_state(cmd.filename.c_str());
-            command_queue.pop();
-        }
-        else
-        {
-            break;  // Stop at first non-load command
-        }
-    }
-    
     // Track frame counting for interactive mode
     bool prev_vblank = false;
     
@@ -178,7 +161,14 @@ int main(int argc, char **argv)
                 state_manager->save_state(cmd.filename.c_str());
                 command_queue.pop();
                 break;
-                
+
+            case CommandType::LOAD_STATE:
+                if (command_queue.is_verbose())
+                    printf("Loading state from: %s\n", cmd.filename.c_str());
+                state_manager->restore_state(cmd.filename.c_str());
+                command_queue.pop();
+                break;
+ 
             case CommandType::TRACE_START:
                 if (command_queue.is_verbose())
                     printf("Starting trace to: %s\n", cmd.filename.c_str());
@@ -254,6 +244,22 @@ int main(int argc, char **argv)
                 command_queue.pop();
                 break;
                 
+            case CommandType::SET_DIPSWITCH_A:
+                if (command_queue.is_verbose())
+                    printf("Set dipswitch A to 0x%llx\n", cmd.count);
+                dipswitch_a = cmd.count & 0xff;
+                g_sim_core.top->dswa = dipswitch_a;
+                command_queue.pop();
+                break;
+                
+            case CommandType::SET_DIPSWITCH_B:
+                if (command_queue.is_verbose())
+                    printf("Set dipswitch B to 0x%llx\n", cmd.count);
+                dipswitch_b = cmd.count & 0xff;
+                g_sim_core.top->dswb = dipswitch_b;
+                command_queue.pop();
+                break;
+                
             case CommandType::EXIT:
                 if (command_queue.is_verbose())
                     printf("Exiting...\n");
@@ -294,7 +300,9 @@ int main(int argc, char **argv)
             g_sim_core.top->dswb = dipswitch_b & 0xff;
             g_sim_core.top->pause = g_sim_core.m_system_pause;
 
-            g_sim_core.top->joystick_p1 = imgui_get_buttons();
+            g_sim_core.top->joystick_p1 = imgui_get_buttons() & 0xffff;
+            g_sim_core.top->start = (imgui_get_buttons() >> 16) & 0xffff;
+
 
             if (g_sim_core.m_simulation_run || g_sim_core.m_simulation_step)
             {

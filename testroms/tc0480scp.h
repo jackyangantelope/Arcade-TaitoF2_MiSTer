@@ -63,7 +63,7 @@ typedef struct TC0480SCP_Layout
 #define TC0480SCP_SYSTEM_FLIP       ((uint16_t)(1 << 6))
 #define TC0480SCP_SYSTEM_WIDE       ((uint16_t)(1 << 7))
 
-typedef struct TC0480SCP_Control
+typedef volatile struct TC0480SCP_Control
 {
     uint16_t bg0_x;
     uint16_t bg1_x;

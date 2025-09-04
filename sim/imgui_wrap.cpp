@@ -12,6 +12,8 @@ SDL_Renderer *sdl_renderer;
 #define BTN_LEFT 0x0002
 #define BTN_DOWN 0x0004
 #define BTN_UP 0x0008
+#define BTN_START 0x00010000
+
 
 static uint32_t buttons;
 
@@ -98,6 +100,9 @@ bool imgui_begin_frame()
                     break;
                 case SDLK_DOWN:
                     bits = BTN_DOWN;
+                    break;
+                case SDLK_1:
+                    bits = BTN_START;
                     break;
                 }
 
