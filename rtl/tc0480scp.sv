@@ -147,47 +147,47 @@ module tc0480scp_counter #(
     input [7:0]  xzoom,
     input [7:0]  yzoom,
 
-    output [8:0] xdraw,
-    output [8:0] xread,
-    output [8:0] y
+    output [9:0] xdraw,
+    output [9:0] xread,
+    output [9:0] y
 );
 
-reg [16:0] xcnt0, xcnt1;
-reg [15:0] ycnt;
+reg [17:0] xcnt0, xcnt1;
+reg [16:0] ycnt;
 reg [7:0] readcnt;
 
-assign xread = flip ? ~xcnt0[16:8] : xcnt0[16:8];
-assign xdraw  = flip ? ~xcnt1[16:8] : xcnt1[16:8];
-assign y = flip ? ~ycnt[15:7] : ycnt[15:7];
+assign xread = flip ? ~xcnt0[17:8] : xcnt0[17:8];
+assign xdraw  = flip ? ~xcnt1[17:8] : xcnt1[17:8];
+assign y = flip ? ~ycnt[16:7] : ycnt[16:7];
 
-wire [8:0] xstart = xbase[8:0] - xofs[8:0];
-wire [8:0] ystart = ybase[8:0] + yofs[8:0];
+wire [9:0] xstart = xbase[9:0] - xofs[9:0];
+wire [9:0] ystart = ybase[9:0] + yofs[9:0];
 
 always_ff @(posedge clk) begin
     if (ce) begin
-        xcnt0 <= xcnt0 + { 9'd0, ~xzoom };
+        xcnt0 <= xcnt0 + { 10'd0, ~xzoom };
 
         if (readcnt == 8'(READAHEAD)) begin
-            xcnt1 <= xcnt1 + { 9'd0, ~xzoom };
+            xcnt1 <= xcnt1 + { 10'd0, ~xzoom };
         end else begin
             readcnt <= readcnt + 1;
         end
 
         if (frame_strobe) begin
             readcnt <= 0;
-            xcnt0 <= {xstart[8:0], ~xfine};
-            xcnt1 <= {xstart[8:0], ~xfine};
+            xcnt0 <= {xstart, ~xfine};
+            xcnt1 <= {xstart, ~xfine};
             ycnt <= {ystart, yfine};
         end
 
         if (line_strobe) begin
             readcnt <= 0;
-            xcnt0 <= {xstart[8:0], ~xfine};
-            xcnt1 <= {xstart[8:0], ~xfine};
+            xcnt0 <= {xstart, ~xfine};
+            xcnt1 <= {xstart, ~xfine};
         end
 
         if (line_next) begin
-            ycnt <= ycnt + {8'd0, ~yzoom};
+            ycnt <= ycnt + {9'd0, ~yzoom};
         end
     end
 end
@@ -213,21 +213,21 @@ module tc0480scp_simple_counter #(
     input [15:0] xofs,
     input [15:0] yofs,
 
-    output [8:0] xdraw,
-    output [8:0] xread,
-    output [8:0] y
+    output [9:0] xdraw,
+    output [9:0] xread,
+    output [9:0] y
 );
 
-reg [8:0] xcnt0, xcnt1;
-reg [8:0] ycnt;
+reg [9:0] xcnt0, xcnt1;
+reg [9:0] ycnt;
 reg [7:0] readcnt;
 
-assign xread = flip ? 9'd250 - xcnt0 : xcnt0;
-assign xdraw  = flip ? 9'd250 - xcnt1 : xcnt1;
-assign y = flip ? 9'd505 - ycnt : ycnt;
+assign xread = flip ? 10'd250 - xcnt0 : xcnt0;
+assign xdraw  = flip ? 10'd250 - xcnt1 : xcnt1;
+assign y = flip ? 10'd505 - ycnt : ycnt;
 
-wire [8:0] xstart = xbase[8:0] - xofs[8:0];
-wire [8:0] ystart = ybase[8:0] + yofs[8:0];
+wire [9:0] xstart = xbase[9:0] - xofs[9:0];
+wire [9:0] ystart = ybase[9:0] + yofs[9:0];
 
 always_ff @(posedge clk) begin
     if (ce) begin
@@ -241,15 +241,15 @@ always_ff @(posedge clk) begin
 
         if (frame_strobe) begin
             readcnt <= 0;
-            xcnt0 <= xstart[8:0];
-            xcnt1 <= xstart[8:0];
+            xcnt0 <= xstart[9:0];
+            xcnt1 <= xstart[9:0];
             ycnt <= ystart;
         end
 
         if (line_strobe) begin
             readcnt <= 0;
-            xcnt0 <= xstart[8:0];
-            xcnt1 <= xstart[8:0];
+            xcnt0 <= xstart[9:0];
+            xcnt1 <= xstart[9:0];
         end
 
         if (line_next) begin
@@ -323,10 +323,9 @@ wire       ctrl_sync     = ctrl[15][5];
 wire       ctrl_bg3_zoom = ctrl[15][1];
 wire       ctrl_bg2_zoom = ctrl[15][0];
 
-wire [8:0] dispx, dispy;
+wire [9:0] dispx, dispy;
 
-wire [8:0] fg0_xcnt_draw, fg0_xcnt_read, fg0_ycnt;
-wire [5:0] fg0_xtile;
+wire [9:0] fg0_xcnt_draw, fg0_xcnt_read, fg0_ycnt;
 
 reg line_strobe, frame_strobe;
 wire line_next = access_cycle == WAIT1;
@@ -364,16 +363,16 @@ tc0480scp_simple_counter #(.READAHEAD(16)) fg0_counter(
 );
 
 
-wire [8:0] bg_xcnt_draw[4], bg_xcnt_read[4], bg_ycnt[4];
-wire [8:0] bg_ycnt_adj[4];
+wire [9:0] bg_xcnt_draw[4], bg_xcnt_read[4], bg_ycnt[4];
+wire [9:0] bg_ycnt_adj[4];
 reg [1:0] bg_load_index[4];
 wire [11:0] bg_dot[4];
 reg [31:0] bg_attrib[4];
-reg [8:0] bg_xcnt;
+reg [9:0] bg_xcnt;
 reg [15:0] bg_row_scroll[4];
 reg [7:0] bg_row_scroll2[4];
 reg [7:0] bg_row_zoom[4];
-reg [8:0] bg_row_select[4];
+reg [9:0] bg_row_select[4];
 
 assign bg_ycnt_adj[0] = bg_ycnt[0];
 assign bg_ycnt_adj[1] = bg_ycnt[1];
@@ -513,6 +512,26 @@ logic [4:0] next_access_cycle;
 assign VDTACKn = CSn ? 0 : dtack_n;
 assign RA = ram_addr[15:1];
 
+wire [15:0] bg0_addr             = ctrl_wide ? 16'h0000 : 16'h0000;
+wire [15:0] bg1_addr             = ctrl_wide ? 16'h2000 : 16'h1000;
+wire [15:0] bg2_addr             = ctrl_wide ? 16'h4000 : 16'h2000;
+wire [15:0] bg3_addr             = ctrl_wide ? 16'h6000 : 16'h3000;
+wire [15:0] bg0_row_scroll_addr  = ctrl_wide ? 16'h8000 : 16'h4000;
+wire [15:0] bg1_row_scroll_addr  = ctrl_wide ? 16'h8400 : 16'h4400;
+wire [15:0] bg2_row_scroll_addr  = ctrl_wide ? 16'h8800 : 16'h4800;
+wire [15:0] bg3_row_scroll_addr  = ctrl_wide ? 16'h8c00 : 16'h4c00;
+wire [15:0] bg0_row_scroll2_addr = ctrl_wide ? 16'h9000 : 16'h5000;
+wire [15:0] bg1_row_scroll2_addr = ctrl_wide ? 16'h9400 : 16'h5400;
+wire [15:0] bg2_row_scroll2_addr = ctrl_wide ? 16'h9800 : 16'h5800;
+wire [15:0] bg3_row_scroll2_addr = ctrl_wide ? 16'h9c00 : 16'h5c00;
+wire [15:0] bg2_row_zoom_addr    = ctrl_wide ? 16'ha000 : 16'h6000;
+wire [15:0] bg3_row_zoom_addr    = ctrl_wide ? 16'ha400 : 16'h6400;
+wire [15:0] bg2_row_select_addr  = ctrl_wide ? 16'ha800 : 16'h6800;
+wire [15:0] bg3_row_select_addr  = ctrl_wide ? 16'hac00 : 16'h6c00;
+wire [15:0] fg0_addr             = ctrl_wide ? 16'hc000 : 16'hc000;
+wire [15:0] fg0_gfx_addr         = ctrl_wide ? 16'he000 : 16'he000;
+
+
 always_comb begin
     ram_addr = 16'd0;
     RWAHn = 1;
@@ -534,21 +553,21 @@ always_comb begin
         WAIT3: begin
         end
 
-        BG2_ROW_SELECT: ram_addr = 16'h6800 + { 6'd0, dispy[8:0], 1'b0 };
-        BG3_ROW_SELECT: ram_addr = 16'h6c00 + { 6'd0, dispy[8:0], 1'b0 };
+        BG2_ROW_SELECT: ram_addr = bg2_row_select_addr + { 6'd0, dispy[8:0], 1'b0 };
+        BG3_ROW_SELECT: ram_addr = bg3_row_select_addr + { 6'd0, dispy[8:0], 1'b0 };
 
-        BG2_ROW_ZOOM: ram_addr = 16'h6000 + { 6'd0, bg_ycnt_adj[2][8:0], 1'b0 };
-        BG3_ROW_ZOOM: ram_addr = 16'h6400 + { 6'd0, bg_ycnt_adj[3][8:0], 1'b0 };
+        BG2_ROW_ZOOM: ram_addr = bg2_row_zoom_addr + { 6'd0, bg_ycnt_adj[2][8:0], 1'b0 };
+        BG3_ROW_ZOOM: ram_addr = bg3_row_zoom_addr + { 6'd0, bg_ycnt_adj[3][8:0], 1'b0 };
 
-        BG0_ROW_SCROLL: ram_addr = 16'h4000 + { 6'd0, bg_ycnt_adj[0][8:0], 1'b0 };
-        BG1_ROW_SCROLL: ram_addr = 16'h4400 + { 6'd0, bg_ycnt_adj[1][8:0], 1'b0 };
-        BG2_ROW_SCROLL: ram_addr = 16'h4800 + { 6'd0, bg_ycnt_adj[2][8:0], 1'b0 };
-        BG3_ROW_SCROLL: ram_addr = 16'h4c00 + { 6'd0, bg_ycnt_adj[3][8:0], 1'b0 };
+        BG0_ROW_SCROLL: ram_addr = bg0_row_scroll_addr + { 6'd0, bg_ycnt_adj[0][8:0], 1'b0 };
+        BG1_ROW_SCROLL: ram_addr = bg1_row_scroll_addr + { 6'd0, bg_ycnt_adj[1][8:0], 1'b0 };
+        BG2_ROW_SCROLL: ram_addr = bg2_row_scroll_addr + { 6'd0, bg_ycnt_adj[2][8:0], 1'b0 };
+        BG3_ROW_SCROLL: ram_addr = bg3_row_scroll_addr + { 6'd0, bg_ycnt_adj[3][8:0], 1'b0 };
 
-        BG0_ROW_SCROLL2: ram_addr = 16'h5000 + { 6'd0, bg_ycnt_adj[0][8:0], 1'b0 };
-        BG1_ROW_SCROLL2: ram_addr = 16'h5400 + { 6'd0, bg_ycnt_adj[1][8:0], 1'b0 };
-        BG2_ROW_SCROLL2: ram_addr = 16'h5800 + { 6'd0, bg_ycnt_adj[2][8:0], 1'b0 };
-        BG3_ROW_SCROLL2: ram_addr = 16'h5c00 + { 6'd0, bg_ycnt_adj[3][8:0], 1'b0 };
+        BG0_ROW_SCROLL2: ram_addr = bg0_row_scroll2_addr + { 6'd0, bg_ycnt_adj[0][8:0], 1'b0 };
+        BG1_ROW_SCROLL2: ram_addr = bg1_row_scroll2_addr + { 6'd0, bg_ycnt_adj[1][8:0], 1'b0 };
+        BG2_ROW_SCROLL2: ram_addr = bg2_row_scroll2_addr + { 6'd0, bg_ycnt_adj[2][8:0], 1'b0 };
+        BG3_ROW_SCROLL2: ram_addr = bg3_row_scroll2_addr + { 6'd0, bg_ycnt_adj[3][8:0], 1'b0 };
 
         CPU_ACCESS_0,
         CPU_ACCESS_1: begin
@@ -560,24 +579,72 @@ always_comb begin
 
         FG0_ATTRIB_0,
         FG0_ATTRIB_1: begin
-            ram_addr = 16'hc000 + { 3'b0, fg0_ycnt[8:3], fg0_xcnt_read[8:3], 1'b0 };
+            if (ctrl_wide)
+                ram_addr = fg0_addr + { 3'b0, fg0_ycnt[7:3], fg0_xcnt_read[9:3], 1'b0 };
+            else
+                ram_addr = fg0_addr + { 3'b0, fg0_ycnt[8:3], fg0_xcnt_read[8:3], 1'b0 };
         end
 
-        BG0_ATTRIB0: ram_addr = 16'h0000 + { 4'b0, bg_ycnt_adj[0][8:4], bg_xcnt[8:4], 1'b0, 1'b0 };
-        BG0_ATTRIB1: ram_addr = 16'h0000 + { 4'b0, bg_ycnt_adj[0][8:4], bg_xcnt[8:4], 1'b1, 1'b0 };
-        BG1_ATTRIB0: ram_addr = 16'h1000 + { 4'b0, bg_ycnt_adj[1][8:4], bg_xcnt[8:4], 1'b0, 1'b0 };
-        BG1_ATTRIB1: ram_addr = 16'h1000 + { 4'b0, bg_ycnt_adj[1][8:4], bg_xcnt[8:4], 1'b1, 1'b0 };
-        BG2_ATTRIB0: ram_addr = 16'h2000 + { 4'b0, bg_ycnt_adj[2][8:4], bg_xcnt[8:4], 1'b0, 1'b0 };
-        BG2_ATTRIB1: ram_addr = 16'h2000 + { 4'b0, bg_ycnt_adj[2][8:4], bg_xcnt[8:4], 1'b1, 1'b0 };
-        BG3_ATTRIB0: ram_addr = 16'h3000 + { 4'b0, bg_ycnt_adj[3][8:4], bg_xcnt[8:4], 1'b0, 1'b0 };
-        BG3_ATTRIB1: ram_addr = 16'h3000 + { 4'b0, bg_ycnt_adj[3][8:4], bg_xcnt[8:4], 1'b1, 1'b0 };
+        BG0_ATTRIB0: begin
+            if (ctrl_wide)
+                ram_addr = bg0_addr + { 3'b0, bg_ycnt_adj[0][8:4], bg_xcnt[9:4], 1'b0, 1'b0 };
+            else
+                ram_addr = bg0_addr + { 4'b0, bg_ycnt_adj[0][8:4], bg_xcnt[8:4], 1'b0, 1'b0 };
+        end
 
+        BG0_ATTRIB1: begin
+            if (ctrl_wide)
+                ram_addr = bg0_addr + { 3'b0, bg_ycnt_adj[0][8:4], bg_xcnt[9:4], 1'b1, 1'b0 };
+            else
+                ram_addr = bg0_addr + { 4'b0, bg_ycnt_adj[0][8:4], bg_xcnt[8:4], 1'b1, 1'b0 };
+        end
+
+        BG1_ATTRIB0: begin
+            if (ctrl_wide)
+                ram_addr = bg1_addr + { 3'b0, bg_ycnt_adj[1][8:4], bg_xcnt[9:4], 1'b0, 1'b0 };
+            else
+                ram_addr = bg1_addr + { 4'b0, bg_ycnt_adj[1][8:4], bg_xcnt[8:4], 1'b0, 1'b0 };
+        end
+
+        BG1_ATTRIB1: begin
+            if (ctrl_wide)
+                ram_addr = bg1_addr + { 3'b0, bg_ycnt_adj[1][8:4], bg_xcnt[9:4], 1'b1, 1'b0 };
+            else
+                ram_addr = bg1_addr + { 4'b0, bg_ycnt_adj[1][8:4], bg_xcnt[8:4], 1'b1, 1'b0 };
+        end
+
+        BG2_ATTRIB0: begin
+            if (ctrl_wide)
+                ram_addr = bg2_addr + { 3'b0, bg_ycnt_adj[2][8:4], bg_xcnt[9:4], 1'b0, 1'b0 };
+            else
+                ram_addr = bg2_addr + { 4'b0, bg_ycnt_adj[2][8:4], bg_xcnt[8:4], 1'b0, 1'b0 };
+        end
+
+        BG2_ATTRIB1: begin
+            if (ctrl_wide)
+                ram_addr = bg2_addr + { 3'b0, bg_ycnt_adj[2][8:4], bg_xcnt[9:4], 1'b1, 1'b0 };
+            else
+                ram_addr = bg2_addr + { 4'b0, bg_ycnt_adj[2][8:4], bg_xcnt[8:4], 1'b1, 1'b0 };
+        end
+
+        BG3_ATTRIB0: begin
+            if (ctrl_wide)
+                ram_addr = bg3_addr + { 3'b0, bg_ycnt_adj[3][8:4], bg_xcnt[9:4], 1'b0, 1'b0 };
+            else
+                ram_addr = bg3_addr + { 4'b0, bg_ycnt_adj[3][8:4], bg_xcnt[8:4], 1'b0, 1'b0 };
+        end
+
+        BG3_ATTRIB1: begin
+            if (ctrl_wide)
+                ram_addr = bg3_addr + { 3'b0, bg_ycnt_adj[3][8:4], bg_xcnt[9:4], 1'b1, 1'b0 };
+            else
+                ram_addr = bg3_addr + { 4'b0, bg_ycnt_adj[3][8:4], bg_xcnt[8:4], 1'b1, 1'b0 };
+        end
 
         FG0_GFX0_0,
-        FG0_GFX0_1: ram_addr = 16'he000 + { 3'b0, fg0_attrib[7:0], fg0_ycnt[2:0] ^ {3{fg0_attrib[15]}}, 1'b0, 1'b0 };
+        FG0_GFX0_1: ram_addr = fg0_gfx_addr + { 3'b0, fg0_attrib[7:0], fg0_ycnt[2:0] ^ {3{fg0_attrib[15]}}, 1'b0, 1'b0 };
         FG0_GFX1_0,
-        FG0_GFX1_1: ram_addr = 16'he000 + { 3'b0, fg0_attrib[7:0], fg0_ycnt[2:0] ^ {3{fg0_attrib[15]}}, 1'b1, 1'b0 };
-
+        FG0_GFX1_1: ram_addr = fg0_gfx_addr + { 3'b0, fg0_attrib[7:0], fg0_ycnt[2:0] ^ {3{fg0_attrib[15]}}, 1'b1, 1'b0 };
 
     endcase
 end
@@ -676,8 +743,8 @@ always @(posedge clk) begin
                     fg0_load <= 1;
                 end
 
-                BG2_ROW_SELECT: bg_row_select[2] <= RADin[8:0];
-                BG3_ROW_SELECT: bg_row_select[3] <= RADin[8:0];
+                BG2_ROW_SELECT: bg_row_select[2] <= RADin[9:0];
+                BG3_ROW_SELECT: bg_row_select[3] <= RADin[9:0];
 
                 BG2_ROW_ZOOM: begin
                     bg_row_zoom[0] <=                              ctrl[8+0][15:8];

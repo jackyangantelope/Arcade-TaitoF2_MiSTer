@@ -117,6 +117,8 @@ void reset_screen_config()
     bool flip = (input_dsw() & 0x40) == 0;
 
 #if HAS_TC0480SCP
+    TC0480SCP_Ctrl->system_flags = TC0480SCP_SYSTEM_EXT_SYNC | ( flip ? TC0480SCP_SYSTEM_FLIP : 0 );
+    
     int16_t base_x = flip ? -122 : 39;
     int16_t base_y = flip ? (-261) : -5;
     TC0480SCP_Ctrl->fg0_y = flip ? -253 : 13;
@@ -129,7 +131,6 @@ void reset_screen_config()
     TC0480SCP_Ctrl->bg2_x = base_x - 8;
     TC0480SCP_Ctrl->bg3_y = base_y;
     TC0480SCP_Ctrl->bg3_x = base_x - 12;
-    TC0480SCP_Ctrl->system_flags = TC0480SCP_SYSTEM_EXT_SYNC | ( flip ? TC0480SCP_SYSTEM_FLIP : 0 );
     TC0480SCP_Ctrl->bg0_zoom = 0x7f;
     TC0480SCP_Ctrl->bg1_zoom = 0x7f;
     TC0480SCP_Ctrl->bg2_zoom = 0x7f;
