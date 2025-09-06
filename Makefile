@@ -101,6 +101,10 @@ sim/deadconx_test:
 	$(MAKE) -j8 -C testroms TARGET=deadconx_test
 	$(MAKE) -j8 -C sim run GAME="--script test_script.txt"
 
+sim/finalb_test:
+	$(MAKE) -j8 -C testroms TARGET=finalb_test
+	$(MAKE) -j8 -C sim run GAME=finalb_test
+
 
 
 debug: debug/deadconx_test

@@ -43,12 +43,12 @@ endmodule
 module TC0100SCN #(parameter SS_IDX=-1) (
     input clk,
     input ce_13m,
-    output ce_pixel, // TODO - does this generate it?
+    input ce_pixel, // TODO - does this generate it?
 
     input reset,
 
     // CPU interface
-    input [17:1] VA,
+    input [17:0] VA,
     input [15:0] Din,
     output reg [15:0] Dout,
     input LDSn,
@@ -87,15 +87,36 @@ module TC0100SCN #(parameter SS_IDX=-1) (
     ssbus_if.slave ssbus
 );
 
+typedef enum bit [3:0]
+{
+    BG0_ROW_SCROLL = 4'd0,
+    BG0_ATTRIB1_EX,
+    BG1_COL_SCROLL_EX,
+    FG0_GFX_EX,
+    BG1_ROW_SCROLL,
+    BG1_ATTRIB1_EX,
+    FG0_ATTRIB_EX,
+    CPU_ACCESS_EX,
+
+    BG0_ATTRIB0,
+    BG0_ATTRIB1,
+    BG1_COL_SCROLL,
+    FG0_GFX,
+    BG1_ATTRIB0,
+    BG1_ATTRIB1,
+    FG0_ATTRIB,
+    CPU_ACCESS
+} access_state_t;
+
+
 reg dtack_n;
 reg prev_cs_n;
 
 reg ram_pending = 0;
 reg ram_access = 0;
-reg [15:0] ram_addr;
+reg [16:0] ram_addr;
 
 
-reg [9:0] full_hcnt;
 reg [8:0] hcnt_actual, vcnt_actual;
 
 reg [15:0] ctrl[8];
@@ -117,11 +138,10 @@ wire [8:0] vcnt = flip ? { 9'd255 - vcnt_actual } : vcnt_actual;
 wire [8:0] hcnt = flip ? { 9'd343 - hcnt_actual } : hcnt_actual;
 
 assign DACKn = SCCSn ? 0 : dtack_n;
-assign SA = ram_addr[14:0];
-assign SCE0n = ram_addr[15];
-assign SCE1n = ~ram_addr[15];
+assign SA = ram_addr[15:1];
+assign SCE0n = ram_addr[16];
+assign SCE1n = ~ram_addr[16];
 assign SDout = Din;
-assign ce_pixel = ce_13m & full_hcnt[0];
 
 assign HSYNn = flip ? (hcnt_actual >= 24 && hcnt_actual < 344) : (hcnt_actual >= 25 && hcnt_actual < 345);
 assign HBLOn = HSYNn;
@@ -136,37 +156,32 @@ assign SC = (fg0_en & |fg0_dot[3:0]) ? { 3'b010, fg0_dot } :
             (bg0_prio & bg1_en & |bg1_dot[3:0]) ? { 3'b110, bg1_dot } :
             { 3'b100, 12'd0 };
 
-wire [5:0] col_count = full_hcnt[9:4];
 reg [3:0] state;
+
+reg prev_ihld;
 
 always @(posedge clk) begin
     bit [8:0] h, v;
     if (reset) begin
-        full_hcnt <= 0;
         hcnt_actual <= 0;
         vcnt_actual <= 0;
-    end else if (ce_13m) begin
-        full_hcnt <= full_hcnt + 1;
-        if (ce_pixel) begin
-            hcnt_actual <= hcnt_actual + 1;
-            if (hcnt_actual == 7 && col_count < 2) begin
-                hcnt_actual <= 0;
-            end
-        end
+    end else if (ce_pixel) begin
+        prev_ihld <= IHLD;
+        hcnt_actual <= hcnt_actual + 1;
 
-        if (full_hcnt == 847) begin /* 424 * 2 - 1 */
-            full_hcnt <= 0;
+        if (IHLD & ~prev_ihld) begin /* 424 * 2 - 1 */
             hcnt_actual <= 0;
             vcnt_actual <= vcnt_actual + 1;
-            if (vcnt_actual == 261) begin
+            if (IVLD) begin
                 vcnt_actual <= 0;
             end
         end
     end
 end
 
-wire [3:0] access_cycle = full_hcnt[3:0];
-wire line_start = ~|full_hcnt[9:4];
+reg [3:0] access_cycle;
+logic [3:0] next_access_cycle;
+
 
 wire [8:0] bg0_hofs = bg0_x[8:0] + bg0_rowscroll[8:0];
 wire [8:0] bg1_hofs = bg1_x[8:0] + bg1_rowscroll[8:0];
@@ -204,7 +219,7 @@ tc0100scn_shifter bg0_shift(
     .palette_in(bg0_attrib[7:0]),
     .flip_x(bg0_flipx ^ flip),
     .dot_out(bg0_dot),
-    .load(access_cycle == 15)
+    .load(&access_cycle[2:0])
 );
 
 tc0100scn_shifter bg1_shift(
@@ -214,7 +229,7 @@ tc0100scn_shifter bg1_shift(
     .palette_in(bg1_attrib[7:0]),
     .flip_x(bg1_flipx ^ flip),
     .dot_out(bg1_dot),
-    .load(access_cycle == 15)
+    .load(&access_cycle[2:0])
 );
 
 tc0100scn_shifter fg0_shift(
@@ -224,8 +239,96 @@ tc0100scn_shifter fg0_shift(
     .palette_in({2'b0, fg0_code[13:8]}),
     .flip_x(fg0_flipx ^ flip),
     .dot_out(fg0_dot),
-    .load(access_cycle == 15)
+    .load(&access_cycle[2:0])
 );
+
+wire [16:0] bg0_addr             = wide ? 17'h00000 : 17'h00000;
+wire [16:0] bg1_addr             = wide ? 17'h08000 : 17'h08000;
+wire [16:0] bg0_row_scroll_addr  = wide ? 17'h10000 : 17'h0c000;
+wire [16:0] bg1_row_scroll_addr  = wide ? 17'h10400 : 17'h0c400;
+wire [16:0] bg1_col_scroll_addr  = wide ? 17'h10800 : 17'h0e000;
+wire [16:0] fg0_addr             = wide ? 17'h11000 : 17'h04000;
+wire [16:0] fg0_gfx_addr         = wide ? 17'h12000 : 17'h06000;
+
+always_comb begin
+    bit [5:0] h;
+    bit [8:0] v;
+
+    ram_addr = 17'd0;
+    WEUPn = 1;
+    WELOn = 1;
+
+    h = 0;
+    v = 0;
+
+    if (access_cycle == 15) begin
+        next_access_cycle = 8;
+    end else begin
+        next_access_cycle = access_cycle + 4'd1;
+    end
+
+    unique case(access_cycle)
+        BG0_ATTRIB0: begin
+            h = hcnt[8:3] - bg0_hofs[8:3];
+            v = vcnt - bg0_y[8:0];
+            ram_addr = bg0_addr + { 3'b0, v[8:3], h, 2'b00 };
+        end
+
+        BG0_ATTRIB1_EX,
+        BG0_ATTRIB1: begin
+            h = hcnt[8:3] - bg0_hofs[8:3];
+            v = vcnt - bg0_y[8:0];
+            ram_addr = bg0_addr + { 3'b0, v[8:3], h, 2'b10 };
+        end
+
+        BG1_ATTRIB0: begin
+            h = hcnt[8:3] - bg1_hofs[8:3];
+            v = vcnt - bg1_y[8:0];
+            ram_addr = bg1_addr + { 3'b0, v[8:3], h, 2'b00 };
+        end
+
+        BG1_ATTRIB1_EX,
+        BG1_ATTRIB1: begin
+            h = hcnt[8:3] - bg1_hofs[8:3];
+            v = vcnt - bg1_y[8:0];
+            ram_addr = bg1_addr + { 3'b0, v[8:3], h, 2'b10 };
+        end
+
+        BG1_COL_SCROLL_EX,
+        BG1_COL_SCROLL: begin
+            ram_addr = bg1_col_scroll_addr + { 10'b0, hcnt[8:3], 1'b0 };
+        end
+
+        FG0_ATTRIB_EX,
+        FG0_ATTRIB: begin
+            h = hcnt[8:3] - fg0_x[8:3];
+            v = vcnt - fg0_y[8:0];
+            ram_addr = fg0_addr + { 4'b0, v[8:3], h + (flip ? 6'd0 : 6'd1), 1'b0 };
+        end
+
+        FG0_GFX_EX,
+        FG0_GFX: begin
+            v = vcnt - fg0_y[8:0];
+            ram_addr = fg0_gfx_addr + { 5'b0, fg0_code[7:0], fg0_flipy ? ~v[2:0] : v[2:0], 1'b0 };
+        end
+
+        BG0_ROW_SCROLL: begin
+            ram_addr = bg0_row_scroll_addr + { 8'b0, vcnt[7:0], 1'b0 };
+        end
+
+        BG1_ROW_SCROLL: begin
+            ram_addr = bg1_row_scroll_addr + { 8'b0, vcnt[7:0], 1'b0 };
+        end
+
+        CPU_ACCESS_EX,
+        CPU_ACCESS: begin
+            ram_addr = VA[16:0];
+            WELOn = ~ram_access | LDSn | RW;
+            WEUPn = ~ram_access | UDSn | RW;
+        end
+
+    endcase
+end
 
 
 always @(posedge clk) begin
@@ -236,9 +339,7 @@ always @(posedge clk) begin
         dtack_n <= 1;
         ram_pending <= 0;
         ram_access <= 0;
-    end else if (ce_13m) begin
-        WEUPn <= 1;
-        WELOn <= 1;
+    end begin
         // CPu interface handling
         prev_cs_n <= SCCSn;
         if (~SCCSn & prev_cs_n) begin // CS edge
@@ -257,111 +358,67 @@ always @(posedge clk) begin
             dtack_n <= 1;
         end
 
-        case(access_cycle)
-            // BG0 Address Attrib or Rowscroll
-            0: begin
-                if (line_start) begin
-                    ram_addr <= { 8'b0_11_00000, vcnt[7:0] };
-                end else begin
-                    h = hcnt[8:3] - bg0_hofs[8:3];
+        if (ce_pixel) begin
+            unique case(access_cycle)
+                BG0_ROW_SCROLL: bg0_rowscroll <= SDin;
+                BG0_ATTRIB0: bg0_attrib <= SDin;
+                BG0_ATTRIB1_EX,
+                BG0_ATTRIB1: begin
+                    bg0_code <= SDin;
                     v = vcnt - bg0_y[8:0];
-                    ram_addr <= { 3'b0_00, v[8:3], h, 1'b0 };
+                    rom_address <= { SDin, bg0_flipy ? ~v[2:0] : v[2:0], 2'b0 };
+                    rom_req <= ~rom_req;
                 end
-            end
-            // BG0 Store Attrib or Rowscroll
-            1: begin
-                if (line_start) begin
-                    bg0_rowscroll <= SDin;
-                end else begin
-                    bg0_attrib <= SDin;
-                end
-            end
-            // BG0 Address Tile code
-            2: ram_addr[0] <= 1;
-            // BG0 Store Tile code, start ROM read
-            3: begin
-                bg0_code <= SDin;
-                v = vcnt - bg0_y[8:0];
-                rom_address <= { SDin, bg0_flipy ? ~v[2:0] : v[2:0], 2'b0 };
-                rom_req <= ~rom_req;
-            end
-            // BG1 Address Colscroll
-            4: begin
-                h = hcnt[8:3];
-                ram_addr <= { 10'b0111_000000, h };
-            end
-            // BG1 Store Colscroll
-            5: begin
-                bg1_colscroll <= SDin;
-                fg0_code <= fg0_code_next;
-            end
-            // FG0 Address GFX
-            6: begin
-                v = vcnt - fg0_y[8:0];
-                ram_addr <= { 5'b0_0110, fg0_code[7:0], fg0_flipy ? ~v[2:0] : v[2:0] };
-            end
-            // FG0 Store GFX
-            7: begin
-                fg0_gfx <= SDin;
-            end
-            // BG1 Address Attrib or Rowscroll
-            8: begin
-                if (line_start) begin
-                    ram_addr <= { 8'b0_11_00010, vcnt[7:0] };
-                end else begin
-                    h = hcnt[8:3] - bg1_hofs[8:3];
-                    v = vcnt - (bg1_y[8:0] + bg1_colscroll[8:0]);
-                    ram_addr <= { 3'b0_10, v[8:3], h, 1'b0 };
-                end
-            end
-            // BG1 Store Attrib or Rowscroll
-            9: begin
-                if (line_start) begin
-                    bg1_rowscroll <= SDin;
-                end else begin
-                    bg1_attrib <= SDin;
-                end
-            end
-            // BG1 Address Tile code
-            10: ram_addr[0] <= 1;
-            // BG1 Store Tile code, start ROM read
-            11: begin
-                bg1_code <= SDin;
 
-                bg0_gfx <= rom_data;
-                v = vcnt - (bg1_y[8:0] + bg1_colscroll[8:0]);
-                rom_address <= { SDin, bg1_flipy ? ~v[2:0] : v[2:0], 2'b0 };
-                rom_req <= ~rom_req;
-            end
-            // FG0 Address tile code
-            12: begin
-                h = hcnt[8:3] - fg0_x[8:3];
-                v = vcnt - fg0_y[8:0];
-                ram_addr <= { 4'b0_010, v[8:3], h + (flip ? 6'd0 : 6'd1) };
-            end
-            // FG0 Store Tile
-            13: begin
-                fg0_code_next <= SDin;
-                ram_access <= ram_pending;
-            end
-            // Address CPU access
-            14: begin
-                ram_addr <= VA[16:1];
-                WEUPn <= ~ram_access | UDSn | RW;
-                WELOn <= ~ram_access | LDSn | RW;
-            end
-            // Finish CPU access
-            15: begin
-                if (ram_access) begin
-                    ram_access <= 0;
-                    ram_pending <= 0;
-                    dtack_n <= 0;
-                    Dout <= SDin;
+                BG1_ROW_SCROLL: bg1_rowscroll <= SDin;
+                BG1_ATTRIB0: bg1_attrib <= SDin;
+                BG1_ATTRIB1_EX,
+                BG1_ATTRIB1: begin
+                    bg0_gfx <= rom_data;
+                    bg1_code <= SDin;
+                    v = vcnt - bg1_y[8:0];
+                    rom_address <= { SDin, bg1_flipy ? ~v[2:0] : v[2:0], 2'b0 };
+                    rom_req <= ~rom_req;
                 end
+
+                BG1_COL_SCROLL_EX,
+                BG1_COL_SCROLL: begin
+                    bg1_colscroll <= SDin;
+                    fg0_code <= fg0_code_next;
+                end
+
+                FG0_ATTRIB_EX,
+                FG0_ATTRIB: fg0_code_next <= SDin;
+
+                FG0_GFX_EX,
+                FG0_GFX: fg0_gfx <= SDin;
+
+                CPU_ACCESS_EX,
+                CPU_ACCESS: begin
+                    if (ram_access) begin
+                        ram_access <= 0;
+                        ram_pending <= 0;
+                        dtack_n <= 0;
+                        Dout <= SDin;
+                    end
+                end
+            endcase
+
+            if (prev_ihld & ~IHLD) begin
+                access_cycle <= 0;
+            end else begin
+                access_cycle <= next_access_cycle;
+                case(next_access_cycle)
+                    CPU_ACCESS_EX,
+                    CPU_ACCESS: begin
+                        ram_access <= ram_pending;
+                    end
+
+                    default: begin
+                    end
+                endcase
             end
-            default: begin
-            end
-        endcase
+        end
     end
 
     ssbus.setup(SS_IDX, 8, 1);

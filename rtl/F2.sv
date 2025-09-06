@@ -93,11 +93,11 @@ wire [15:0] cfg_addr_priority;
 wire [15:0] cfg_addr_roz;
 wire [15:0] cfg_addr_cchip;
 
-wire [8:0] cfg_hofs_200obj,  cfg_vofs_200obj  /* verilator public_flat */;
-wire [8:0] cfg_hofs_480scp,  cfg_vofs_480scp  /* verilator public_flat */;
-wire [8:0] cfg_hofs_100scn0, cfg_vofs_100scn0 /* verilator public_flat */;
-wire [8:0] cfg_hofs_100scn1, cfg_vofs_100scn1 /* verilator public_flat */;
-wire [8:0] cfg_hofs_430grw,  cfg_vofs_430grw  /* verilator public_flat */;
+wire [8:0] cfg_hofs_200obj /* verilator public_flat */,  cfg_vofs_200obj  /* verilator public_flat */;
+wire [8:0] cfg_hofs_480scp /* verilator public_flat */,  cfg_vofs_480scp  /* verilator public_flat */;
+wire [8:0] cfg_hofs_100scn0 /* verilator public_flat */, cfg_vofs_100scn0 /* verilator public_flat */;
+wire [8:0] cfg_hofs_100scn1 /* verilator public_flat */, cfg_vofs_100scn1 /* verilator public_flat */;
+wire [8:0] cfg_hofs_430grw /* verilator public_flat */,  cfg_vofs_430grw  /* verilator public_flat */;
 
 
 game_board_config game_board_config(
@@ -858,12 +858,12 @@ assign sdr_scn0_addr = SCN0_ROM_SDR_BASE[26:0] + { 6'b0, scn0_rom_address[20:0] 
 TC0100SCN #(.SS_IDX(SSIDX_SCN_0)) scn0(
     .clk(clk),
     .ce_13m(ce_13m),
-    .ce_pixel(),
+    .ce_pixel,
 
     .reset,
 
     // CPU interface
-    .VA(cpu_addr[16:0]),
+    .VA(cpu_word_addr[17:0]),
     .Din(cpu_data_out),
     .Dout(scn0_data_out),
     .LDSn(cpu_ds_n[0]),
@@ -895,8 +895,8 @@ TC0100SCN #(.SS_IDX(SSIDX_SCN_0)) scn0(
     .VBLOn,
     .OLDH(),
     .OLDV(),
-    .IHLD(0), // FIXME - confirm inputs
-    .IVLD(0),
+    .IHLD(global_hcnt == cfg_hofs_100scn0),
+    .IVLD(global_vcnt == cfg_vofs_100scn0),
 
     .ssbus(ssb[5])
 );
@@ -954,7 +954,7 @@ TC0100SCN #(.SS_IDX(SSIDX_SCN_1)) scn1(
     .reset,
 
     // CPU interface
-    .VA(cpu_addr[16:0]),
+    .VA(cpu_word_addr[17:0]),
     .Din(cpu_data_out),
     .Dout(scn1_data_out),
     .LDSn(cpu_ds_n[0]),
@@ -1140,8 +1140,8 @@ TC0430GRW #(.SS_IDX(SSIDX_PIVOT_CTRL)) tc0430grw(
 
     .SC(pivot_dot),
 
-    .HBLANKn(~hblank),
-    .VBLANKn(~vblank),
+    .HBLANKn(global_hcnt != cfg_hofs_430grw),
+    .VBLANKn(global_vcnt != cfg_vofs_430grw),
 
     .ssbus(ssb[15])
 );

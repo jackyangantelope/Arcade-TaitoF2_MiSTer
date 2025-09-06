@@ -114,7 +114,7 @@ static uint32_t frame_count;
 
 void reset_screen_config()
 {
-    bool flip = (input_dsw() & 0x40) == 0;
+    bool flip = (input_dsw() & 0x0040) == 0;
 
 #if HAS_TC0480SCP
     TC0480SCP_Ctrl->system_flags = TC0480SCP_SYSTEM_EXT_SYNC | ( flip ? TC0480SCP_SYSTEM_FLIP : 0 );
@@ -1455,6 +1455,7 @@ void init_480scp()
 
 void update_480scp()
 {
+#if HAS_TC0480SCP
     static uint16_t prio = 0;
     static uint16_t test_value = 0;
     static uint16_t prev_dsw = 0;
@@ -1493,12 +1494,12 @@ void update_480scp()
             TC0480SCP_Ctrl->bg1_x = 300;
         }
     }
-
-
+#endif
 }
 
 void init_480scp_zoom()
 {
+#if HAS_TC0480SCP
     reset_screen();
 
     tc0360pri_set_tile_prio2(4, 4, 4, 4);
@@ -1531,7 +1532,7 @@ void init_480scp_zoom()
     sym_at(6,5,1);
     TC0480SCP_Ctrl->bg1_zoom = 0x00be;
     TC0480SCP_Ctrl->bg1_y = 29;
-
+#endif
 }
 
 typedef struct
@@ -1557,6 +1558,7 @@ volatile SimDebug *DEBUG = (volatile SimDebug *)0x080000;
 // 00 Y 0xffb6   - 0xffc8  = -18
 void update_480scp_zoom()
 {
+#if HAS_TC0480SCP
     static uint8_t sel = 0;
     
     static uint8_t zoomy = 0x7f;
@@ -1633,10 +1635,12 @@ void update_480scp_zoom()
         zoomx = DEBUG->zoomx;
         dx = DEBUG->dx;
     }
+#endif
 }
 
 void init_480scp_row()
 {
+#if HAS_TC0480SCP
     reset_screen();
 
     // 0 - BG3
@@ -1701,10 +1705,12 @@ void init_480scp_row()
     sym_at(5, 2, 1);
     pen_color(0x8);
     sym_at(3, 1, 2);
+#endif
 }
 
 void update_480scp_row()
 {
+#if HAS_TC0480SCP
     static int x = 0;
     wait_vblank();
     pen_color(8);
@@ -1717,6 +1723,7 @@ void update_480scp_row()
     //TC0480SCP->bg2_colscroll[x] = 0;
     //x = (x + 1) % 512;
     //TC0480SCP->bg2_colscroll[x] = -10;
+#endif
 }
 
 
@@ -1757,8 +1764,6 @@ void update_romtest()
     pen_color(8);
     print_at(20, 1, "%04X", vblank_count);
     
-    TE7750->p4 = 0x00;
-
     if (fail_index > 20) return;
 
     for( uint16_t x = 0; x < 256; x++ )
@@ -1768,7 +1773,6 @@ void update_romtest()
 
         if (rom_value != expected)
         {
-            TE7750->p4 = 0x20;
             print_at(1, 2 + fail_index, "%04X %04X", expected, rom_value);
             fail_index++;
         }
@@ -1835,11 +1839,12 @@ int main(int argc, char *argv[])
 
     uint32_t system_flags = 0;
 
-    int current_screen = 10;
-
-    init_screen(current_screen);
+    int current_screen = 0;
 
     input_update();
+    
+    init_screen(current_screen);
+
     
     while(1)
     {
