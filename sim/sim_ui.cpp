@@ -97,6 +97,18 @@ void ui_game_changed()
     refresh_state_files = true;
 }
 
+void offset_input(const char *label, uint16_t *h, uint16_t *v)
+{
+    int vals[2] = {*h, *v};
+    int step = 1;
+    int fast_step = 10;
+
+    ImGui::InputScalarN(label, ImGuiDataType_S32, vals, 2, &step, &fast_step, "%d", ImGuiInputTextFlags_None);
+
+    *h = vals[0] & 0x1ff;
+    *v = vals[1] & 0x1ff;
+}
+
 void ui_draw()
 {
     if (ImGui::Begin("Simulation Control"))
@@ -311,6 +323,7 @@ void ui_draw()
             }
 
             ImGui::EndTabBar();
+
         }
     }
     ImGui::End();
@@ -351,6 +364,16 @@ void ui_draw()
             }
             ImGui::EndTable();
         }
+    }
+    ImGui::End();
+
+    if (ImGui::Begin("Offsets"))
+    {
+        offset_input("SCN0", &g_sim_core.top->rootp->F2_SIGNAL(cfg_hofs_100scn0), &g_sim_core.top->rootp->F2_SIGNAL(cfg_vofs_100scn0));
+        offset_input("OBJ", &g_sim_core.top->rootp->F2_SIGNAL(cfg_hofs_200obj), &g_sim_core.top->rootp->F2_SIGNAL(cfg_vofs_200obj));
+        offset_input("SCN1", &g_sim_core.top->rootp->F2_SIGNAL(cfg_hofs_100scn1), &g_sim_core.top->rootp->F2_SIGNAL(cfg_vofs_100scn1));
+        offset_input("SCP", &g_sim_core.top->rootp->F2_SIGNAL(cfg_hofs_480scp), &g_sim_core.top->rootp->F2_SIGNAL(cfg_vofs_480scp));
+        offset_input("GRW", &g_sim_core.top->rootp->F2_SIGNAL(cfg_hofs_430grw), &g_sim_core.top->rootp->F2_SIGNAL(cfg_vofs_430grw));
     }
     ImGui::End();
 }

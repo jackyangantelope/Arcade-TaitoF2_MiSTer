@@ -99,7 +99,7 @@ sim/driftout_test:
 
 sim/deadconx_test:
 	$(MAKE) -j8 -C testroms TARGET=deadconx_test
-	$(MAKE) -j8 -C sim run GAME="--script flip_script.txt"
+	$(MAKE) -j8 -C sim run GAME="--script test_script.txt"
 
 
 

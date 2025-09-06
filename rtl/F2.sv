@@ -93,9 +93,17 @@ wire [15:0] cfg_addr_priority;
 wire [15:0] cfg_addr_roz;
 wire [15:0] cfg_addr_cchip;
 
+wire [8:0] cfg_hofs_200obj,  cfg_vofs_200obj  /* verilator public_flat */;
+wire [8:0] cfg_hofs_480scp,  cfg_vofs_480scp  /* verilator public_flat */;
+wire [8:0] cfg_hofs_100scn0, cfg_vofs_100scn0 /* verilator public_flat */;
+wire [8:0] cfg_hofs_100scn1, cfg_vofs_100scn1 /* verilator public_flat */;
+wire [8:0] cfg_hofs_430grw,  cfg_vofs_430grw  /* verilator public_flat */;
+
+
 game_board_config game_board_config(
     .clk,
     .game(game),
+    .reset(reset),
 
     .cfg_110pcr,
     .cfg_260dar,
@@ -128,7 +136,13 @@ game_board_config game_board_config(
     .cfg_addr_extension,
     .cfg_addr_priority,
     .cfg_addr_roz,
-    .cfg_addr_cchip
+    .cfg_addr_cchip,
+
+    .cfg_hofs_200obj, .cfg_vofs_200obj,
+    .cfg_hofs_480scp, .cfg_vofs_480scp,
+    .cfg_hofs_100scn0, .cfg_vofs_100scn0,
+    .cfg_hofs_100scn1, .cfg_vofs_100scn1,
+    .cfg_hofs_430grw, .cfg_vofs_430grw
 );
 
 ddr_if ddr_ss(), ddr_obj();
@@ -468,6 +482,24 @@ jtframe_frac_cen #(2) audio_cen
     .cenb()
 );
 
+wire global_hsync, global_hblank, global_vsync, global_vblank;
+wire [8:0] global_hcnt;
+wire [8:0] global_vcnt;
+
+video_timing video_timing(
+    .clk,
+    .ce_13m,
+
+    .sync_fix,
+
+    .ce_pixel,
+    .hcnt(global_hcnt),
+    .vcnt(global_vcnt),
+    .hsync(global_hsync),
+    .vsync(global_vsync),
+    .hblank(global_hblank),
+    .vblank(global_vblank)
+);
 
 //////////////////////////////////
 //// CPU
@@ -699,8 +731,8 @@ TC0200OBJ tc0200obj(
 
     .DOT(obj_dot),
 
-    .EXHBLn(HBLOn),
-    .EXVBLn(VBLOn),
+    .EXHBLn(global_hcnt != cfg_hofs_200obj),
+    .EXVBLn(global_vcnt != cfg_vofs_200obj),
 
     .HSYNCn,
     .VSYNCn,
@@ -768,10 +800,10 @@ wire VBLOn;
 wire [7:0] dar_red, dar_green, dar_blue;
 wire dar_hblank_n, dar_vblank_n;
 
-assign hsync = ~HSYNCn;
-assign vsync = ~VSYNCn;
-assign hblank = cfg_260dar ? ~dar_hblank_n : ~HBLn;
-assign vblank = cfg_260dar ? ~dar_vblank_n : ~VBLn;
+assign hsync = global_hsync;
+assign vsync = global_vsync;
+assign hblank = cfg_260dar ? ~dar_hblank_n : global_hblank;
+assign vblank = cfg_260dar ? ~dar_vblank_n : global_vblank;
 
 assign blue = cfg_260dar ? dar_blue : {color_ram_q[14:10], color_ram_q[14:12]};
 assign green = cfg_260dar ? dar_green : {color_ram_q[9:5], color_ram_q[9:7]};
@@ -826,7 +858,7 @@ assign sdr_scn0_addr = SCN0_ROM_SDR_BASE[26:0] + { 6'b0, scn0_rom_address[20:0] 
 TC0100SCN #(.SS_IDX(SSIDX_SCN_0)) scn0(
     .clk(clk),
     .ce_13m(ce_13m),
-    .ce_pixel,
+    .ce_pixel(),
 
     .reset,
 
@@ -1027,8 +1059,8 @@ TC0480SCP #(.SS_IDX(SSIDX_480SCP)) tc0480scp(
     .VBLNn(),
     .HLDn(),
     .VLDn(),
-    .OUHLDn(HBLn),
-    .OUVLDn(VBLn),
+    .OUHLDn(global_hcnt != cfg_hofs_480scp),
+    .OUVLDn(global_vcnt != cfg_vofs_480scp),
 
     .sync_xofs,
     .sync_yofs,
@@ -1264,8 +1296,8 @@ TC0260DAR tc0260dar(
     .ACCMODE(~cfg_260dar_acc),
 
     // Video Input
-    .HBLANKn(HBLn),
-    .VBLANKn(VBLn),
+    .HBLANKn(~global_hblank),
+    .VBLANKn(~global_vblank),
     .OHBLANKn(dar_hblank_n),
     .OVBLANKn(dar_vblank_n),
 

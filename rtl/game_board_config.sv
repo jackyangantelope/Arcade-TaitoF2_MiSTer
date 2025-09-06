@@ -2,6 +2,7 @@ import system_consts::*;
 
 module game_board_config(
     input clk,
+    input reset,
     input game_t game,
 
     output reg       cfg_360pri,
@@ -35,7 +36,18 @@ module game_board_config(
     output reg [15:0] cfg_addr_extension,
     output reg [15:0] cfg_addr_priority,
     output reg [15:0] cfg_addr_roz,
-    output reg [15:0] cfg_addr_cchip
+    output reg [15:0] cfg_addr_cchip,
+
+    output reg  [8:0] cfg_hofs_200obj,
+    output reg  [8:0] cfg_vofs_200obj,
+    output reg  [8:0] cfg_hofs_480scp,
+    output reg  [8:0] cfg_vofs_480scp,
+    output reg  [8:0] cfg_hofs_100scn0,
+    output reg  [8:0] cfg_vofs_100scn0,
+    output reg  [8:0] cfg_hofs_100scn1,
+    output reg  [8:0] cfg_vofs_100scn1,
+    output reg  [8:0] cfg_hofs_430grw,
+    output reg  [8:0] cfg_vofs_430grw
 );
 
 // register these values to help with timing
@@ -65,23 +77,20 @@ always @(posedge clk) begin
         GAME_FOOTCHMP: c = 17'b01_11_0_1_00_0_1_0_0_0_1_0_0_0;
         GAME_KOSHIEN:  c = 17'b01_01_0_1_00_0_0_0_0_0_0_0_1_1;
         GAME_YUYUGOGO: c = 17'b00_01_0_0_01_0_0_0_0_0_0_0_0_0;
-        GAME_QZQUEST:  c = 17'b00_01_0_0_00_0_0_0_0_0_0_0_1_0;
-        GAME_QZCHIKYU: c = 17'b00_01_0_0_00_0_0_0_0_0_0_0_1_0;
-        
         GAME_NINJAK:   c = 17'b01_01_0_1_00_0_1_1_0_0_0_0_0_0;
         GAME_SOLFIGTR: c = 17'b01_01_0_1_00_1_0_0_0_0_0_0_1_1;
-
+        GAME_QZQUEST:  c = 17'b00_01_0_0_00_0_0_0_0_0_0_0_1_0;
         GAME_PULIRULA: c = 17'b11_01_0_0_10_0_0_0_0_1_0_0_1_0;
-
+        GAME_METALB:   c = 17'b01_11_0_0_00_0_0_1_0_0_1_0_1_1;
+        GAME_QZCHIKYU: c = 17'b00_01_0_0_00_0_0_0_0_0_0_0_1_0;
+        
+        GAME_DEADCONX: c = 17'b01_11_0_1_00_0_1_0_0_0_1_0_1_1;
         GAME_DINOREX:  c = 17'b01_01_0_0_01_0_0_0_0_0_0_0_1_1;
         GAME_QJINSEI:  c = 17'b01_01_0_0_01_0_0_0_0_0_0_0_1_1;
         GAME_QCRAYON:  c = 17'b01_01_0_0_01_0_0_0_0_0_0_0_1_1;
         GAME_QCRAYON2: c = 17'b01_01_0_0_01_0_0_0_0_0_0_0_1_1;
-
-        GAME_DEADCONX: c = 17'b01_11_0_1_00_0_1_0_0_0_1_0_1_1;
-        GAME_DEADCONXJ:c = 17'b01_11_0_1_00_0_1_0_0_0_1_0_1_1;
-        GAME_METALB:   c = 17'b01_11_0_0_00_0_0_1_0_0_1_0_1_1;
         GAME_DRIFTOUT: c = 17'b11_01_0_0_00_0_0_0_0_1_0_0_1_0;
+        GAME_DEADCONXJ:c = 17'b01_11_0_1_00_0_1_0_0_0_1_0_1_1;
         default:       c = 17'b00_00_1_0_00_0_0_0_0_0_0_0_0_0;
     endcase
 
@@ -469,6 +478,16 @@ always_ff @(posedge clk) begin
       end
 
     endcase
+end
+
+always_ff @(posedge clk) begin
+    if (reset) begin
+        cfg_hofs_480scp  <= 321; cfg_vofs_480scp  <= 224;
+        cfg_hofs_200obj  <= 319; cfg_vofs_200obj  <= 254;
+        cfg_hofs_100scn0 <= 319; cfg_vofs_100scn0 <= 254;
+        cfg_hofs_100scn1 <= 319; cfg_vofs_100scn1 <= 254;
+        cfg_hofs_430grw  <= 319; cfg_vofs_430grw  <= 254;
+    end
 end
 
 endmodule
