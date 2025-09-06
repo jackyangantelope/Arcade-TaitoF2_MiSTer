@@ -132,5 +132,14 @@ rtl/tv80_auto_ss.sv:
 rtl/fx68k_auto_ss.sv:
 	$(PYTHON) util/state_module.py --generate-csv docs/fx68k_mapping.csv fx68k rtl/fx68k_auto_ss.sv rtl/fx68k/hdl/*.v
 
+releases_clean:
+	$(PYTHON) util/mame2mra.py --generate --all-machines --output releases_clean --config util/mame2mra.toml util/mame.xml
 
-.PHONY: sim sim/run sim/test mister debug picorom rtl/jt10_auto_ss.sv rtl/tv80_auto_ss.sv
+releases:
+	$(PYTHON) util/mame2mra.py --generate --all-machines --output releases --config util/mame2mra.toml util/mame.xml
+	patch -d releases -l -p1 -r - < releases.patch
+
+releases.patch:
+	diff -ruN -x "*.rbf" -x ".DS_Store" releases_clean releases > releases.patch || true
+
+.PHONY: sim sim/run sim/test mister debug picorom rtl/jt10_auto_ss.sv rtl/tv80_auto_ss.sv releases releases_clean releases.patch
