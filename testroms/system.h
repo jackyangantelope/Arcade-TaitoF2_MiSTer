@@ -102,7 +102,7 @@ static TC0430GRW_Control *TC0430GRW_Ctrl = (TC0430GRW_Control *)0x402000;
 static uint16_t *TC0430GRW = (uint16_t *)0x400000;
 
 static TE7750_Control *TE7750 = (TE7750_Control *)0x700000;
-static TC0360PRI_Control *TC0360PRI = (TC0360PRI_Control *)0x500000;
+static TC0360PRI_Control *TC0360PRI = (TC0360PRI_Control *)0x500001;
 
 static TC0200OBJ_Inst *TC0200OBJ = (TC0200OBJ_Inst *)0x200000;
 

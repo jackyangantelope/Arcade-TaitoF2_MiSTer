@@ -84,13 +84,13 @@ always @(posedge clk) begin
         GAME_METALB:   c = 17'b01_11_0_0_00_0_0_1_0_0_1_0_1_1;
         GAME_QZCHIKYU: c = 17'b00_01_0_0_00_0_0_0_0_0_0_0_1_0;
         
-        GAME_DEADCONX: c = 17'b01_11_0_1_00_0_1_0_0_0_1_0_1_1;
+        GAME_DEADCONX: c = 17'b01_01_0_1_00_0_1_0_0_0_1_0_1_1;
         GAME_DINOREX:  c = 17'b01_01_0_0_01_0_0_0_0_0_0_0_1_1;
         GAME_QJINSEI:  c = 17'b01_01_0_0_01_0_0_0_0_0_0_0_1_1;
         GAME_QCRAYON:  c = 17'b01_01_0_0_01_0_0_0_0_0_0_0_1_1;
         GAME_QCRAYON2: c = 17'b01_01_0_0_01_0_0_0_0_0_0_0_1_1;
         GAME_DRIFTOUT: c = 17'b11_01_0_0_00_0_0_0_0_1_0_0_1_0;
-        GAME_DEADCONXJ:c = 17'b01_11_0_1_00_0_1_0_0_0_1_0_1_1;
+        GAME_DEADCONXJ:c = 17'b01_01_0_1_00_0_1_0_0_0_1_0_1_1;
         default:       c = 17'b00_00_1_0_00_0_0_0_0_0_0_0_0_0;
     endcase
 
@@ -482,11 +482,11 @@ end
 
 always_ff @(posedge clk) begin
     if (reset) begin
-        cfg_hofs_480scp  <= 321; cfg_vofs_480scp  <= 224;
-        cfg_hofs_200obj  <= 319; cfg_vofs_200obj  <= 254;
-        cfg_hofs_100scn0 <= 397; cfg_vofs_100scn0 <= 253;
-        cfg_hofs_100scn1 <= 397; cfg_vofs_100scn1 <= 253;
-        cfg_hofs_430grw  <= 324; cfg_vofs_430grw  <= 224;
+        cfg_hofs_480scp  <= 322; cfg_vofs_480scp  <= 224;
+        cfg_hofs_200obj  <= 320; cfg_vofs_200obj  <= 254;
+        cfg_hofs_100scn0 <= 396; cfg_vofs_100scn0 <= 253;
+        cfg_hofs_100scn1 <= 396; cfg_vofs_100scn1 <= 253;
+        cfg_hofs_430grw  <= 323; cfg_vofs_430grw  <= 224;
     end
 end
 

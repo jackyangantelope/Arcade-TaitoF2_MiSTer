@@ -120,7 +120,7 @@ debug/finalb_test:
 
 
 picorom:
-	$(MAKE) -j8 -C testroms TARGET=deadconx_test picorom
+	$(MAKE) -j8 -C testroms TARGET=driftout_test picorom
 
 
 rtl/jt10_auto_ss.sv:

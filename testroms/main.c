@@ -258,7 +258,7 @@ void init_scn_general()
     sym_at(40, 29, SYM_SQUARE);
     sym_at(41, 28, SYM_SQUARE);
 
-    pen_color(6);
+    pen_color(3);
     print_at(4, 5, "LAYER BG0");
     on_layer(BG1);
     pen_color(3);

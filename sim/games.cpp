@@ -73,9 +73,10 @@ static void load_finalb()
     g_sim_core.sdram->load_data("b82-02.ic1", ADPCMA_ROM_SDR_BASE, 1);
     g_sim_core.sdram->load_data("b82-01.ic2", ADPCMB_ROM_SDR_BASE, 1);
 
-    g_sim_core.ddr_memory->load_data("b82-03.ic9", OBJ_DATA_DDR_BASE + 0, 4);
-    g_sim_core.ddr_memory->load_data("b82-04.ic8", OBJ_DATA_DDR_BASE + 1, 4);
+    g_sim_core.ddr_memory->load_data("b82-03.ic9", OBJ_DATA_DDR_BASE + 1, 4);
+    g_sim_core.ddr_memory->load_data("b82-04.ic8", OBJ_DATA_DDR_BASE + 0, 4);
     g_sim_core.ddr_memory->load_data("b82-05.ic7", OBJ_DATA_DDR_BASE + 2, 4);
+    g_sim_core.ddr_memory->load_data("b82-05.ic7", OBJ_DATA_DDR_BASE + 3, 4);
 
     g_sim_core.SetGame(GAME_FINALB);
 }

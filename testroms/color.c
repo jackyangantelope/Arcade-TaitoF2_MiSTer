@@ -7,7 +7,7 @@ void set_palettes(uint16_t pal_index, uint16_t pal_count, uint16_t *colors)
     uint16_t count = pal_count * 16;
 
 #if HAS_TC0110PCR
-    for( uint16_t i = 0; i < count * 16; i++ )
+    for( uint16_t i = 0; i < count; i++ )
     {
         *TC0110PCR_ADDR = (offset + i) * 2;
         *TC0110PCR_DATA = colors[i];
