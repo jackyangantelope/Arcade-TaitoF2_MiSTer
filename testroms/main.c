@@ -287,6 +287,23 @@ void init_scn_general()
     sym_at(1, 2, 0x67);
     sym_at(40, 27, 0x67);
     sym_at(39, 28, 0x67);
+
+    TC0200OBJ_Inst *obj_ptr = TC0200OBJ;
+    TC0200OBJ_Inst work;
+    TC0200OBJ_Inst *o = &work;
+    uint16_t cmd_base = OBJCMD_6BPP;
+    obj_reset(o);
+    obj_cmd(o, cmd_base); obj_commit_reset(o, &obj_ptr);
+    obj_master_xy(o, 80, 0); obj_commit_reset(o, &obj_ptr);
+ 
+    GridOptions opt;
+    memset(&opt, 0, sizeof(opt));
+    opt.w = 1; opt.h = 1;
+    opt.extra = opt.zoom = 0b1;
+    opt.tile = (0x1186 & 0x7ff) | ( 1 << 11 );
+    
+    opt.color = 2;
+    obj_grid(4, 20, &opt, &obj_ptr);
 }
 
 void update_scn_general()

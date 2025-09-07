@@ -599,13 +599,13 @@ end
 // Scan out
 //
 
-wire [9:0] H_OFS = 98;
+wire [9:0] H_OFS = 90;
 wire [9:0] H_START = 0 + H_OFS;
 wire [9:0] H_END = 424 + H_OFS - 1;
 wire [9:0] HS_START = 340 + H_OFS;
 wire [9:0] HS_END = sync_fix ? (372 + H_OFS - 1) : (404 + H_OFS - 1);
 wire [9:0] HB_START = 320 + H_OFS;
-wire [9:0] HB_END = H_END;
+wire [9:0] HB_END = 8;
 
 wire [7:0] VS_START = 240;
 wire [7:0] VS_END = sync_fix ? (244 - 1) : (246 - 1);

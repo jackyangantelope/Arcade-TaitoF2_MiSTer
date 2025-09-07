@@ -58,6 +58,9 @@ sim/test: sim/deadconx_test
 sim/dinorex:
 	$(MAKE) -j8 -C sim run GAME=dinorex
 
+sim/finalb:
+	$(MAKE) -j8 -C sim run GAME=finalb
+
 sim/megab:
 	$(MAKE) -j8 -C sim run GAME=megab
 
@@ -120,7 +123,7 @@ debug/finalb_test:
 
 
 picorom:
-	$(MAKE) -j8 -C testroms TARGET=driftout_test picorom
+	$(MAKE) -j8 -C testroms TARGET=finalb_test picorom
 
 
 rtl/jt10_auto_ss.sv:

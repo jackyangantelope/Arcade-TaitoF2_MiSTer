@@ -483,7 +483,7 @@ end
 always_ff @(posedge clk) begin
     if (reset) begin
         cfg_hofs_480scp  <= 322; cfg_vofs_480scp  <= 224;
-        cfg_hofs_200obj  <= 320; cfg_vofs_200obj  <= 254;
+        cfg_hofs_200obj  <= 312; cfg_vofs_200obj  <= 254;
         cfg_hofs_100scn0 <= 396; cfg_vofs_100scn0 <= 253;
         cfg_hofs_100scn1 <= 396; cfg_vofs_100scn1 <= 253;
         cfg_hofs_430grw  <= 323; cfg_vofs_430grw  <= 224;
