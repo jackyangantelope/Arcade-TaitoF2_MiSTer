@@ -1,6 +1,6 @@
 diff -ruN -x *.rbf -x .DS_Store releases_clean/Ah Eikou no Koshien (Japan).mra releases/Ah Eikou no Koshien (Japan).mra
 --- releases_clean/Ah Eikou no Koshien (Japan).mra	2025-09-06 11:18:19
-+++ releases/Ah Eikou no Koshien (Japan).mra	2025-09-06 11:41:29
++++ releases/Ah Eikou no Koshien (Japan).mra	2025-09-07 08:56:55
 @@ -23,8 +23,12 @@
  	</switches>
  	<rom index="0" address="0x30000000" zip="koshien.zip">
@@ -18,7 +18,7 @@ diff -ruN -x *.rbf -x .DS_Store releases_clean/Ah Eikou no Koshien (Japan).mra r
  			<part crc="8f98c40a" name="c81-10.bin" map="01"/>
 diff -ruN -x *.rbf -x .DS_Store releases_clean/_alternatives/_Cameltry/Cameltry (US, YM2203 + M6295).mra releases/_alternatives/_Cameltry/Cameltry (US, YM2203 + M6295).mra
 --- releases_clean/_alternatives/_Cameltry/Cameltry (US, YM2203 + M6295).mra	2025-09-06 11:18:19
-+++ releases/_alternatives/_Cameltry/Cameltry (US, YM2203 + M6295).mra	2025-09-06 11:41:29
++++ releases/_alternatives/_Cameltry/Cameltry (US, YM2203 + M6295).mra	1969-12-31 16:00:00
 @@ -1,45 +0,0 @@
 -<misterromdescription>
 -	<name>Cameltry (US, YM2203 + M6295)</name>
@@ -68,7 +68,7 @@ diff -ruN -x *.rbf -x .DS_Store releases_clean/_alternatives/_Cameltry/Cameltry 
 \ No newline at end of file
 diff -ruN -x *.rbf -x .DS_Store releases_clean/_alternatives/_Cameltry/Cameltry (World, YM2203 + M6295).mra releases/_alternatives/_Cameltry/Cameltry (World, YM2203 + M6295).mra
 --- releases_clean/_alternatives/_Cameltry/Cameltry (World, YM2203 + M6295).mra	2025-09-06 11:18:19
-+++ releases/_alternatives/_Cameltry/Cameltry (World, YM2203 + M6295).mra	2025-09-06 11:41:29
++++ releases/_alternatives/_Cameltry/Cameltry (World, YM2203 + M6295).mra	1969-12-31 16:00:00
 @@ -1,45 +0,0 @@
 -<misterromdescription>
 -	<name>Cameltry (World, YM2203 + M6295)</name>
@@ -118,13 +118,32 @@ diff -ruN -x *.rbf -x .DS_Store releases_clean/_alternatives/_Cameltry/Cameltry 
 \ No newline at end of file
 diff -ruN -x *.rbf -x .DS_Store releases_clean/_alternatives/_Drift Out/Drift Out (Europe, Cameltry conversion).mra releases/_alternatives/_Drift Out/Drift Out (Europe, Cameltry conversion).mra
 --- releases_clean/_alternatives/_Drift Out/Drift Out (Europe, Cameltry conversion).mra	2025-09-06 11:18:19
-+++ releases/_alternatives/_Drift Out/Drift Out (Europe, Cameltry conversion).mra	1969-12-31 16:00:00
-@@ -1,49 +0,0 @@
++++ releases/_alternatives/_Drift Out/Drift Out (Europe, Cameltry conversion).mra	2025-09-07 08:56:55
+@@ -23,7 +23,7 @@
+ 		<dip name="Unused" bits="15" values="1,0" ids="Off,On"/>
+ 	</switches>
+ 	<rom index="0" address="0x30000000" zip="driftoutct.zip|driftout.zip">
+-		<part>1b 00</part>
++		<part>04 00</part>
+ 		<!--Region: maincpu, Size: 1048576 bytes-->
+ 		<part>00100000</part>
+ 		<interleave output="16">
+@@ -46,4 +46,4 @@
+ 		<!--Unknown regions:-->
+ 		<!--Region 'plds': pal16l8b.ic8 (size=279, crc=b2c1d05f), pal16l8b.ic9 (size=279, crc=0dd34b78), pal16l8b.c38-07.ic24 (size=279, crc=47fc77a9)-->
+ 	</rom>
+-</misterromdescription>
+\ No newline at end of file
++</misterromdescription>
+diff -ruN -x *.rbf -x .DS_Store releases_clean/_alternatives/_Drift Out/Drive Out (bootleg of Drift Out).mra releases/_alternatives/_Drift Out/Drive Out (bootleg of Drift Out).mra
+--- releases_clean/_alternatives/_Drift Out/Drive Out (bootleg of Drift Out).mra	2025-09-06 11:18:19
++++ releases/_alternatives/_Drift Out/Drive Out (bootleg of Drift Out).mra	1969-12-31 16:00:00
+@@ -1,48 +0,0 @@
 -<misterromdescription>
--	<name>Drift Out (Europe, Cameltry conversion)</name>
--	<setname>driftoutct</setname>
+-	<name>Drive Out (bootleg of Drift Out)</name>
+-	<setname>driveout</setname>
 -	<year>1991</year>
--	<manufacturer>Visco</manufacturer>
+-	<manufacturer>bootleg (Electronic Devices)</manufacturer>
 -	<rbf>TaitoF2</rbf>
 -	<parent>driftout</parent>
 -	<rotation>vertical (ccw)</rotation>
@@ -144,29 +163,86 @@ diff -ruN -x *.rbf -x .DS_Store releases_clean/_alternatives/_Drift Out/Drift Ou
 -		<dip name="Unused" bits="14" values="1,0" ids="Off,On"/>
 -		<dip name="Unused" bits="15" values="1,0" ids="Off,On"/>
 -	</switches>
--	<rom index="0" address="0x30000000" zip="driftoutct.zip|driftout.zip">
+-	<rom index="0" address="0x30000000" zip="driveout.zip|driftout.zip">
 -		<part>1b 00</part>
 -		<!--Region: maincpu, Size: 1048576 bytes-->
 -		<part>00100000</part>
 -		<interleave output="16">
--			<part crc="d1f779d3" name="l.ic10" map="10"/>
--			<part crc="6ff1c660" name="h.ic11" map="01"/>
+-			<part crc="dc431e4e" name="4.u3" map="10"/>
+-			<part crc="6f9063f4" name="5.u2" map="01"/>
 -		</interleave>
 -		<!--Region: sprites, Size: 524288 bytes-->
 -		<part>02080000</part>
--		<part crc="5491f1c4" name="do_obj.ic1"/>
--		<!--Region: tc0280grd, Size: 1048576 bytes-->
--		<part>06100000</part>
--		<part crc="c4f012f7" name="do_piv.ic27"/>
--		<part crc="c4f012f7" name="do_piv.ic29"/>
--		<!--Region: audiocpu, Size: 65536 bytes-->
--		<part>03010000</part>
--		<part crc="ffe10124" name="do_50.ic25"/>
+-		<interleave output="16">
+-			<part crc="530ac420" name="6.u84" map="01"/>
+-			<part crc="0e9a3e9e" name="7.u81" map="10"/>
+-		</interleave>
+-		<!--Region: tc0430grw, Size: 524288 bytes-->
+-		<part>06080000</part>
+-		<part crc="c4f012f7" name="8.u37"/>
+-		<!--Region: audiocpu, Size: 32768 bytes-->
+-		<part>03008000</part>
+-		<part crc="99aaeb2e" name="3.u20"/>
+-		<!--Unknown regions:-->
+-		<!--Region 'oki': 1.u28 (size=524288, crc=cbde0b66), 2.u29 (size=131072, crc=0aba2026)-->
+-	</rom>
+-</misterromdescription>
+\ No newline at end of file
+diff -ruN -x *.rbf -x .DS_Store releases_clean/_alternatives/_Footchmp/Football Champ - Euro Football Champ (World) (bootleg).mra releases/_alternatives/_Footchmp/Football Champ - Euro Football Champ (World) (bootleg).mra
+--- releases_clean/_alternatives/_Footchmp/Football Champ - Euro Football Champ (World) (bootleg).mra	2025-09-06 11:18:19
++++ releases/_alternatives/_Footchmp/Football Champ - Euro Football Champ (World) (bootleg).mra	1969-12-31 16:00:00
+@@ -1,53 +0,0 @@
+-<misterromdescription>
+-	<name>Football Champ / Euro Football Champ (World) (bootleg)</name>
+-	<setname>footchmpbl</setname>
+-	<year>1992</year>
+-	<manufacturer>bootleg</manufacturer>
+-	<rbf>TaitoF2</rbf>
+-	<parent>footchmp</parent>
+-	<rotation>horizontal</rotation>
+-	<mameversion>277</mameversion>
+-	<buttons default="B,A,X,Y,Start,Select,L,R" names="Btn1,Btn2,Btn3,Btn4,-,-,Start,Coin,Pause,SS"/>
+-	<switches default="7ffe">
+-		<dip name="Game Over" bits="0" values="1,0" ids="Both Teams Over,Losing Team"/>
+-		<dip name="Flip Screen" bits="1" values="1,0" ids="Off,On"/>
+-		<dip name="Service Mode" bits="2" values="1,0" ids="Off,On"/>
+-		<dip name="Demo Sounds" bits="3" values="0,1" ids="Off,On"/>
+-		<dip name="Coin A" bits="4,5" values="0,1,2,3" ids="4 Coins/1 Credit,3C/1C,2C/1C,1C/1C"/>
+-		<dip name="Coin B" bits="6,7" values="3,2,1,0" ids="1 Coin/2 Credits,1 Coin/3 Credits,1 Coin/4 Credits,1 Coin/6 Credits"/>
+-		<dip name="Difficulty" bits="8,9" values="2,3,1,0" ids="Easy,Medium,Hard,Hardest"/>
+-		<dip name="Game Time" bits="10,11" values="0,3,1,2" ids="1.5 Minutes, 2  Minutes,2.5 Minutes, 3  Minutes"/>
+-		<dip name="Cabinet" bits="12,13" values="3,2,1,0" ids="2 Players,4P/4 Coins,4P/2 cabs,4P/2 Coins"/>
+-		<dip name="Allow Continue" bits="14" values="0,1" ids="Off,On"/>
+-		<dip name="Game Version" bits="15" values="0,1" ids="Normal,European"/>
+-	</switches>
+-	<rom index="0" address="0x30000000" zip="footchmpbl.zip|footchmp.zip">
+-		<part>0d 00</part>
+-		<!--Region: maincpu, Size: 524288 bytes-->
+-		<part>00080000</part>
+-		<interleave output="16">
+-			<part crc="b2297030" name="cpu7.rom10" map="10"/>
+-			<part crc="741dacac" name="cpu8.rom11" map="01"/>
+-		</interleave>
+-		<!--Region: tc0480scp, Size: 2097152 bytes-->
+-		<part>07200000</part>
+-		<part crc="264e6ec0" name="bk4.rom9"/>
+-		<part crc="380b2565" name="bk3.rom8"/>
+-		<part crc="79ce5b01" name="bk2.rom7"/>
+-		<part crc="6e4757c7" name="bk1.rom6"/>
+-		<!--Region: sprites, Size: 2097152 bytes-->
+-		<part>02200000</part>
+-		<part crc="a4891065" name="ob17.rom1"/>
+-		<part crc="3b65028b" name="ob16.rom2"/>
+-		<part crc="dbd07328" name="ob15.rom3"/>
+-		<part crc="28fcaefa" name="ob14.rom4"/>
+-		<!--Region: audiocpu, Size: 32768 bytes-->
+-		<part>03008000</part>
+-		<part crc="5bf4ca7a" name="so7.rom12"/>
 -		<!--Region: ymsnd:adpcma, Size: 524288 bytes-->
 -		<part>04080000</part>
--		<part crc="f2deb82b" name="do_snd.ic2"/>
+-		<part crc="f00fca27" name="so3.rom5"/>
 -		<!--Unknown regions:-->
--		<!--Region 'plds': pal16l8b.ic8 (size=279, crc=b2c1d05f), pal16l8b.ic9 (size=279, crc=0dd34b78), pal16l8b.c38-07.ic24 (size=279, crc=47fc77a9)-->
+-		<!--Region 'tc0480scp:textrom': bk33.rom16 (size=65536, crc=07a371fe), bk32.rom15 (size=65536, crc=89020973), bk31.rom14 (size=65536, crc=02a0de4f), bk30.rom13 (size=65536, crc=71cbe2b2)-->
 -	</rom>
 -</misterromdescription>
 \ No newline at end of file

@@ -140,7 +140,7 @@ releases_clean:
 
 releases:
 	$(PYTHON) util/mame2mra.py --generate --all-machines --output releases --config util/mame2mra.toml util/mame.xml
-	patch -d releases -l -p1 -r - < releases.patch
+	patch -E -d releases -l -p1 -r - < releases.patch
 
 releases.patch:
 	diff -ruN -x "*.rbf" -x ".DS_Store" releases_clean releases > releases.patch || true
