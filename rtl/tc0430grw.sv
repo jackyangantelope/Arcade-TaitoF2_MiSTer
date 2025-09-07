@@ -4,6 +4,8 @@ module tc0430grw_fifo
 (
     input clk,
 
+    input reset,
+
     input wr,
     input [15:0] code,
     input [2:0]  pixel_x,
@@ -59,9 +61,13 @@ dualport_ram_unreg #(.WIDTH(6), .WIDTHAD(9)) output_fifo(
 );
 
 reg waiting;
-
+reg reset_pending;
 reg wr_prev;
 always_ff @(posedge clk) begin
+    if (reset) begin
+        reset_pending <= 1;
+    end
+
     wr_prev <= wr;
     if (~wr & wr_prev) begin
         input_wr_idx <= input_wr_idx + 1;
@@ -87,20 +93,24 @@ always_ff @(posedge clk) begin
             endcase
             wr_output <= 1;
         end
-    end else begin
-        if (input_wr_idx != input_rd_idx) begin
-            if (|next_code[13:0]) begin
-                rom_address <= PIVOT_ROM_SDR_BASE[26:0] + { 8'b0, next_code[13:0], next_pixel_y[2:0], next_pixel_x[2], 1'b0 };
-                rom_req <= ~rom_req;
-                color_hi <= next_code[15:14];
-                nibble <= next_pixel_x[1:0];
-                waiting <= 1;
-            end else begin
-                pixel_color <= 6'd0;
-                wr_output <= 1;
-            end
-            input_rd_idx <= input_rd_idx + 1;
+    end else if (reset_pending) begin
+        input_wr_idx <= 0;
+        input_rd_idx <= 0;
+        output_rd_idx <= 0;
+        output_wr_idx <= 0;
+        reset_pending <= 0;
+    end else if (input_wr_idx != input_rd_idx) begin
+        if (|next_code[13:0]) begin
+            rom_address <= PIVOT_ROM_SDR_BASE[26:0] + { 8'b0, next_code[13:0], next_pixel_y[2:0], next_pixel_x[2], 1'b0 };
+            rom_req <= ~rom_req;
+            color_hi <= next_code[15:14];
+            nibble <= next_pixel_x[1:0];
+            waiting <= 1;
+        end else begin
+            pixel_color <= 6'd0;
+            wr_output <= 1;
         end
+        input_rd_idx <= input_rd_idx + 1;
     end
 
 end
@@ -185,8 +195,11 @@ wire [5:0] fifo_color;
 reg fifo_rd, fifo_wr;
 reg [15:0] fifo_code;
 reg [2:0] fifo_x, fifo_y;
+reg fifo_reset;
 tc0430grw_fifo fifo(
     .clk,
+
+    .reset(fifo_reset),
 
     .code(fifo_code),
     .pixel_x(fifo_x),
@@ -231,6 +244,7 @@ always @(posedge clk) begin
     if (ce_pixel) begin
         prev_hblank_n <= HBLANKn;
         prev_vblank_n <= VBLANKn;
+        fifo_reset <= 0;
 
         hcnt <= hcnt + 9'd1;
 
@@ -238,6 +252,7 @@ always @(posedge clk) begin
             vcnt <= vcnt + 9'd1;
             write_line_data <= vcnt > vcnt_begin;
             read_line_data <= write_line_data;
+            fifo_reset <= ~(write_line_data | read_line_data);
             hcnt <= 0;
 
             if( do_v_increments ) begin
