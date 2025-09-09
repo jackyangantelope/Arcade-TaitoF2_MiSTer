@@ -23,6 +23,14 @@ SECTIONS
 
     . = .;
 
+   .data :
+    {
+        _sdata = .;
+        *(.data*);
+        . = ALIGN(2);
+        _edata = .;
+    } > ram AT >rom
+
     .bss (NOLOAD) :
     {
         _sbss = . ;
@@ -32,14 +40,7 @@ SECTIONS
         _ebss = . ;
     } > ram
 
-    .data :
-    {
-        _sdata = .;
-        *(.data*);
-        . = ALIGN(2);
-        _edata = .;
-    } > ram AT >rom
-
+ 
     .stack (NOLOAD):
     {
         . = ALIGN(2);

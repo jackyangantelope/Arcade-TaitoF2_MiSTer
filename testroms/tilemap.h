@@ -13,6 +13,16 @@ typedef enum
     ROZ,
 } Layer;
 
+
+#if GAME_DRIFTOUT
+#define SYM_BOX 0x20
+#define SYM_SQUARE 0x20
+#else
+#define SYM_BOX 0x1
+#define SYM_SQUARE 0x1b
+#endif
+
+
 void on_layer(Layer layer);
 void pen_color(int color);
 void move_to(int x, int y);
@@ -23,5 +33,8 @@ void sym_at(int x, int y, uint16_t sym);
 void fg0_gfx(int ch);
 void fg0_row(uint8_t x0, uint8_t x1, uint8_t x2, uint8_t x3, uint8_t x4, uint8_t x5, uint8_t x6, uint8_t x7);
 void fg0_row_2bpp(uint16_t r);
+
+void reset_screen();
+void reset_screen_config();
 
 #endif

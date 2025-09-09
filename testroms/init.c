@@ -14,6 +14,9 @@ extern uint16_t _edata;
 extern uint16_t _sstack;
 extern uint16_t _estack;
 
+typedef void (*ctor_func_ptr)(void);
+extern ctor_func_ptr _sctors[0], _ectors[0];
+
 /* Forward define main */
 int main(void);
 
@@ -66,6 +69,12 @@ static void reset_handler(void)
     for (uint16_t *bss_ptr = &_sbss; bss_ptr < &_ebss;)
     {
         *bss_ptr++ = 0;
+    }
+
+    ctor_func_ptr *ctor_func;
+    for (ctor_func = _sctors; ctor_func != _ectors; ctor_func++)
+    {
+        (*ctor_func)();
     }
 
 #if GAME_DEADCONX

@@ -8,9 +8,23 @@ VASM = ../util/vasmz80_oldstyle
 MISTER_HOSTNAME=mister-dev
 
 
-TARGET = finalb_test
-SRCS = init.c main.c interrupts_default.c comms.c tilemap.c input.c color.c printf/printf.c
+TARGET = deadconx_test
+SRCS =  init.c main.c util.c page.c
+SRCS += interrupts_default.c comms.c tilemap.c input.c color.c printf/printf.c
 SRCS += obj_test.c audio_240p.c tc0360pri.c crc16.c
+
+SRCS += pages/general_100scn.c
+SRCS += pages/general_480scp.c
+SRCS += pages/zoom_480scp.c
+SRCS += pages/row_480scp.c
+SRCS += pages/general_360pri.c
+SRCS += pages/access_timing.c
+SRCS += pages/finalb_obj.c
+SRCS += pages/obj_test1.c
+SRCS += pages/obj_test2.c
+SRCS += pages/obj_test3.c
+SRCS += pages/sound_test.c
+
 CHR = font.chr 
 ASM = savestate.s
 
@@ -104,9 +118,9 @@ $(BUILD_DIR)/%.o: %.s $(GLOBAL_DEPS) | $(BUILD_DIRS)
 $(BUILD_DIR)/%.o: %.chr $(GLOBAL_DEPS) | $(BUILD_DIRS)
 	$(OBJCOPY) -I binary -O default $< $@
 
-$(BUILD_DIR)/cpu.elf: $(OBJS)
+$(BUILD_DIR)/cpu.elf: $(OBJS) $(GAME).ld
 	@echo $@
-	@$(CC) -T $(GAME).ld -o $@ $(LDFLAGS) $^ $(LIBS)
+	@$(CC) -T $(GAME).ld -o $@ $(LDFLAGS) $(OBJS) $(LIBS)
 	@$(OBJDUMP) -d -S $@ > $(BUILD_DIR)/cpu.asm
 
 $(BUILD_DIRS):

@@ -13,7 +13,11 @@ SECTIONS
         KEEP(*(.vectors .vectors.*));
         *(.text .text.*);
         *(.rodata .rodata.*);
-        . = ALIGN(2);
+        . = ALIGN(4);
+        _sctors = .;
+        KEEP(*(SORT(.ctors.*)));
+        KEEP(*(.ctors));
+        _ectors = .;
         _etext = .;
     } > rom
 

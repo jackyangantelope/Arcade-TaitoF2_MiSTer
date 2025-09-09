@@ -4,6 +4,9 @@
 #include "printf/printf.h"
 #include "tilemap.h"
 #include "system.h"
+#include "util.h"
+#include "input.h"
+#include "color.h"
 
 Layer cur_layer;
 uint16_t cur_x, cur_y;
@@ -234,4 +237,122 @@ void fg0_row_2bpp(uint16_t r)
 }
 
 #endif
+
+extern char _binary_font_chr_start[];
+extern char _binary_font_chr_end[];
+
+void reset_screen_config()
+{
+    bool flip = (input_dsw() & 0x0040) == 0;
+
+#if HAS_TC0480SCP
+    TC0480SCP_Ctrl->system_flags = TC0480SCP_SYSTEM_EXT_SYNC | ( flip ? TC0480SCP_SYSTEM_FLIP : 0 );
+    
+    int16_t base_x = flip ? -122 : 39;
+    int16_t base_y = flip ? (-261) : -5;
+    TC0480SCP_Ctrl->fg0_y = flip ? -253 : 13;
+    TC0480SCP_Ctrl->fg0_x = flip ? 134 : 49;
+    TC0480SCP_Ctrl->bg0_y = base_y;
+    TC0480SCP_Ctrl->bg0_x = base_x - 00;
+    TC0480SCP_Ctrl->bg1_y = base_y;
+    TC0480SCP_Ctrl->bg1_x = base_x - 4;
+    TC0480SCP_Ctrl->bg2_y = base_y;
+    TC0480SCP_Ctrl->bg2_x = base_x - 8;
+    TC0480SCP_Ctrl->bg3_y = base_y;
+    TC0480SCP_Ctrl->bg3_x = base_x - 12;
+    TC0480SCP_Ctrl->bg0_zoom = 0x7f;
+    TC0480SCP_Ctrl->bg1_zoom = 0x7f;
+    TC0480SCP_Ctrl->bg2_zoom = 0x7f;
+    TC0480SCP_Ctrl->bg3_zoom = 0x7f;
+    TC0480SCP_Ctrl->bg0_dx = 0;
+    TC0480SCP_Ctrl->bg0_dy = 0;
+    TC0480SCP_Ctrl->bg1_dx = 0;
+    TC0480SCP_Ctrl->bg1_dy = 0;
+    TC0480SCP_Ctrl->bg2_dx = 0;
+    TC0480SCP_Ctrl->bg2_dy = 0;
+    TC0480SCP_Ctrl->bg3_dx = 0;
+    TC0480SCP_Ctrl->bg3_dy = 0;
+#else
+    int16_t base_x;
+    int16_t base_y;
+    uint16_t system_flags;
+
+    if (flip)
+    {
+        base_x = 7;
+        base_y = 16;
+        system_flags = TC0100SCN_SYSTEM_FLIP;
+    }
+    else
+    {
+        base_x = 9;
+        base_y = 0;
+        system_flags = 0;
+    }
+
+    TC0100SCN_Ctrl->bg1_y = base_y;
+    TC0100SCN_Ctrl->bg1_x = base_x;
+    TC0100SCN_Ctrl->fg0_y = base_y;
+    TC0100SCN_Ctrl->fg0_x = base_x;
+    TC0100SCN_Ctrl->system_flags = system_flags;
+#if 0 //GAME_DRIFTOUT
+    TC0100SCN_Ctrl->layer_flags = TC0100SCN_LAYER_BG0_DISABLE | TC0100SCN_LAYER_BG1_DISABLE;
+#else
+    TC0100SCN_Ctrl->layer_flags = 0;
+#endif    
+    TC0100SCN_Ctrl->bg0_y = base_y;
+    TC0100SCN_Ctrl->bg0_x = base_x;
+#endif
+
+}
+
+void reset_screen()
+{
+#if HAS_TC0480SCP
+    memset(TC0480SCP, 0, sizeof(TC0480SCP_Layout));
+#else
+    memset(TC0100SCN, 0, sizeof(TC0100SCN_Layout));
+#endif
+
+    *(uint16_t *)0x300006 = 2;
+
+    reset_screen_config();
+
+    fg0_gfx(0x20);
+    uint16_t *fgptr = (uint16_t *)_binary_font_chr_start;
+    while( fgptr != (uint16_t *)_binary_font_chr_end )
+    {
+        fg0_row_2bpp(*fgptr);
+        fgptr++;
+    }
+
+    fg0_gfx(1);
+    
+    for( int i = 0; i < 8; i++ )
+    {
+        fg0_row(1,1,1,1,1,1,1,1);
+    }
+    memset(TC0200OBJ, 0, 0x10000);
+
+    set_default_palette();
+
+#if HAS_TC0360PRI
+    tc0360pri_set_obj_prio(5, 5, 7, 9);
+    tc0360pri_set_tile_prio(2, 2, 2);
+    tc0360pri_set_roz_prio(3, 3, 3, 3);
+    tc0360pri_set_roz(0, 0);
+#endif
+
+#if HAS_TC0430GRW
+    memset(TC0430GRW, 0, 64 * 64 * 2);
+
+    TC0430GRW_Ctrl->origin_x = 0 << 12;
+    TC0430GRW_Ctrl->origin_y = 8 << 12;
+    TC0430GRW_Ctrl->dxx = 1 << 12;
+    TC0430GRW_Ctrl->dxy = 0;
+    TC0430GRW_Ctrl->dyx = 0;
+    TC0430GRW_Ctrl->dyy = 1 << 12;
+#endif
+}
+
 

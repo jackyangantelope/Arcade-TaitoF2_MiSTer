@@ -115,6 +115,10 @@ static volatile uint8_t *SYT_DATA = (volatile uint8_t *)0xa00002;
 
 #endif
 
+extern volatile uint32_t vblank_count;
+extern volatile uint32_t dma_count;
 
+void wait_vblank();
+void wait_dma();
 
 #endif
