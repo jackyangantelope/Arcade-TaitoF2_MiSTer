@@ -47,16 +47,25 @@ default.snes = "B,A,X,Y,Start,Select,L,R"
 default.game = "Btn1,Btn2,Btn3,Btn4,-,-,Start,Coin,Pause,SS"
 finalb = { snes = "B,A,X,Start,Select,L,R", game = "Punch A,Punch B,Duck,-,-,-,Start,Coin,Pause,SS" }
 dondokod = { snes = "B,A,Start,Select,L,R", game = "Attack,Jump,-,-,-,-,Start,Coin,Pause,SS" }
+megablst = { snes = "B,Start,Select,L,R", game = "Attack,-,-,-,-,-,Start,Coin,Pause,SS" }
+thundfox = { snes = "B,A,X,Start,Select,L,R", game = "Attack,Jump,Item,-,-,-,Start,Coin,Pause,SS" }
 cameltry = { snes = "B,Start,Select,L,R", game = "Shake,-,-,-,-,-,Start,Coin,Pause,SS" }
 liquidk = { snes = "B,A,Start,Select,L,R", game = "Attack,Jump,-,-,-,-,Start,Coin,Pause,SS" }
+quizhq = { snes = "B,A,X,Y,-,Start,Select,L,R", game = "1,2,3,4,5,-,Start,Coin,Pause,SS" }
 ssi = { snes = "B,A,Start,Select,L,R", game = "Shoot,Use Item,-,-,-,-,Start,Coin,Pause,SS" }
 gunfront = { snes = "B,A,Start,Select,L,R", game = "Shoot,Bomb,-,-,-,-,Start,Coin,Pause,SS" }
 growl = { snes = "B,A,Start,Select,L,R", game = "Attack,Jump,-,-,-,-,Start,Coin,Pause,SS" }
-dinorex = { snes = "B,A,Start,Select,L,R", game = "Bite/Punch,Kick,-,-,-,-,Start,Coin,Pause,SS" }
-solfigtr = { snes = "B,A,X,Start,Select,L,R", game = "Punch,Kick,Jump,-,-,-,Start,Coin,Pause,SS" }
-driftout = { snes = "B,A,Start,Select,L,R", game = "Accelerator,Brake,-,-,-,-,Start,Coin,Pause,SS" }
-pulirula = { snes = "B,A,X,Start,Select,L,R", game = "Attack,Jump,Magic,-,-,-,Start,Coin,Pause,SS" }
+
+koshien = { snes = "B,A,X,Start,Select,L,R", game = "Charge,Throw,Run,-,-,-,Start,Coin,Pause,SS" }
 ninjak = { snes = "B,A,Start,Select,L,R", game = "Attack,Jump,-,-,-,-,Start,Coin,Pause,SS" }
+solfigtr = { snes = "B,A,X,Start,Select,L,R", game = "Punch,Kick,Jump,-,-,-,Start,Coin,Pause,SS" }
+
+pulirula = { snes = "B,A,X,Start,Select,L,R", game = "Attack,Jump,Magic,-,-,-,Start,Coin,Pause,SS" }
+metalb = { snes = "B,A,Start,Select,L,R", game = "Attack,Special,-,-,-,-,Start,Coin,Pause,SS" }
+deadconx = { snes = "B,A,Start,Select,L,R", game = "Fire,Dive,-,-,-,-,Start,Coin,Pause,SS" }
+
+dinorex = { snes = "B,A,Start,Select,L,R", game = "Bite/Punch,Kick,-,-,-,-,Start,Coin,Pause,SS" }
+driftout = { snes = "B,A,Start,Select,L,R", game = "Accelerator,Brake,-,-,-,-,Start,Coin,Pause,SS" }
 
 
 [pretty_names]
@@ -77,6 +86,8 @@ ssi = "Super Space Invaders '91"
 pulirula = "PuLiRuLa"
 ninjak = "The Ninja Kids"
 thundfox = "Thunder Fox"
+quizhq = "Quiz H.Q."
+koshien = "Ah Eikou no Koshien"
 
 [abbreviations]
 # Dip switch name abbreviations (24 character limit)

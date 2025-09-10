@@ -32,13 +32,13 @@ static void gradient(uint8_t r0, uint8_t g0, uint8_t b0, uint8_t r1, uint8_t g1,
         
     for( int i = 0; i < count - 1; i++ )
     {
-        colors[i] = RGB_x555(r0, g0, b0);
+        colors[i] = RGB_ENCODE(r0, g0, b0);
         r0 += rd;
         g0 += gd;
         b0 += bd;
     }
 
-    colors[count - 1] = RGB_x555(r1, g1, b1);
+    colors[count - 1] = RGB_ENCODE(r1, g1, b1);
 }
 
 void set_gradient2(uint16_t pal_index, uint8_t r0, uint8_t g0, uint8_t b0,
@@ -46,7 +46,7 @@ void set_gradient2(uint16_t pal_index, uint8_t r0, uint8_t g0, uint8_t b0,
 {
     uint16_t colors[16];
 
-    colors[0] = RGB_x555(0, 0, 0);
+    colors[0] = RGB_ENCODE(0, 0, 0);
 
     gradient(r0, g0, b0, r1, g1, b1, &colors[1], 15);
 
@@ -59,7 +59,7 @@ void set_gradient3(uint16_t pal_index, uint8_t r0, uint8_t g0, uint8_t b0,
 {
     uint16_t colors[16];
     
-    colors[0] = RGB_x555(0, 0, 0);
+    colors[0] = RGB_ENCODE(0, 0, 0);
     gradient(r0, g0, b0, r1, g1, b1, &colors[1], 8);
     gradient(r1, g1, b1, r2, g2, b2, &colors[8], 8);
 
@@ -90,14 +90,14 @@ static uint16_t x555_palette[] =
 {
     0x0000, 0x5A92, 0x2218, 0x0194, 0x0110, 0x7A46, 0x7B50, 0x5982, 0x7986, 0x58C0, 0x4040, 0x62D4, 0x5250, 0x41CC, 0x3148, 0x0000,
     0x0000, 0x60C6, 0x5084, 0x4042, 0x3000, 0x6B58, 0x5294, 0x4210, 0x318C, 0x2108, 0x7108, 0x4800, 0x218E, 0x194A, 0x10C6, 0x7252,
-    0x0000, RGB_x555(255,0,0), RGB_x555(0,255,0), RGB_x555(0,0,255),
+    0x0000, RGB_ENCODE(255,0,0), RGB_ENCODE(0,255,0), RGB_ENCODE(0,0,255),
                                     0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
-    0x0000, RGB_x555(150,20,20), RGB_x555(20,150,20), RGB_x555(150,20,150),
+    0x0000, RGB_ENCODE(150,20,20), RGB_ENCODE(20,150,20), RGB_ENCODE(150,20,150),
                                     0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
-    0x0000, RGB_x555(150,100,0), RGB_x555(20,150,20), RGB_x555(100,0,200),
+    0x0000, RGB_ENCODE(150,100,0), RGB_ENCODE(20,150,20), RGB_ENCODE(100,0,200),
                                     0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
-    RGB_x555(0x0f,0x1b,0x26), RGB_x555(0xf5,0xe8,0xd1), RGB_x555(0x20,0xa5,0xa6), RGB_x555(0xdd,0x56,0x39),
-                                    0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, RGB_x555(0x0f,0x1b,0x26),
+    RGB_ENCODE(0x0f,0x1b,0x26), RGB_ENCODE(0xf5,0xe8,0xd1), RGB_ENCODE(0x20,0xa5,0xa6), RGB_ENCODE(0xdd,0x56,0x39),
+                                    0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, RGB_ENCODE(0x0f,0x1b,0x26),
 };
 
 void set_default_palette()

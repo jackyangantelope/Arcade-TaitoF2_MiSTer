@@ -1,19 +1,11 @@
 #include <stdint.h>
 #include <stdbool.h>
-#include "printf/printf.h"
 
-#include "tc0100scn.h"
-#include "tc0200obj.h"
-#include "tc0480scp.h"
-#include "util.h"
 #include "interrupts.h"
 #include "tilemap.h"
 #include "input.h"
 #include "system.h"
-#include "obj_test.h"
-#include "color.h"
 #include "page.h"
-#include "crc16.h"
 
 volatile uint32_t vblank_count = 0;
 volatile uint32_t dma_count = 0;
@@ -71,6 +63,11 @@ int main(int argc, char *argv[])
 {
     enable_interrupts();
 
+    on_layer(FG0);
+    pen_color(1);
+    print_at(10,10,"ILLEGAL INSTRUCTION");
+
+
     input_init();
 
     input_update();
@@ -98,3 +95,4 @@ int main(int argc, char *argv[])
 
     return 0;
 }
+

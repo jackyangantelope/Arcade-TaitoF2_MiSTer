@@ -538,6 +538,20 @@ wire [7:0] io_data_out = cfg_tmp82c265 ? io_tmp82c265_data_out
                                        : cfg_te7750 ? io_te7750_data_out
                                        : io_tc0220ioc_data_out;
 
+logic [7:0] IN0, IN1, IN2;
+
+always_comb begin
+    if (game == GAME_KOSHIEN) begin
+        IN0 = { start[1], joystick_p2[6:4], start[0], joystick_p1[6:4] };
+        IN1 = { 4'b0000, coin[1:0], 2'b00 };
+        IN2 = { joystick_p2[0], joystick_p2[1], joystick_p2[2], joystick_p2[3], joystick_p1[0], joystick_p1[1], joystick_p1[2], joystick_p1[3] }; 
+    end else begin
+        IN0 = { start[0], joystick_p1[6:4], joystick_p1[0], joystick_p1[1], joystick_p1[2], joystick_p1[3] };
+        IN1 = { start[1], joystick_p2[6:4], joystick_p2[0], joystick_p2[1], joystick_p2[2], joystick_p2[3] };
+        IN2 = { 2'b00, start[1:0], coin[1:0], 2'b00 };
+    end
+end
+
 TC0220IOC tc0220ioc(
     .clk,
 
@@ -558,16 +572,34 @@ TC0220IOC tc0220ioc(
     .COINMETER_A(),
     .COINMETER_B(),
 
-    .INB(~{2'b00, start[1:0], coin[1:0], 2'b00}),
-    .IN(~{  start[1], joystick_p2[6:4], joystick_p2[0], joystick_p2[1], joystick_p2[2], joystick_p2[3],
-            start[0], joystick_p1[6:4], joystick_p1[0], joystick_p1[1], joystick_p1[2], joystick_p1[3],
-            dswb, dswa}),
+    .INB(~IN2),
+    .IN(~{IN1, IN0, dswb, dswa}),
 
     .rotary_abs(analog_abs),
     .rotary_inc(analog_inc),
     .rotary_a(analog_p1),
     .rotary_b(analog_p2)
 );
+
+logic [15:0] PAin, PBin, PCin;
+
+always_comb begin
+    if (game == GAME_QUIZHQ) begin
+        // DWSB, DWSA
+        PAin = { dswb, dswa };
+        // IN0, IN1
+        PBin = { start[0], 2'b00, joystick_p1[8:4], start[1], 2'b00, joystick_p2[8:4] };
+        // IN2
+        PCin = { 4'd0, coin[1:0], 2'd0, 8'h00 };
+    end else begin
+        // IN0, DSWA
+        PAin = { start[0], joystick_p1[6:4], joystick_p1[0], joystick_p1[1], joystick_p1[2], joystick_p1[3], dswa };
+        // IN1, DWSB
+        PBin = { start[1], joystick_p2[6:4], joystick_p2[0], joystick_p2[1], joystick_p2[2], joystick_p2[3], dswb };
+        // COIN, IN2
+        PCin = { 4'd0, coin[1:0], 2'd0, 8'h00};
+    end
+end
 
 TMP82C265 tmp82c265(
     .clk,
@@ -586,9 +618,9 @@ TMP82C265 tmp82c265(
     .PBout(),
     .PCout(),
 
-    .PAin(~{ start[0], joystick_p1[6:4], joystick_p1[0], joystick_p1[1], joystick_p1[2], joystick_p1[3], dswa }),
-    .PBin(~{ start[1], joystick_p2[6:4], joystick_p2[0], joystick_p2[1], joystick_p2[2], joystick_p2[3], dswb }),
-    .PCin(~{ 4'd0, coin[1:0], 2'd0, 8'h00})
+    .PAin(~PAin),
+    .PBin(~PBin),
+    .PCin(~PCin)
 );
 
 
@@ -949,7 +981,7 @@ assign sdr_scn1_addr = SCN1_ROM_SDR_BASE[26:0] + { 6'b0, scn1_rom_address[20:0] 
 TC0100SCN #(.SS_IDX(SSIDX_SCN_1)) scn1(
     .clk(clk),
     .ce_13m(ce_13m),
-    .ce_pixel(), // FIXME: scn0 should be authorative here
+    .ce_pixel,
 
     .reset,
 

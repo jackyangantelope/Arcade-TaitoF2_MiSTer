@@ -21,14 +21,6 @@ SECTIONS
         _etext = .;
     } > rom
 
-    .ctors :
-    {
-        _sctors = .;
-        KEEP(*(SORT(.ctors.*)));
-        KEEP(*(.ctors));
-        _ectors = .;
-    } > rom
-
     . = .;
 
     .bss (NOLOAD) :

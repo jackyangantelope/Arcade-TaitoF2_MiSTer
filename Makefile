@@ -110,7 +110,7 @@ sim/finalb_test:
 
 
 
-debug: debug/deadconx_test
+debug: debug/driftout_test
 debug/driftout_test:
 	$(MAKE) -j8 -C testroms debug TARGET=driftout_test
 

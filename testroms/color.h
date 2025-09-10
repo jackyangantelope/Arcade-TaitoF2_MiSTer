@@ -3,9 +3,14 @@
 
 #include "system.h"
 
-#define RGB_x555(r,g,b) ((((r) & 0xF0) << 8) | (((g) & 0xF0) << 4) | (((b) & 0xF0) >> 0) \
+#if defined(GAME_DRIFTOUT)
+#define RGB_ENCODE(r,g,b) ((((r) & 0xF8) << 7) | (((g) & 0xF8) << 2) | (((b) & 0xF8) >> 3))
+#elif 0 // defined(GAME_FINALB)
+#define RGB_ENCODE(r,g,b) ((((r) & 0xF0) << 4) | (((g) & 0xF0) << 0) | (((b) & 0xF0) >> 4))
+#else
+#define RGB_ENCODE(r,g,b) ((((r) & 0xF0) << 8) | (((g) & 0xF0) << 4) | (((b) & 0xF0) >> 0) \
                        | (((r) & 0x08) >> 0) | (((g) & 0x08) >> 1) | (((b) & 0x08) >> 2))
-//#define RGB_x555(r,g,b) ((((r) & 0xF8) << 7) | (((g) & 0xF8) << 2) | (((b) & 0xF8) >> 3))
+#endif
 
 void set_palettes(uint16_t pal_index, uint16_t pal_count, uint16_t *colors);
 
