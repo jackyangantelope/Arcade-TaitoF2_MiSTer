@@ -75,7 +75,7 @@ always @(posedge clk) begin
         GAME_GROWL:    c = 17'b01_01_0_1_00_1_0_0_0_0_0_0_1_1;
         
         GAME_FOOTCHMP: c = 17'b01_11_0_1_00_0_1_0_0_0_1_0_0_0;
-        GAME_KOSHIEN:  c = 17'b01_01_0_1_00_0_0_0_0_0_0_0_1_1;
+        GAME_KOSHIEN:  c = 17'b11_01_0_1_00_0_0_0_0_0_0_0_1_1;
         GAME_YUYUGOGO: c = 17'b00_01_0_0_01_0_0_0_0_0_0_0_0_0;
         GAME_NINJAK:   c = 17'b01_01_0_1_00_0_1_1_0_0_0_0_0_0;
         GAME_SOLFIGTR: c = 17'b01_01_0_1_00_1_0_0_0_0_0_0_1_1;
@@ -214,7 +214,8 @@ always_ff @(posedge clk) begin
         cfg_addr_rom      <= {8'h00, 8'hF0}; // 0x000000 - 0x0BFFFF
         cfg_addr_work_ram      <= {8'h10, 8'hFF}; // 0x100000 - 0x10FFFF
         cfg_addr_color  <= {8'h20, 8'hFF}; // 0x200000 - 0x200007 (TC0110PCR)
-        cfg_addr_io0       <= {8'h50, 8'hF0}; // 0x50xxxx DSW/Coin/Input, 0x58xxxx DSW/Input/Watchdog
+        cfg_addr_io0       <= {8'h50, 8'hFF}; // 0x50xxxx DSW/Coin/Input, 0x58xxxx DSW/Input/Watchdog
+        cfg_addr_io1       <= {8'h58, 8'hFF}; // 0x50xxxx DSW/Coin/Input, 0x58xxxx DSW/Input/Watchdog
         cfg_addr_sound    <= {8'h60, 8'hFF}; // 0x600001, 0x600003 (TC0140SYT)
         // 0x680000 - 0x680001 : NOP Write (unknown?)
         cfg_addr_screen0  <= {8'h80, 8'hF0}; // 0x800000 - 0x80FFFF (TC0100SCN RAM)
