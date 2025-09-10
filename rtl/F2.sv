@@ -586,7 +586,7 @@ logic [15:0] PAin, PBin, PCin;
 always_comb begin
     if (game == GAME_QUIZHQ) begin
         // DWSB, DWSA
-        PAin = { dswb, dswa };
+        PAin = { dswa, dswb };
         // IN0, IN1
         PBin = { start[0], 2'b00, joystick_p1[8:4], start[1], 2'b00, joystick_p2[8:4] };
         // IN2
