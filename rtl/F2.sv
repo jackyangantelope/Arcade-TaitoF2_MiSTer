@@ -541,15 +541,33 @@ wire [7:0] io_data_out = cfg_tmp82c265 ? io_tmp82c265_data_out
 logic [7:0] IN0, IN1, IN2;
 
 always_comb begin
-    if (game == GAME_KOSHIEN) begin
-        IN0 = { start[1], joystick_p2[6:4], start[0], joystick_p1[6:4] };
-        IN1 = { 4'b0000, coin[1:0], 2'b00 };
-        IN2 = { joystick_p2[0], joystick_p2[1], joystick_p2[2], joystick_p2[3], joystick_p1[0], joystick_p1[1], joystick_p1[2], joystick_p1[3] }; 
-    end else begin
-        IN0 = { start[0], joystick_p1[6:4], joystick_p1[0], joystick_p1[1], joystick_p1[2], joystick_p1[3] };
-        IN1 = { start[1], joystick_p2[6:4], joystick_p2[0], joystick_p2[1], joystick_p2[2], joystick_p2[3] };
-        IN2 = { 2'b00, start[1:0], coin[1:0], 2'b00 };
-    end
+    case(game)
+        GAME_KOSHIEN: begin
+            IN0 = { start[1], joystick_p2[6:4], start[0], joystick_p1[6:4] };
+            IN1 = { 4'b0000, coin[1:0], 2'b00 };
+            IN2 = { joystick_p2[0], joystick_p2[1], joystick_p2[2], joystick_p2[3], joystick_p1[0], joystick_p1[1], joystick_p1[2], joystick_p1[3] }; 
+        end
+
+        // Quiz controls
+        GAME_QTORIMON,
+        GAME_YUYUGOGO,
+        GAME_QZQUEST,
+        GAME_QZCHIKYU,
+        GAME_YESNOJ,
+        GAME_QJINSEI,
+        GAME_QCRAYON,
+        GAME_QCRAYON2: begin
+            IN0 = { start[0], 1'b0, joystick_p1[9:4] };
+            IN1 = { start[1], 1'b0, joystick_p2[9:4] };
+            IN2 = { 4'b0000, coin[1:0], 2'b00 };
+        end
+
+        default: begin
+            IN0 = { start[0], joystick_p1[6:4], joystick_p1[0], joystick_p1[1], joystick_p1[2], joystick_p1[3] };
+            IN1 = { start[1], joystick_p2[6:4], joystick_p2[0], joystick_p2[1], joystick_p2[2], joystick_p2[3] };
+            IN2 = { 2'b00, start[1:0], coin[1:0], 2'b00 };
+        end
+    endcase
 end
 
 TC0220IOC tc0220ioc(
