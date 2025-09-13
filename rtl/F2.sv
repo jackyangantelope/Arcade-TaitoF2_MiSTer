@@ -1036,8 +1036,8 @@ TC0100SCN #(.SS_IDX(SSIDX_SCN_1)) scn1(
     .VBLOn(),
     .OLDH(),
     .OLDV(),
-    .IHLD(0), // FIXME - confirm inputs
-    .IVLD(0),
+    .IHLD(global_hcnt == cfg_hofs_100scn1),
+    .IVLD(global_vcnt == cfg_vofs_100scn1),
 
     .ssbus(ssb[17])
 );
