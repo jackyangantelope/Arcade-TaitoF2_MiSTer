@@ -18,14 +18,14 @@ module video_timing(
 wire [8:0] H_START = 0;
 wire [8:0] H_END = 424 - 1;
 wire [8:0] HS_START = 340;
-wire [8:0] HS_END = sync_fix ? (372 - 1) : (404 - 1);
+wire [8:0] HS_END = sync_fix ? (380 - 1) : (404 - 1);
 wire [8:0] HB_START = 320;
 wire [8:0] HB_END = H_END;
 
 wire [8:0] V_START = 0;
 wire [8:0] V_END = 262 - 1;
 wire [8:0] VS_START = 240;
-wire [8:0] VS_END = sync_fix ? (244 - 1) : (246 - 1);
+wire [8:0] VS_END = 246 - 1;
 wire [8:0] VB_START = 224;
 wire [8:0] VB_END = V_END;
 
