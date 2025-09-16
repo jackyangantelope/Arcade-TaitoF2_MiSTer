@@ -55,75 +55,25 @@ sim:
 sim/run: sim/deadconx
 sim/test: sim/deadconx_test
 
-sim/dinorex:
-	$(MAKE) -j8 -C sim run GAME=dinorex
+sim/%:
+	$(MAKE) -j8 -C sim run GAME=$*
 
-sim/finalb:
-	$(MAKE) -j8 -C sim run GAME=finalb
-
-sim/megab:
-	$(MAKE) -j8 -C sim run GAME=megab
-
-sim/liquidk:
-	$(MAKE) -j8 -C sim run GAME=liquidk
-
-sim/driftout:
-	$(MAKE) -j8 -C sim run GAME=driftout
-
-sim/cameltry:
-	$(MAKE) -j8 -C sim run GAME=cameltry
-
-sim/pulirula:
-	$(MAKE) -j8 -C sim run GAME=pulirula
-
-sim/ninjak:
-	$(MAKE) -j8 -C sim run GAME=ninjak
-
-sim/thundfox:
-	$(MAKE) -j8 -C sim run GAME=thundfox
-
-sim/deadconx:
-	$(MAKE) -j8 -C sim run GAME=deadconx
-
-sim/deadconxj:
-	$(MAKE) -j8 -C sim run GAME=deadconxj
-
-sim/metalb:
-	$(MAKE) -j8 -C sim run GAME=metalb
+sim/%_test:
+	$(MAKE) -j8 -C testroms TARGET=$*_test
+	$(MAKE) -j8 -C sim run GAME=$*_test
 
 
-sim/qjinsei_test:
-	$(MAKE) -j8 -C testroms TARGET=qjinsei_test
-	$(MAKE) -j8 -C sim run GAME=qjinsei_test
+debug: debug/finalb_test
 
-sim/driftout_test:
-	$(MAKE) -j8 -C testroms TARGET=driftout_test
-	$(MAKE) -j8 -C sim run GAME=driftout_test
-
-sim/deadconx_test:
-	$(MAKE) -j8 -C testroms TARGET=deadconx_test
-	$(MAKE) -j8 -C sim run GAME="--script test_script.txt"
-
-sim/finalb_test:
-	$(MAKE) -j8 -C testroms TARGET=finalb_test
-	$(MAKE) -j8 -C sim run GAME=finalb_test
+debug/%:
+	$(MAKE) -j8 -C testroms debug TARGET=$*
 
 
+picorom: picorom/finalb_test
 
-debug: debug/driftout_test
-debug/driftout_test:
-	$(MAKE) -j8 -C testroms debug TARGET=driftout_test
+picorom/%:
+	$(MAKE) -j8 -C testroms picorom TARGET=$*
 
-debug/deadconx_test:
-	$(MAKE) -j8 -C testroms debug TARGET=deadconx_test
-
-debug/finalb_test:
-	$(MAKE) -j8 -C testroms debug TARGET=finalb_test
-
-
-
-picorom:
-	$(MAKE) -j8 -C testroms TARGET=finalb_test picorom
 
 
 rtl/jt10_auto_ss.sv:

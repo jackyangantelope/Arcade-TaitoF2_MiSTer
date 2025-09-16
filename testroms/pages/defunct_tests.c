@@ -1,3 +1,5 @@
+#if 0
+
 int16_t invalid_read_count;
 
 void init_scn_align()
@@ -290,4 +292,5 @@ void update_romtest()
     }
 }
 
+#endif
 
