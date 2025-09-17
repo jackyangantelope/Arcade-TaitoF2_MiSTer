@@ -55,12 +55,12 @@ sim:
 sim/run: sim/deadconx
 sim/test: sim/deadconx_test
 
-sim/%:
-	$(MAKE) -j8 -C sim run GAME=$*
-
 sim/%_test:
 	$(MAKE) -j8 -C testroms TARGET=$*_test
 	$(MAKE) -j8 -C sim run GAME=$*_test
+
+sim/%:
+	$(MAKE) -j8 -C sim run GAME=$*
 
 
 debug: debug/finalb_test

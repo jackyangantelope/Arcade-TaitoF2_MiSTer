@@ -173,7 +173,7 @@ always @(posedge clk) begin
         hcnt_actual <= hcnt_actual + 1;
 
         if (IHLD & ~prev_ihld) begin /* 424 * 2 - 1 */
-            hcnt_actual <= 0;
+            hcnt_actual <= 504;
             vcnt_actual <= vcnt_actual + 1;
             if (IVLD) begin
                 vcnt_actual <= 0;

@@ -34,6 +34,7 @@ enum game_t : uint8_t
     GAME_QCRAYON2,
     GAME_DRIFTOUT,
     GAME_DEADCONXJ,
+    GAME_METALBA,
 
     GAME_FINALB_TEST,
     GAME_QJINSEI_TEST,
