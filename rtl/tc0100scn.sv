@@ -231,7 +231,7 @@ tc0100scn_shifter bg0_shift(
     .load_index(bg0_load_index),
     .load_data({rom_data[15:8], rom_data[7:0], rom_data[31:24], rom_data[23:16]}),
     .load_color(bg0_attrib[7:0]),
-    .load_flip(bg0_flipx ^ flip),
+    .load_flip(bg0_flipx),
     .dot_out(bg0_dot),
     .load(bg0_load)
 );
@@ -242,7 +242,7 @@ tc0100scn_shifter bg1_shift(
     .load_index(bg1_load_index),
     .load_data({rom_data[15:8], rom_data[7:0], rom_data[31:24], rom_data[23:16]}),
     .load_color(bg1_attrib[7:0]),
-    .load_flip(bg1_flipx ^ flip),
+    .load_flip(bg1_flipx),
     .dot_out(bg1_dot),
     .load(bg1_load)
 );
@@ -253,7 +253,7 @@ tc0100scn_shifter fg0_shift(
     .load_index(fg0_load_hcnt[4:3]),
     .load_data(fg0_gfx_swizzle),
     .load_color({2'b0, fg0_code[13:8]}),
-    .load_flip(fg0_flipx ^ flip),
+    .load_flip(fg0_flipx),
     .dot_out(fg0_dot),
     .load(&access_cycle[2:0])
 );
