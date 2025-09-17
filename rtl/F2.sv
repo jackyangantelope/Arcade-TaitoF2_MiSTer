@@ -169,9 +169,9 @@ reg ss_read = 0;
 wire ss_busy;
 
 ssbus_if ssbus();
-ssbus_if ssb[19]();
+ssbus_if ssb[20]();
 
-ssbus_mux #(.COUNT(19)) ssmux(
+ssbus_mux #(.COUNT(20)) ssmux(
     .clk,
     .slave(ssbus),
     .masters(ssb)
@@ -758,7 +758,11 @@ wire obj_code_modify_req;
 wire [12:0] obj_code_original;
 wire [18:0] obj_code_modified_ext;
 wire [18:0] obj_code_modified_190fmc;
+wire [18:0] obj_code_modified_koshien;
 
+wire [18:0] obj_code_modified = cfg_190fmc ? obj_code_modified_190fmc :
+                                cfg_obj_extender == 2'b11 ? obj_code_modified_koshien :
+                                obj_code_modified_ext;
 TC0200OBJ tc0200obj(
     .clk,
 
@@ -793,7 +797,7 @@ TC0200OBJ tc0200obj(
 
     .code_modify_req(obj_code_modify_req),
     .code_original(obj_code_original),
-    .code_modified(cfg_190fmc ? obj_code_modified_190fmc : obj_code_modified_ext),
+    .code_modified(obj_code_modified),
 
     .ddr(ddr_obj),
 
@@ -839,6 +843,21 @@ TC0190FMC #(.SS_IDX(SSIDX_190FMC)) tc0190fmc(
 
     .ssbus(ssb[12])
 );
+
+TC0200OBJ_Koshien #(.SS_IDX(SSIDX_KOSHIEN)) tc0200obj_koshien(
+    .clk,
+
+    .cs_n(EXTENSIONn),
+    .cpu_ds_n(cpu_ds_n),
+    .cpu_rw(cpu_rw),
+    .din(cpu_data_out),
+
+    .code_original(obj_code_original),
+    .code_modified(obj_code_modified_koshien),
+
+    .ssb(ssb[19])
+);
+
 
 wire HSYNCn;
 wire VSYNCn;

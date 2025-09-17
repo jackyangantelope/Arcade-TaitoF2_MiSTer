@@ -17,6 +17,7 @@ package system_consts;
     parameter int SSIDX_SCN_MUX_RAM = 15;
     parameter int SSIDX_SCN_1 = 16;
     parameter int SSIDX_480SCP = 17;
+    parameter int SSIDX_KOSHIEN = 18;
 
 
     parameter bit [31:0] SS_DDR_BASE       = 32'h3E00_0000;

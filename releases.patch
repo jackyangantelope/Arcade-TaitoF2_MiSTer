@@ -1,5 +1,28 @@
+diff -ruN -x *.rbf -x .DS_Store releases_clean/Ah Eikou no Koshien (Japan).mra releases/Ah Eikou no Koshien (Japan).mra
+--- releases_clean/Ah Eikou no Koshien (Japan).mra	2025-09-17 08:06:38
++++ releases/Ah Eikou no Koshien (Japan).mra	2025-09-17 08:12:06
+@@ -24,7 +24,11 @@
+ 	<rom index="0" address="0x30000000" zip="koshien.zip">
+ 		<part>0d 00</part>
+ 		<!--Region: maincpu, Size: 786432 bytes-->
+-		<part>000c0000</part>
++		<part>00100000</part>
++		<interleave output="16">
++			<part crc="b44ea8c9" name="c81-11.bin" map="10"/>
++			<part crc="8f98c40a" name="c81-10.bin" map="01"/>
++		</interleave>
+ 		<interleave output="16">
+ 			<part crc="b44ea8c9" name="c81-11.bin" map="10"/>
+ 			<part crc="8f98c40a" name="c81-10.bin" map="01"/>
+@@ -49,4 +53,4 @@
+ 		<!--Unknown regions:-->
+ 		<!--Region 'plds': pal16l8b-c81-07.bin (size=260, crc=46341732), pal16l8b-c81-08.bin (size=260, crc=e7d2d300), pal16l8b-c81-09.bin (size=260, crc=e4c012a1)-->
+ 	</rom>
+-</misterromdescription>
+\ No newline at end of file
++</misterromdescription>
 diff -ruN -x *.rbf -x .DS_Store releases_clean/_alternatives/_Cameltry/Cameltry (US, YM2203 + M6295).mra releases/_alternatives/_Cameltry/Cameltry (US, YM2203 + M6295).mra
---- releases_clean/_alternatives/_Cameltry/Cameltry (US, YM2203 + M6295).mra	2025-09-16 18:53:05
+--- releases_clean/_alternatives/_Cameltry/Cameltry (US, YM2203 + M6295).mra	2025-09-17 08:06:38
 +++ releases/_alternatives/_Cameltry/Cameltry (US, YM2203 + M6295).mra	1969-12-31 16:00:00
 @@ -1,45 +0,0 @@
 -<misterromdescription>
@@ -49,7 +72,7 @@ diff -ruN -x *.rbf -x .DS_Store releases_clean/_alternatives/_Cameltry/Cameltry 
 -</misterromdescription>
 \ No newline at end of file
 diff -ruN -x *.rbf -x .DS_Store releases_clean/_alternatives/_Cameltry/Cameltry (World, YM2203 + M6295).mra releases/_alternatives/_Cameltry/Cameltry (World, YM2203 + M6295).mra
---- releases_clean/_alternatives/_Cameltry/Cameltry (World, YM2203 + M6295).mra	2025-09-16 18:53:05
+--- releases_clean/_alternatives/_Cameltry/Cameltry (World, YM2203 + M6295).mra	2025-09-17 08:06:38
 +++ releases/_alternatives/_Cameltry/Cameltry (World, YM2203 + M6295).mra	1969-12-31 16:00:00
 @@ -1,45 +0,0 @@
 -<misterromdescription>
@@ -99,8 +122,8 @@ diff -ruN -x *.rbf -x .DS_Store releases_clean/_alternatives/_Cameltry/Cameltry 
 -</misterromdescription>
 \ No newline at end of file
 diff -ruN -x *.rbf -x .DS_Store releases_clean/_alternatives/_Dead Connection/Dead Connection (Japan).mra releases/_alternatives/_Dead Connection/Dead Connection (Japan).mra
---- releases_clean/_alternatives/_Dead Connection/Dead Connection (Japan).mra	2025-09-16 18:53:05
-+++ releases/_alternatives/_Dead Connection/Dead Connection (Japan).mra	2025-09-16 18:50:37
+--- releases_clean/_alternatives/_Dead Connection/Dead Connection (Japan).mra	2025-09-17 08:06:38
++++ releases/_alternatives/_Dead Connection/Dead Connection (Japan).mra	2025-09-17 08:06:50
 @@ -23,7 +23,7 @@
  		<dip name="Upright Controls" bits="15" values="0,1" ids="Single,Dual"/>
  	</switches>
@@ -118,8 +141,8 @@ diff -ruN -x *.rbf -x .DS_Store releases_clean/_alternatives/_Dead Connection/De
 \ No newline at end of file
 +</misterromdescription>
 diff -ruN -x *.rbf -x .DS_Store releases_clean/_alternatives/_Drift Out/Drift Out (Europe, Cameltry conversion).mra releases/_alternatives/_Drift Out/Drift Out (Europe, Cameltry conversion).mra
---- releases_clean/_alternatives/_Drift Out/Drift Out (Europe, Cameltry conversion).mra	2025-09-16 18:53:05
-+++ releases/_alternatives/_Drift Out/Drift Out (Europe, Cameltry conversion).mra	2025-09-16 18:48:25
+--- releases_clean/_alternatives/_Drift Out/Drift Out (Europe, Cameltry conversion).mra	2025-09-17 08:06:38
++++ releases/_alternatives/_Drift Out/Drift Out (Europe, Cameltry conversion).mra	2025-09-17 08:06:50
 @@ -23,7 +23,7 @@
  		<dip name="Unused" bits="15" values="1,0" ids="Off,On"/>
  	</switches>
@@ -137,7 +160,7 @@ diff -ruN -x *.rbf -x .DS_Store releases_clean/_alternatives/_Drift Out/Drift Ou
 \ No newline at end of file
 +</misterromdescription>
 diff -ruN -x *.rbf -x .DS_Store releases_clean/_alternatives/_Drift Out/Drive Out (bootleg of Drift Out).mra releases/_alternatives/_Drift Out/Drive Out (bootleg of Drift Out).mra
---- releases_clean/_alternatives/_Drift Out/Drive Out (bootleg of Drift Out).mra	2025-09-16 18:53:05
+--- releases_clean/_alternatives/_Drift Out/Drive Out (bootleg of Drift Out).mra	2025-09-17 08:06:38
 +++ releases/_alternatives/_Drift Out/Drive Out (bootleg of Drift Out).mra	1969-12-31 16:00:00
 @@ -1,48 +0,0 @@
 -<misterromdescription>
@@ -190,8 +213,8 @@ diff -ruN -x *.rbf -x .DS_Store releases_clean/_alternatives/_Drift Out/Drive Ou
 -</misterromdescription>
 \ No newline at end of file
 diff -ruN -x *.rbf -x .DS_Store releases_clean/_alternatives/_Metal Black/Metal Black (World, single PCB).mra releases/_alternatives/_Metal Black/Metal Black (World, single PCB).mra
---- releases_clean/_alternatives/_Metal Black/Metal Black (World, single PCB).mra	2025-09-16 18:53:05
-+++ releases/_alternatives/_Metal Black/Metal Black (World, single PCB).mra	2025-09-16 18:51:01
+--- releases_clean/_alternatives/_Metal Black/Metal Black (World, single PCB).mra	2025-09-17 08:06:38
++++ releases/_alternatives/_Metal Black/Metal Black (World, single PCB).mra	2025-09-17 08:06:50
 @@ -22,7 +22,7 @@
  		<dip name="Upright Controls" bits="15" values="0,1" ids="Single,Dual"/>
  	</switches>
