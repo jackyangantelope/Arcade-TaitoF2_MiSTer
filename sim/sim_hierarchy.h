@@ -33,4 +33,6 @@
 #define _F2_SIGNAL_DISPATCH(N, ...) _F2_SIGNAL_CONCAT(F2_SIGNAL_, N)(__VA_ARGS__)
 #define _F2_SIGNAL_CONCAT(a, b) a##b
 
+#define G_F2_SIGNAL(...) g_sim_core.top->rootp->_F2_SIGNAL_DISPATCH(_F2_GET_ARG_COUNT(__VA_ARGS__), __VA_ARGS__)
+
 #endif // SIM_HIERARCHY_H

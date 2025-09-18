@@ -3,6 +3,7 @@
 #include "imgui_wrap.h"
 #include "tc0200obj.h"
 #include "sim_core.h"
+#include "sim_hierarchy.h"
 
 #include "F2.h"
 #include "F2___024root.h"
@@ -114,18 +115,31 @@ SDL_Texture *get_obj_texture(uint16_t code, uint8_t palette)
         return it->second.deref();
     }
 
+    bool bpp15 = G_F2_SIGNAL(cfg_bpp15);
+    bool bppmix = G_F2_SIGNAL(cfg_bppmix);
+
     uint32_t pal32[16];
     for (int i = 0; i < 16; i++)
     {
-#if 0
-        uint8_t r = ((rawpal[i] & 0xf000) >> 8) | ((rawpal[i] & 0x0008) >> 0);
-        uint8_t g = ((rawpal[i] & 0x0f00) >> 4) | ((rawpal[i] & 0x0004) << 1);
-        uint8_t b = ((rawpal[i] & 0x00f0) >> 0) | ((rawpal[i] & 0x0002) << 2);
-#else
-        uint8_t r = ((rawpal[i] & 0x7c00) >> 7);
-        uint8_t g = ((rawpal[i] & 0x03e0) >> 2);
-        uint8_t b = ((rawpal[i] & 0x001f) << 3);
-#endif
+        uint8_t r, g, b;
+        if (bpp15 && bppmix)
+        {
+            r = ((rawpal[i] & 0xf000) >> 8) | ((rawpal[i] & 0x0008) >> 0);
+            g = ((rawpal[i] & 0x0f00) >> 4) | ((rawpal[i] & 0x0004) << 1);
+            b = ((rawpal[i] & 0x00f0) >> 0) | ((rawpal[i] & 0x0002) << 2);
+        }
+        else if (bpp15)
+        {
+            r = ((rawpal[i] & 0x7c00) >> 7);
+            g = ((rawpal[i] & 0x03e0) >> 2);
+            b = ((rawpal[i] & 0x001f) << 3);
+        }
+        else
+        {
+            r = ((rawpal[i] & 0xf000) >> 8);
+            g = ((rawpal[i] & 0x0f00) >> 4);
+            b = ((rawpal[i] & 0x00f0) << 0);
+         }
 
         uint32_t c = (r << 24) | (g << 16) | (b << 8);
         pal32[i] = c;
@@ -161,21 +175,32 @@ void get_obj_inst(uint16_t index, TC0200OBJ_Inst *inst)
 
     for (int i = 0; i < 8; i++)
     {
-        inst_data[(i * 2) + 0] =
-            g_sim_core.top->rootp->sim_top__DOT__f2_inst__DOT__obj_ram__DOT__ram_l.m_storage[offset + i];
-        inst_data[(i * 2) + 1] =
-            g_sim_core.top->rootp->sim_top__DOT__f2_inst__DOT__obj_ram__DOT__ram_h.m_storage[offset + i];
+        inst_data[(i * 2) + 0] = G_F2_SIGNAL(obj_ram, ram_l).m_storage[offset + i];
+        inst_data[(i * 2) + 1] = G_F2_SIGNAL(obj_ram, ram_h).m_storage[offset + i];
     }
 }
 
 uint16_t extended_code(uint16_t index, uint16_t code)
 {
-    if (g_sim_core.top->rootp->sim_top__DOT__f2_inst__DOT__cfg_obj_extender == 1)
+    if (G_F2_SIGNAL(cfg_190fmc))
     {
-        uint8_t ext =
-            g_sim_core.top->rootp
-                ->sim_top__DOT__f2_inst__DOT__tc0200obj_extender__DOT__extension_ram__DOT__ram
-                .m_storage[index];
+        uint8_t *ctrl = G_F2_SIGNAL(tc0190fmc, ctrl).m_storage;
+        uint8_t sel = (code >> 10) & 7;
+        switch(sel)
+        {
+            case 0:
+            case 1: return (ctrl[2] << 11) | (code & 0x7ff);
+
+            case 2:
+            case 3: return (ctrl[3] << 11) | (code & 0x7ff);
+
+            default: return (ctrl[sel] << 10) | (code & 0x3ff);
+        }
+    }
+    
+    if (G_F2_SIGNAL(cfg_obj_extender) == 1)
+    {
+        uint8_t ext = G_F2_SIGNAL(tc0200obj_extender,extension_ram,ram).m_storage[index];
         return (code & 0xff) | (ext << 8);
     }
     else
