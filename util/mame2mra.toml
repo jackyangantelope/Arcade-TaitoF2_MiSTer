@@ -25,7 +25,7 @@ ssi = "08 00"
 gunfront = "09 00"
 growl = "0a 00"
 #mjnquest = "0b 00"
-#footchmp = "0c 00"
+footchmp = "0c 00"
 koshien = "0d 00"
 #yuyugogo = "0e 00"
 ninjak = "0f 00"
@@ -90,6 +90,7 @@ quizhq = "Quiz H.Q."
 koshien = "Ah Eikou no Koshien"
 metalb = "Metal Black"
 deadconx = "Dead Connection"
+footchmp = "Football Champ"
 
 [abbreviations]
 # Dip switch name abbreviations (24 character limit)

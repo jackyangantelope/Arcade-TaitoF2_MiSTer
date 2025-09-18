@@ -494,6 +494,7 @@ always_ff @(posedge clk) begin
         GAME_DEADCONX:  begin cfg_hofs_480scp <= 322 + 33; cfg_vofs_480scp <= 224 + 30; end
         GAME_METALB:    begin cfg_hofs_480scp <= 322 + 11; cfg_vofs_480scp <= 224 + 18; end
         GAME_METALBA:   begin cfg_hofs_480scp <= 322 + 33; cfg_vofs_480scp <= 224 + 30; end
+        GAME_FOOTCHMP:  begin cfg_hofs_480scp <= 322 + 33; cfg_vofs_480scp <= 224 + 30; end
         default:        begin cfg_hofs_480scp <= 322;      cfg_vofs_480scp <= 224;      end
     endcase
 end
