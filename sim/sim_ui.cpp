@@ -97,18 +97,6 @@ void ui_game_changed()
     refresh_state_files = true;
 }
 
-void offset_input(const char *label, uint16_t *h, uint16_t *v)
-{
-    int vals[2] = {*h, *v};
-    int step = 1;
-    int fast_step = 10;
-
-    ImGui::InputScalarN(label, ImGuiDataType_S32, vals, 2, &step, &fast_step, "%d", ImGuiInputTextFlags_None);
-
-    *h = vals[0] & 0x1ff;
-    *v = vals[1] & 0x1ff;
-}
-
 void ui_draw()
 {
     if (ImGui::Begin("Simulation Control"))
@@ -250,85 +238,44 @@ void ui_draw()
     }
 
     ImGui::End();
+}
 
-    if (ImGui::Begin("Memory"))
+class OffsetsWindow : public Window
+{
+public:
+    OffsetsWindow() : Window("Layer Offsets") {}
+
+    void Input(const char *label, uint16_t *h, uint16_t *v)
     {
-        if (ImGui::BeginTabBar("memory_tabs"))
-        {
-            if (ImGui::BeginTabItem("Screen RAM"))
-            {
-                scn_ram_0.DrawContents();
-                ImGui::EndTabItem();
-            }
+        int vals[2] = {*h, *v};
+        int step = 1;
+        int fast_step = 10;
 
-            if (ImGui::BeginTabItem("Screen MUX RAM"))
-            {
-                scn_mux_ram.DrawContents();
-                ImGui::EndTabItem();
-            }
+        ImGui::InputScalarN(label, ImGuiDataType_S32, vals, 2, &step, &fast_step, "%d", ImGuiInputTextFlags_None);
 
-            if (ImGui::BeginTabItem("Color RAM"))
-            {
-                color_ram.DrawContents();
-                ImGui::EndTabItem();
-            }
-
-            if (ImGui::BeginTabItem("OBJ RAM"))
-            {
-                obj_ram.DrawContents();
-                ImGui::EndTabItem();
-            }
-
-            if (ImGui::BeginTabItem("Extension RAM"))
-            {
-                extension_ram.DrawContents(
-                    g_sim_core.top->rootp->F2_SIGNAL(tc0200obj_extender, extension_ram, ram).m_storage,
-                    4 * 1024);
-                ImGui::EndTabItem();
-            }
-
-            if (ImGui::BeginTabItem("CPU ROM"))
-            {
-                rom_mem.DrawContents(g_sim_core.sdram->data + CPU_ROM_SDR_BASE,
-                                     1024 * 1024);
-                ImGui::EndTabItem();
-            }
-
-            if (ImGui::BeginTabItem("Work RAM"))
-            {
-                work_ram.DrawContents();
-                ImGui::EndTabItem();
-            }
-
-            if (ImGui::BeginTabItem("Pivot RAM"))
-            {
-                pivot_ram.DrawContents();
-                ImGui::EndTabItem();
-            }
-
-            if (ImGui::BeginTabItem("Sound RAM"))
-            {
-                sound_ram.DrawContents(
-                    g_sim_core.top->rootp->F2_SIGNAL(sound_ram, ram).m_storage,
-                    16 * 1024);
-                ImGui::EndTabItem();
-            }
-
-            if (ImGui::BeginTabItem("Sound ROM"))
-            {
-                sound_rom.DrawContents(
-                    g_sim_core.top->rootp->F2_SIGNAL(sound_rom, ram).m_storage,
-                    128 * 1024);
-                ImGui::EndTabItem();
-            }
-
-            ImGui::EndTabBar();
-
-        }
+        *h = vals[0] & 0x1ff;
+        *v = vals[1] & 0x1ff;
     }
-    ImGui::End();
 
-    if (ImGui::Begin("Input"))
+
+    void Draw()
+    {
+        Input("SCN0", &G_F2_SIGNAL(cfg_hofs_100scn0), &G_F2_SIGNAL(cfg_vofs_100scn0));
+        Input("OBJ", &G_F2_SIGNAL(cfg_hofs_200obj), &G_F2_SIGNAL(cfg_vofs_200obj));
+        Input("SCN1", &G_F2_SIGNAL(cfg_hofs_100scn1), &G_F2_SIGNAL(cfg_vofs_100scn1));
+        Input("SCP", &G_F2_SIGNAL(cfg_hofs_480scp), &G_F2_SIGNAL(cfg_vofs_480scp));
+        Input("GRW", &G_F2_SIGNAL(cfg_hofs_430grw), &G_F2_SIGNAL(cfg_vofs_430grw));
+     }
+};
+
+OffsetsWindow s_OffsetsWindow;
+
+class DipswitchWindow : public Window
+{
+public:
+    DipswitchWindow() : Window("Dipswitches") {}
+
+    void Draw()
     {
         if (ImGui::BeginTable("dipswitches", 9))
         {
@@ -364,16 +311,107 @@ void ui_draw()
             }
             ImGui::EndTable();
         }
-    }
-    ImGui::End();
+     }
+};
 
-    if (ImGui::Begin("Offsets"))
+DipswitchWindow s_DipswitchWindow;
+
+class ROMWindow : public Window
+{
+public:
+    ROMWindow() : Window("ROM View") {}
+
+    void Draw()
     {
-        offset_input("SCN0", &g_sim_core.top->rootp->F2_SIGNAL(cfg_hofs_100scn0), &g_sim_core.top->rootp->F2_SIGNAL(cfg_vofs_100scn0));
-        offset_input("OBJ", &g_sim_core.top->rootp->F2_SIGNAL(cfg_hofs_200obj), &g_sim_core.top->rootp->F2_SIGNAL(cfg_vofs_200obj));
-        offset_input("SCN1", &g_sim_core.top->rootp->F2_SIGNAL(cfg_hofs_100scn1), &g_sim_core.top->rootp->F2_SIGNAL(cfg_vofs_100scn1));
-        offset_input("SCP", &g_sim_core.top->rootp->F2_SIGNAL(cfg_hofs_480scp), &g_sim_core.top->rootp->F2_SIGNAL(cfg_vofs_480scp));
-        offset_input("GRW", &g_sim_core.top->rootp->F2_SIGNAL(cfg_hofs_430grw), &g_sim_core.top->rootp->F2_SIGNAL(cfg_vofs_430grw));
+        if (ImGui::BeginTabBar("rom_tabs"))
+        {
+            if (ImGui::BeginTabItem("CPU ROM"))
+            {
+                rom_mem.DrawContents(g_sim_core.sdram->data + CPU_ROM_SDR_BASE,
+                                     1024 * 1024);
+                ImGui::EndTabItem();
+            }
+
+            if (ImGui::BeginTabItem("Sound ROM"))
+            {
+                sound_rom.DrawContents(
+                    g_sim_core.top->rootp->F2_SIGNAL(sound_rom, ram).m_storage,
+                    128 * 1024);
+                ImGui::EndTabItem();
+            }
+
+            ImGui::EndTabBar();
+        }
     }
-    ImGui::End();
-}
+};
+
+ROMWindow s_ROMWindow;
+
+class RAMWindow : public Window
+{
+public:
+    RAMWindow() : Window("RAM View") {}
+
+    void Draw()
+    {
+        if (ImGui::BeginTabBar("memory_tabs"))
+        {
+            if (ImGui::BeginTabItem("Work RAM"))
+            {
+                work_ram.DrawContents();
+                ImGui::EndTabItem();
+            }
+
+            if (ImGui::BeginTabItem("Screen RAM"))
+            {
+                scn_ram_0.DrawContents();
+                ImGui::EndTabItem();
+            }
+
+            if (ImGui::BeginTabItem("Screen MUX RAM"))
+            {
+                scn_mux_ram.DrawContents();
+                ImGui::EndTabItem();
+            }
+
+            if (ImGui::BeginTabItem("Color RAM"))
+            {
+                color_ram.DrawContents();
+                ImGui::EndTabItem();
+            }
+
+            if (ImGui::BeginTabItem("OBJ RAM"))
+            {
+                obj_ram.DrawContents();
+                ImGui::EndTabItem();
+            }
+
+            if (ImGui::BeginTabItem("Extension RAM"))
+            {
+                extension_ram.DrawContents(
+                    g_sim_core.top->rootp->F2_SIGNAL(tc0200obj_extender, extension_ram, ram).m_storage,
+                    4 * 1024);
+                ImGui::EndTabItem();
+            }
+
+            if (ImGui::BeginTabItem("Pivot RAM"))
+            {
+                pivot_ram.DrawContents();
+                ImGui::EndTabItem();
+            }
+
+            if (ImGui::BeginTabItem("Sound RAM"))
+            {
+                sound_ram.DrawContents(
+                    g_sim_core.top->rootp->F2_SIGNAL(sound_ram, ram).m_storage,
+                    16 * 1024);
+                ImGui::EndTabItem();
+            }
+
+            ImGui::EndTabBar();
+        }
+    }
+};
+
+RAMWindow s_RAMWindow;
+

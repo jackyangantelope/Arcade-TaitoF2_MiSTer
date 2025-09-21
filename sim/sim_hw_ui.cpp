@@ -151,10 +151,7 @@ void hw_ui_draw()
     }
     ImGui::End();
 
-    draw_obj_window();
-    draw_obj_preview_window();
     draw_pri_window();
-    draw_480scp_window();
 
     if (ImGui::Begin("68000"))
     {

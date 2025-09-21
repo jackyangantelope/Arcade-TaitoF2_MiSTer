@@ -8,6 +8,8 @@
 #include "sim_sdram.h"
 #include "sim_ddr.h"
 #include "sim_video.h"
+#include "gfx_cache.h"
+
 #include <cstring>
 #include <cstdio>
 
@@ -37,14 +39,12 @@ void SimCore::Init()
     m_tfp = nullptr;
     
     // Create memory subsystems
-    m_sdram_impl = std::make_unique<SimSDRAM>(128 * 1024 * 1024);
-    m_ddr_memory_impl = std::make_unique<SimDDR>(0x30000000, 256 * 1024 * 1024);
-    m_video_impl = std::make_unique<SimVideo>();
-    
-    // Set public pointers
-    sdram = m_sdram_impl.get();
-    ddr_memory = m_ddr_memory_impl.get();
-    video = m_video_impl.get();
+    sdram = std::make_unique<SimSDRAM>(128 * 1024 * 1024);
+    ddr_memory = std::make_unique<SimDDR>(0x30000000, 256 * 1024 * 1024);
+    video = std::make_unique<SimVideo>();
+
+    gfx_200obj = std::make_unique<GfxCache>();
+    gfx_480scp = std::make_unique<GfxCache>();
 }
 
 void SimCore::Tick(int count)
@@ -116,15 +116,10 @@ void SimCore::Shutdown()
         m_contextp = nullptr;
     }
     
-    // Reset public pointers
-    sdram = nullptr;
-    ddr_memory = nullptr;
-    video = nullptr;
-    
     // Reset member objects
-    m_sdram_impl.reset();
-    m_ddr_memory_impl.reset();
-    m_video_impl.reset();
+    sdram.reset();
+    ddr_memory.reset();
+    video.reset();
 }
 
 void SimCore::StartTrace(const char* filename, int depth)

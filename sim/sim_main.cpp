@@ -16,6 +16,8 @@
 #include "sim_ddr.h"
 #include "verilated_fst_c.h"
 
+#include "gfx_cache.h"
+
 #include <stdio.h>
 #include <memory>
 #include <SDL.h>
@@ -82,16 +84,23 @@ int main(int argc, char **argv)
     g_sim_core.top->joystick_p1 = 0;
     g_sim_core.top->joystick_p2 = 0;
 
-    state_manager = new SimState(g_sim_core.top, g_sim_core.ddr_memory, 0x3E000000, 512 * 1024);
+    state_manager = new SimState(g_sim_core.top, g_sim_core.ddr_memory.get(), 0x3E000000, 512 * 1024);
 
     if (!command_queue.is_headless())
     {
         g_sim_core.video->init(320, 224, imgui_get_renderer());
-        init_obj_cache(imgui_get_renderer(),
+        
+        g_sim_core.gfx_200obj->Init(imgui_get_renderer(),
+                       GfxCacheFormat::TC0200OBJ,
                        &(*g_sim_core.ddr_memory)[OBJ_DATA_DDR_BASE],
-                       g_sim_core.top->rootp->F2_SIGNAL(color_ram, ram_l).m_storage,
-                       g_sim_core.top->rootp->F2_SIGNAL(color_ram, ram_h).m_storage);
-    }
+                       G_F2_SIGNAL(color_ram, ram_l).m_storage,
+                       G_F2_SIGNAL(color_ram, ram_h).m_storage);
+        g_sim_core.gfx_480scp->Init(imgui_get_renderer(),
+                       GfxCacheFormat::TC0480SCP,
+                       g_sim_core.sdram->data + SCN1_ROM_SDR_BASE,
+                       G_F2_SIGNAL(color_ram, ram_l).m_storage,
+                       G_F2_SIGNAL(color_ram, ram_h).m_storage);
+     }
     else
     {
         // Minimal init for headless mode
@@ -293,9 +302,10 @@ int main(int argc, char **argv)
             {
                 screenshot_key_pressed = false;
             }
-            
-            prune_obj_cache();
 
+            g_sim_core.gfx_200obj->PruneCache();
+            g_sim_core.gfx_480scp->PruneCache();
+            
             g_sim_core.top->dswa = dipswitch_a & 0xff;
             g_sim_core.top->dswb = dipswitch_b & 0xff;
             g_sim_core.top->pause = g_sim_core.m_system_pause;

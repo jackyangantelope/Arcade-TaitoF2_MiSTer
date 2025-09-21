@@ -12,6 +12,7 @@
 #if GAME_FINALB
 #define HAS_TC0110PCR 1
 #define HAS_TC0220IOC 1
+#define HAS_TC0100SCN 1
 
 static volatile uint16_t *TC0110PCR_ADDR = (volatile uint16_t *)0x200000;
 static volatile uint16_t *TC0110PCR_DATA = (volatile uint16_t *)0x200002;
@@ -31,6 +32,7 @@ static volatile uint8_t *SYT_DATA = (volatile uint8_t *)0x320002;
 
 #define HAS_TC0260DAR 1
 #define HAS_TC0220IOC 1
+#define HAS_TC0100SCN 1
 
 static volatile uint16_t *TC0260DAR = (volatile uint16_t *)0x300000;
 
@@ -49,6 +51,7 @@ static volatile uint8_t *SYT_DATA = (volatile uint8_t *)0x320002;
 #define HAS_TC0260DAR 1
 #define HAS_TC0360PRI 1
 #define HAS_TC0220IOC 1
+#define HAS_TC0100SCN 1
 
 static volatile uint16_t *TC0260DAR = (volatile uint16_t *)0x700000;
 
@@ -69,6 +72,7 @@ static volatile uint8_t *SYT_DATA = (volatile uint8_t *)0x200002;
 #define HAS_TC0360PRI 1
 #define HAS_TC0430GRW 1
 #define HAS_TC0220IOC 1
+#define HAS_TC0100SCN 1
 
 static volatile uint16_t *TC0260DAR = (volatile uint16_t *)0x700000;
 

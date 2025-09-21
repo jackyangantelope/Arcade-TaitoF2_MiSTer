@@ -1,4 +1,7 @@
 #include "../system.h"
+
+#if HAS_TC0100SCN
+
 #include "../page.h"
 
 #include "../util.h"
@@ -113,3 +116,4 @@ static void update()
 
 PAGE_REGISTER(general_100scn, init, update, NULL);
 
+#endif
