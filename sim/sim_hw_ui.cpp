@@ -1,14 +1,11 @@
 
-#include "sim_hw_ui.h"
 #include "sim_core.h"
-#include "imgui.h"
+#include "sim_hierarchy.h"
+#include "imgui_wrap.h"
 #include "F2.h"
 #include "F2___024root.h"
 #include "sim_sdram.h"
 #include "dis68k/dis68k.h"
-#include "tc0200obj.h"
-#include "tc0360pri.h"
-#include "tc0480scp.h"
 
 #define SWAP32(x)                                                              \
     (((x) & 0xff000000) >> 16) | (((x) & 0x00ff0000) >> 16) |                  \
@@ -37,19 +34,13 @@ struct PresetZoom
     uint8_t dx;
 };
 
-void hw_ui_draw()
+class MiscDebugWindow : public Window
 {
-    if (ImGui::Begin("Debug"))
-    {
-        /*
-        int x = (int16_t)g_sim_core.top->rootp->sim_top__DOT__f2_inst__DOT__tc0480scp__DOT__base_xofs;
-        int y = (int16_t)g_sim_core.top->rootp->sim_top__DOT__f2_inst__DOT__tc0480scp__DOT__base_yofs;
-        ImGui::InputInt("Disp X", &x);
-        ImGui::InputInt("Disp Y", &y);
-        g_sim_core.top->rootp->sim_top__DOT__f2_inst__DOT__tc0480scp__DOT__base_xofs = x;
-        g_sim_core.top->rootp->sim_top__DOT__f2_inst__DOT__tc0480scp__DOT__base_yofs = y;
-        */
+public:
+    MiscDebugWindow() : Window("Misc Debug") {}
 
+    void Draw()
+    {
         int step = 1;
         int step_fast = 16;
         bool modified = false;
@@ -149,21 +140,26 @@ void hw_ui_draw()
             g_sim_core.top->rootp->sim_top__DOT__f2_inst__DOT__rom_cache__DOT__version++;
         }
     }
-    ImGui::End();
+};
 
-    draw_pri_window();
+//MiscDebugWindow s_MiscDebugWindow;
 
-    if (ImGui::Begin("68000"))
+class M68000Window : public Window
+{
+public:
+    M68000Window() : Window("68000") {}
+
+    void Draw()
     {
-        uint32_t pc =
-            g_sim_core.top->rootp->sim_top__DOT__f2_inst__DOT__m68000__DOT__excUnit__DOT__PcL |
-            (g_sim_core.top->rootp->sim_top__DOT__f2_inst__DOT__m68000__DOT__excUnit__DOT__PcH << 16);
+        uint32_t pc = G_F2_SIGNAL(m68000,excUnit,PcL) | (G_F2_SIGNAL(m68000,excUnit,PcH) << 16);
         ImGui::LabelText("PC", "%08X", pc);
-        /*Dis68k dis(g_sim_core.sdram->data + pc, g_sim_core.sdram->data + pc + 64, pc);
+        Dis68k dis(g_sim_core.sdram->data + pc, g_sim_core.sdram->data + pc + 64, pc);
         char optxt[128];
         uint32_t addr;
         dis.disasm(&addr, optxt, sizeof(optxt));
-        ImGui::TextUnformatted(optxt);*/
+        ImGui::TextUnformatted(optxt);
     }
-    ImGui::End();
-}
+};
+
+M68000Window s_M68000Window;
+

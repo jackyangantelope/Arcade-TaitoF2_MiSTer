@@ -67,6 +67,18 @@ bool imgui_init(const char *title)
     sdl_window = window;
     sdl_renderer = renderer;
 
+    Window::SortWindows();
+        
+    ImGuiSettingsHandler ini_handler;
+    ini_handler.TypeName = "SimWindow";
+    ini_handler.TypeHash = ImHashStr("SimWindow");
+    ini_handler.ClearAllFn = nullptr;
+    ini_handler.ReadOpenFn = Window::SettingsHandler_ReadOpen;
+    ini_handler.ReadLineFn = Window::SettingsHandler_ReadLine;
+    ini_handler.ApplyAllFn = nullptr;
+    ini_handler.WriteAllFn = Window::SettingsHandler_WriteAll;
+    ImGui::AddSettingsHandler(&ini_handler);
+
     return true;
 }
 
@@ -124,22 +136,18 @@ bool imgui_begin_frame()
     {
         if (ImGui::BeginMenu("Windows"))
         {
-            Window *window = Window::s_head;
-            while(window)
+            for( Window *window : Window::s_windows )
             {
                 ImGui::MenuItem(window->m_title.c_str(), nullptr, &window->m_enabled);
-                window = window->m_next;
             }
             ImGui::EndMenu();
         }
         ImGui::EndMainMenuBar();
     }
 
-    Window *window = Window::s_head;
-    while(window)
+    for( Window *window : Window::s_windows )
     {
         window->Update();
-        window = window->m_next;
     }
 
     return true;
@@ -173,14 +181,22 @@ void imgui_set_title(const char *title)
     SDL_SetWindowTitle(sdl_window, title);
 }
 
+std::vector<Window *> Window::s_windows;
 Window *Window::s_head = nullptr;
 
-Window::Window(const char *name)
+Window::Window(const char *name, ImGuiWindowFlags flags)
 {
     m_title = name;
-    m_next = s_head;
     m_enabled = true;
+    m_flags = flags;
+
+    m_next = s_head;
     s_head = this;
+
+    if (s_windows.size() > 0)
+    {
+        SortWindows();
+    }
 }
 
 Window::~Window()
@@ -192,12 +208,61 @@ void Window::Update()
 {
     if (m_enabled)
     {
-        if (ImGui::Begin(m_title.c_str(), &m_enabled))
+        if (ImGui::Begin(m_title.c_str(), &m_enabled, m_flags))
         {
             Draw();
         }
         ImGui::End();
     }
 }
+
+void Window::SortWindows()
+{
+    s_windows.clear();
+    Window *window = s_head;
+    while(window)
+    {
+        s_windows.push_back(window);
+        window = window->m_next;
+    }
+
+    std::sort(s_windows.begin(), s_windows.end(), [](auto a, auto b){ return a->m_title < b->m_title; });
+}
+
+void* Window::SettingsHandler_ReadOpen(ImGuiContext*, ImGuiSettingsHandler*, const char* name)
+{
+    ImGuiID id = ImHashStr(name);
+
+    for( Window *window : s_windows )
+    {
+        if (window->m_title == name)
+        {
+            return window;
+        }
+    }
+
+    return nullptr;
+}
+
+void Window::SettingsHandler_ReadLine(ImGuiContext*, ImGuiSettingsHandler*, void* entry, const char* line)
+{
+    Window* window = (Window *)entry;
+    int en;
+    if (sscanf(line, "IsEnabled=%d", &en) == 1)
+    {
+        window->m_enabled = en != 0;
+    }
+}
+
+void Window::SettingsHandler_WriteAll(ImGuiContext*, ImGuiSettingsHandler* handler, ImGuiTextBuffer* buf)
+{
+    // Write to text buffer
+    for( Window *window : s_windows )
+    {
+        buf->appendf("[%s][%s]\n", handler->TypeName, window->m_title.c_str());
+        buf->appendf("IsEnabled=%d\n\n", window->m_enabled ? 1 : 0);
+    }
+}
+
 
 

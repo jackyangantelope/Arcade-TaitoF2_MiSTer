@@ -7,9 +7,11 @@
 
 #include "imgui_wrap.h"
 
-class SimVideo
+class SimVideo : public Window
 {
   public:
+    SimVideo() : Window("Video Output", ImGuiWindowFlags_NoScrollbar) {}
+
     ~SimVideo()
     {
         deinit();
@@ -125,10 +127,8 @@ class SimVideo
     bool save_screenshot(const char *filename);
     std::string generate_screenshot_filename(const char *game_name);
 
-    void draw()
+    void Draw()
     {
-        ImGui::Begin("Video", nullptr, ImGuiWindowFlags_NoScrollbar);
-
         ImGui::Checkbox("TATE", &rotated);
         ImGui::SameLine();
         ImGui::Text("X: %03d Y: %03d", x, y);
@@ -179,7 +179,6 @@ class SimVideo
                     ImGui::GetColorU32(ImVec4(1, 1, 1, 1)));
             }
         }
-        ImGui::End();
     }
 
     int width, height;
