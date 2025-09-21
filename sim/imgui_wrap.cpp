@@ -1,6 +1,7 @@
-#include "imgui.h"
+#include "imgui_wrap.h"
 #include "imgui_impl_sdl2.h"
 #include "imgui_impl_sdlrenderer2.h"
+
 
 #include <stdio.h>
 #include <SDL.h>
@@ -118,6 +119,29 @@ bool imgui_begin_frame()
     ImGui_ImplSDL2_NewFrame();
     ImGui::NewFrame();
 
+
+    if (ImGui::BeginMainMenuBar())
+    {
+        if (ImGui::BeginMenu("Windows"))
+        {
+            Window *window = Window::s_head;
+            while(window)
+            {
+                ImGui::MenuItem(window->m_title.c_str(), nullptr, &window->m_enabled);
+                window = window->m_next;
+            }
+            ImGui::EndMenu();
+        }
+        ImGui::EndMainMenuBar();
+    }
+
+    Window *window = Window::s_head;
+    while(window)
+    {
+        window->Update();
+        window = window->m_next;
+    }
+
     return true;
 }
 
@@ -148,4 +172,32 @@ void imgui_set_title(const char *title)
 {
     SDL_SetWindowTitle(sdl_window, title);
 }
+
+Window *Window::s_head = nullptr;
+
+Window::Window(const char *name)
+{
+    m_title = name;
+    m_next = s_head;
+    m_enabled = true;
+    s_head = this;
+}
+
+Window::~Window()
+{
+    // probably should clean up the linked list
+}
+
+void Window::Update()
+{
+    if (m_enabled)
+    {
+        if (ImGui::Begin(m_title.c_str(), &m_enabled))
+        {
+            Draw();
+        }
+        ImGui::End();
+    }
+}
+
 

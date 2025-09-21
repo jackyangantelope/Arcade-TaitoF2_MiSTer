@@ -15,14 +15,18 @@ class VerilatedFstC;
 class SimSDRAM;
 class SimDDR;
 class SimVideo;
+class GfxCache;
 
 class SimCore {
 public:
     // Public members that external code needs access to
-    SimVideo* video;
     F2* top;
-    SimDDR* ddr_memory;
-    SimSDRAM* sdram;
+    std::unique_ptr<SimVideo> video;
+    std::unique_ptr<SimDDR> ddr_memory;
+    std::unique_ptr<SimSDRAM> sdram;
+
+    std::unique_ptr<GfxCache> gfx_480scp;
+    std::unique_ptr<GfxCache> gfx_200obj;
     
     // Simulation state (made public for compatibility)
     uint64_t m_total_ticks;
@@ -67,11 +71,6 @@ private:
     // Verilator context and top module
     VerilatedContext* m_contextp;
     std::unique_ptr<VerilatedFstC> m_tfp;
-    
-    // Memory subsystems
-    std::unique_ptr<SimSDRAM> m_sdram_impl;
-    std::unique_ptr<SimDDR> m_ddr_memory_impl;
-    std::unique_ptr<SimVideo> m_video_impl;
     
     // IOCTL helper methods
     void WaitForIOCTLReady();
