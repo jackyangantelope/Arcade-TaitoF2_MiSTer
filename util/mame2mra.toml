@@ -66,6 +66,7 @@ deadconx = { snes = "B,A,Start,Select,L,R", game = "Fire,Dive,-,-,-,-,Start,Coin
 
 dinorex = { snes = "B,A,Start,Select,L,R", game = "Bite/Punch,Kick,-,-,-,-,Start,Coin,Pause,SS" }
 driftout = { snes = "B,A,Start,Select,L,R", game = "Accelerator,Brake,-,-,-,-,Start,Coin,Pause,SS" }
+footchmp = { snes = "B,A,Start,Select,L,R", game = "Shoot/Slide,Pass/Rough,-,-,-,-,Start,Coin,Pause,SS" }
 
 
 [pretty_names]

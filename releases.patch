@@ -1,6 +1,6 @@
 diff -ruN -x *.rbf -x .DS_Store releases_clean/Ah Eikou no Koshien (Japan).mra releases/Ah Eikou no Koshien (Japan).mra
---- releases_clean/Ah Eikou no Koshien (Japan).mra	2025-09-17 22:30:25
-+++ releases/Ah Eikou no Koshien (Japan).mra	2025-09-17 22:30:49
+--- releases_clean/Ah Eikou no Koshien (Japan).mra	2025-09-20 20:02:44
++++ releases/Ah Eikou no Koshien (Japan).mra	2025-09-20 20:02:50
 @@ -24,7 +24,11 @@
  	<rom index="0" address="0x30000000" zip="koshien.zip">
  		<part>0d 00</part>
@@ -22,7 +22,7 @@ diff -ruN -x *.rbf -x .DS_Store releases_clean/Ah Eikou no Koshien (Japan).mra r
 \ No newline at end of file
 +</misterromdescription>
 diff -ruN -x *.rbf -x .DS_Store releases_clean/_alternatives/_Cameltry/Cameltry (US, YM2203 + M6295).mra releases/_alternatives/_Cameltry/Cameltry (US, YM2203 + M6295).mra
---- releases_clean/_alternatives/_Cameltry/Cameltry (US, YM2203 + M6295).mra	2025-09-17 22:30:25
+--- releases_clean/_alternatives/_Cameltry/Cameltry (US, YM2203 + M6295).mra	2025-09-20 20:02:44
 +++ releases/_alternatives/_Cameltry/Cameltry (US, YM2203 + M6295).mra	1969-12-31 16:00:00
 @@ -1,45 +0,0 @@
 -<misterromdescription>
@@ -72,7 +72,7 @@ diff -ruN -x *.rbf -x .DS_Store releases_clean/_alternatives/_Cameltry/Cameltry 
 -</misterromdescription>
 \ No newline at end of file
 diff -ruN -x *.rbf -x .DS_Store releases_clean/_alternatives/_Cameltry/Cameltry (World, YM2203 + M6295).mra releases/_alternatives/_Cameltry/Cameltry (World, YM2203 + M6295).mra
---- releases_clean/_alternatives/_Cameltry/Cameltry (World, YM2203 + M6295).mra	2025-09-17 22:30:25
+--- releases_clean/_alternatives/_Cameltry/Cameltry (World, YM2203 + M6295).mra	2025-09-20 20:02:44
 +++ releases/_alternatives/_Cameltry/Cameltry (World, YM2203 + M6295).mra	1969-12-31 16:00:00
 @@ -1,45 +0,0 @@
 -<misterromdescription>
@@ -122,8 +122,8 @@ diff -ruN -x *.rbf -x .DS_Store releases_clean/_alternatives/_Cameltry/Cameltry 
 -</misterromdescription>
 \ No newline at end of file
 diff -ruN -x *.rbf -x .DS_Store releases_clean/_alternatives/_Dead Connection/Dead Connection (Japan).mra releases/_alternatives/_Dead Connection/Dead Connection (Japan).mra
---- releases_clean/_alternatives/_Dead Connection/Dead Connection (Japan).mra	2025-09-17 22:30:25
-+++ releases/_alternatives/_Dead Connection/Dead Connection (Japan).mra	2025-09-17 22:30:49
+--- releases_clean/_alternatives/_Dead Connection/Dead Connection (Japan).mra	2025-09-20 20:02:44
++++ releases/_alternatives/_Dead Connection/Dead Connection (Japan).mra	2025-09-20 20:02:50
 @@ -23,7 +23,7 @@
  		<dip name="Upright Controls" bits="15" values="0,1" ids="Single,Dual"/>
  	</switches>
@@ -141,8 +141,8 @@ diff -ruN -x *.rbf -x .DS_Store releases_clean/_alternatives/_Dead Connection/De
 \ No newline at end of file
 +</misterromdescription>
 diff -ruN -x *.rbf -x .DS_Store releases_clean/_alternatives/_Drift Out/Drift Out (Europe, Cameltry conversion).mra releases/_alternatives/_Drift Out/Drift Out (Europe, Cameltry conversion).mra
---- releases_clean/_alternatives/_Drift Out/Drift Out (Europe, Cameltry conversion).mra	2025-09-17 22:30:25
-+++ releases/_alternatives/_Drift Out/Drift Out (Europe, Cameltry conversion).mra	2025-09-17 22:30:49
+--- releases_clean/_alternatives/_Drift Out/Drift Out (Europe, Cameltry conversion).mra	2025-09-20 20:02:44
++++ releases/_alternatives/_Drift Out/Drift Out (Europe, Cameltry conversion).mra	2025-09-20 20:02:50
 @@ -23,7 +23,7 @@
  		<dip name="Unused" bits="15" values="1,0" ids="Off,On"/>
  	</switches>
@@ -160,7 +160,7 @@ diff -ruN -x *.rbf -x .DS_Store releases_clean/_alternatives/_Drift Out/Drift Ou
 \ No newline at end of file
 +</misterromdescription>
 diff -ruN -x *.rbf -x .DS_Store releases_clean/_alternatives/_Drift Out/Drive Out (bootleg of Drift Out).mra releases/_alternatives/_Drift Out/Drive Out (bootleg of Drift Out).mra
---- releases_clean/_alternatives/_Drift Out/Drive Out (bootleg of Drift Out).mra	2025-09-17 22:30:25
+--- releases_clean/_alternatives/_Drift Out/Drive Out (bootleg of Drift Out).mra	2025-09-20 20:02:44
 +++ releases/_alternatives/_Drift Out/Drive Out (bootleg of Drift Out).mra	1969-12-31 16:00:00
 @@ -1,48 +0,0 @@
 -<misterromdescription>
@@ -213,7 +213,7 @@ diff -ruN -x *.rbf -x .DS_Store releases_clean/_alternatives/_Drift Out/Drive Ou
 -</misterromdescription>
 \ No newline at end of file
 diff -ruN -x *.rbf -x .DS_Store releases_clean/_alternatives/_Football Champ/Football Champ - Euro Football Champ (World) (bootleg).mra releases/_alternatives/_Football Champ/Football Champ - Euro Football Champ (World) (bootleg).mra
---- releases_clean/_alternatives/_Football Champ/Football Champ - Euro Football Champ (World) (bootleg).mra	2025-09-17 22:30:25
+--- releases_clean/_alternatives/_Football Champ/Football Champ - Euro Football Champ (World) (bootleg).mra	2025-09-20 20:02:44
 +++ releases/_alternatives/_Football Champ/Football Champ - Euro Football Champ (World) (bootleg).mra	1969-12-31 16:00:00
 @@ -1,53 +0,0 @@
 -<misterromdescription>
@@ -225,7 +225,7 @@ diff -ruN -x *.rbf -x .DS_Store releases_clean/_alternatives/_Football Champ/Foo
 -	<parent>footchmp</parent>
 -	<rotation>horizontal</rotation>
 -	<mameversion>277</mameversion>
--	<buttons default="B,A,X,Y,Start,Select,L,R" names="Btn1,Btn2,Btn3,Btn4,-,-,Start,Coin,Pause,SS"/>
+-	<buttons default="B,A,Start,Select,L,R" names="Shoot/Slide,Pass/Rough,-,-,-,-,Start,Coin,Pause,SS"/>
 -	<switches default="7ffe">
 -		<dip name="Game Over" bits="0" values="1,0" ids="Both Teams Over,Losing Team"/>
 -		<dip name="Flip Screen" bits="1" values="1,0" ids="Off,On"/>
@@ -271,8 +271,8 @@ diff -ruN -x *.rbf -x .DS_Store releases_clean/_alternatives/_Football Champ/Foo
 -</misterromdescription>
 \ No newline at end of file
 diff -ruN -x *.rbf -x .DS_Store releases_clean/_alternatives/_Metal Black/Metal Black (World, single PCB).mra releases/_alternatives/_Metal Black/Metal Black (World, single PCB).mra
---- releases_clean/_alternatives/_Metal Black/Metal Black (World, single PCB).mra	2025-09-17 22:30:25
-+++ releases/_alternatives/_Metal Black/Metal Black (World, single PCB).mra	2025-09-17 22:30:49
+--- releases_clean/_alternatives/_Metal Black/Metal Black (World, single PCB).mra	2025-09-20 20:02:44
++++ releases/_alternatives/_Metal Black/Metal Black (World, single PCB).mra	2025-09-20 20:02:50
 @@ -22,7 +22,7 @@
  		<dip name="Upright Controls" bits="15" values="0,1" ids="Single,Dual"/>
  	</switches>
