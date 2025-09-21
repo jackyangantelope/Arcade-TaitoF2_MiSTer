@@ -1,7 +1,6 @@
 
 #include "sim_core.h"
 #include "sim_ui.h"
-#include "sim_hw_ui.h"
 #include "sim_video.h"
 #include "sim_state.h"
 #include "sim_command.h"
@@ -284,6 +283,9 @@ int main(int argc, char **argv)
         }
         else if (!command_queue.is_headless())
         {
+            g_sim_core.gfx_200obj->PruneCache();
+            g_sim_core.gfx_480scp->PruneCache();
+            
             // Interactive mode
             if (!ui_begin_frame())
             {
@@ -303,16 +305,12 @@ int main(int argc, char **argv)
                 screenshot_key_pressed = false;
             }
 
-            g_sim_core.gfx_200obj->PruneCache();
-            g_sim_core.gfx_480scp->PruneCache();
-            
             g_sim_core.top->dswa = dipswitch_a & 0xff;
             g_sim_core.top->dswb = dipswitch_b & 0xff;
             g_sim_core.top->pause = g_sim_core.m_system_pause;
 
             g_sim_core.top->joystick_p1 = imgui_get_buttons() & 0xffff;
             g_sim_core.top->start = (imgui_get_buttons() >> 16) & 0xffff;
-
 
             if (g_sim_core.m_simulation_run || g_sim_core.m_simulation_step)
             {
@@ -330,8 +328,6 @@ int main(int argc, char **argv)
             g_sim_core.m_simulation_step = false;
 
             ui_draw();
-            hw_ui_draw();
-            g_sim_core.video->draw();
 
             ui_end_frame();
         }
