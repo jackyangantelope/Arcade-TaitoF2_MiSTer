@@ -3,18 +3,15 @@
 
 #include <stdint.h>
 
-#define OBJCMD_UNK0 0x0001
 #define OBJCMD_A14 0x0001
-#define OBJCMD_UNK1 0x0002
-#define OBJCMD_UNK2 0x0004
-#define OBJCMD_UNK3 0x0008
-#define OBJCMD_UNK4 0x0010
+#define OBJCMD_UNK1 0x0002 // no noticable impact
+#define OBJCMD_UNK2 0x0004 // seems to blank output?
+#define OBJCMD_UNK3 0x0008 // no noticable impact
+#define OBJCMD_UNK4 0x0010 // causes flickering?
 #define OBJCMD_UNK5 0x0020
-#define OBJCMD_UNK6 0x0040
+#define OBJCMD_UNK6 0x0040 // causes a graphical artifact on the first sprite?
 #define OBJCMD_REFRESH_CHANGE 0x0080
-#define OBJCMD_UNK7 0x0080
 #define OBJCMD_6BPP 0x0300
-#define OBJCMD_UNKA 0x0400
 #define OBJCMD_A13 0x0400
 #define OBJCMD_UNKB 0x0800
 #define OBJCMD_DISABLE 0x1000
@@ -56,13 +53,18 @@ typedef struct
         uint16_t pos1;
         struct
         {
-            uint16_t has_cmd : 1;
+            uint16_t _has_cmd : 1;
             uint16_t unk1 : 1;
             uint16_t unk2 : 1;
             uint16_t unk3 : 1;
             uint16_t y : 12;
         };
-    };
+        struct
+        {
+            uint16_t has_cmd : 1;
+            uint16_t cmd_fetch_bits : 15;
+        };
+  };
 
     union
     {
@@ -131,6 +133,14 @@ static inline void obj_cmd(TC0200OBJ_Inst *o, uint16_t cmd)
     o->has_cmd = 1;
     o->cmd_bits = cmd;
 }
+
+static inline void obj_cmd_fetch(TC0200OBJ_Inst *o, uint16_t cmd, uint16_t fetch)
+{
+    o->has_cmd = 1;
+    o->cmd_bits = cmd;
+    o->cmd_fetch_bits = fetch;
+}
+
 
 static inline void obj_seq_start(TC0200OBJ_Inst *o)
 {

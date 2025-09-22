@@ -24,6 +24,7 @@ SRCS += pages/general_360pri.c
 SRCS += pages/row_480scp.c
 SRCS += pages/zoom_480scp.c
 SRCS += pages/general_480scp.c
+SRCS += pages/obj_cmd_test.c
 SRCS += pages/general_100scn.c
 SRCS += pages/align_430grw.c
 
