@@ -92,6 +92,7 @@ always @(posedge clk) begin
         GAME_DRIFTOUT: c = 17'b11_01_0_0_00_0_0_0_0_1_0_0_1_0;
         GAME_DEADCONXJ:c = 17'b01_01_0_1_00_0_1_0_0_0_1_0_1_1;
         GAME_METALBA:  c = 17'b01_11_0_0_00_0_0_1_0_0_1_0_1_1;
+        GAME_HTHERO:   c = 17'b01_11_0_1_00_0_1_0_0_0_1_0_0_0;
         default:       c = 17'b00_00_1_0_00_0_0_0_0_0_0_0_0_0;
     endcase
 
@@ -276,6 +277,7 @@ always_ff @(posedge clk) begin
         cfg_addr_obj    <= {8'h50, 8'hFF}; // 0x500000 - 0x50FFFF
       end
 
+      GAME_HTHERO,
       GAME_FOOTCHMP: begin // Also HTHERO, EUROCH92
         cfg_addr_rom      <= {8'h00, 8'hF8}; // 0x000000 - 0x07FFFF
         cfg_addr_work_ram      <= {8'h10, 8'hFF}; // 0x100000 - 0x10FFFF
@@ -494,7 +496,8 @@ always_ff @(posedge clk) begin
         GAME_DEADCONX:  begin cfg_hofs_480scp <= 322 + 33; cfg_vofs_480scp <= 224 + 30; end
         GAME_METALB:    begin cfg_hofs_480scp <= 322 + 11; cfg_vofs_480scp <= 224 + 18; end
         GAME_METALBA:   begin cfg_hofs_480scp <= 322 + 33; cfg_vofs_480scp <= 224 + 30; end
-        GAME_FOOTCHMP:  begin cfg_hofs_480scp <= 322 + 33; cfg_vofs_480scp <= 224 + 30; end
+        GAME_FOOTCHMP:  begin cfg_hofs_480scp <= 322 + 34; cfg_vofs_480scp <= 224 + 30; end
+        GAME_HTHERO:    begin cfg_hofs_480scp <= 322 + 12; cfg_vofs_480scp <= 224 + 18; end
         default:        begin cfg_hofs_480scp <= 322;      cfg_vofs_480scp <= 224;      end
     endcase
 end
