@@ -98,19 +98,20 @@ assign code_original = inst_tile_code;
 wire [18:0] tile_code = code_modified;
 
 reg [15:0] cmd_ctrl;
+reg [15:0] cmd_flags;
 wire ctrl_disable = cmd_ctrl[12];
 wire ctrl_flipscreen = cmd_ctrl[13];
 wire ctrl_6bpp = cmd_ctrl[8];
 wire ctrl_a14 = cmd_ctrl[0];
 wire ctrl_a13 = cmd_ctrl[10];
 
+wire cmd_a14 = cmd_flags[0];
+wire cmd_a13 = cmd_flags[10];
+
 reg [12:0] obj_addr;
 
 reg is_cmd;
-// device always reads from the lowest bank when access the cmd data from the
-// first instance
-reg zero_bank;
-assign RA = zero_bank ? { 2'b00, obj_addr } : {ctrl_a14, ctrl_a13, obj_addr};
+assign RA = is_cmd ? {cmd_a14, cmd_a13, obj_addr} : {ctrl_a14, ctrl_a13, obj_addr};
 
 
 typedef enum
@@ -408,7 +409,7 @@ always @(posedge clk) begin
             case(obj_addr[2:0])
                 3'd3: begin
                     if (Din[15]) begin // is_cmd
-                        zero_bank <= ~Din[0];
+                        cmd_flags <= Din;
                         is_cmd <= 1;
                     end
                 end
@@ -416,7 +417,6 @@ always @(posedge clk) begin
                 3'd5: begin
                     if (is_cmd) begin
                         cmd_ctrl <= Din;
-                        zero_bank <= 0;
                         is_cmd <= 0;
                     end
                     code_modify_req <= 1;
