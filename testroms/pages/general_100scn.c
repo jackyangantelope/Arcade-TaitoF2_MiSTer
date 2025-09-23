@@ -84,6 +84,24 @@ static void init()
         TC0100SCN->bg1_rowscroll[20 * 8 + y] = y;
     }
 
+    TC0200OBJ_Inst *obj_ptr = TC0200OBJ;
+    TC0200OBJ_Inst work;
+    TC0200OBJ_Inst *o = &work;
+    uint16_t cmd_base = OBJCMD_6BPP;
+    obj_reset(o);
+    obj_cmd(o, cmd_base); obj_commit_reset(o, &obj_ptr);
+    obj_master_xy(o, 100, 20); obj_commit_reset(o, &obj_ptr);
+ 
+    GridOptions opt;
+    memset(&opt, 0, sizeof(opt));
+    opt.w = 1; opt.h = 1;
+    opt.extra = opt.zoom = 0b1;
+    opt.tile = 1;
+    
+    opt.color = 24;
+    obj_grid(4, 0, &opt, &obj_ptr);
+    obj_grid(0, 4, &opt, &obj_ptr);
+
  }
 
 static void update()
@@ -98,6 +116,25 @@ static void update()
     {
         reset_screen_config();
         prev_dsw = dsw;
+    }
+   
+    TC0200OBJ_Inst *obj_ptr = TC0200OBJ;
+    TC0200OBJ_Inst work;
+    TC0200OBJ_Inst *o = &work;
+    
+    if ((input_dsw() & 0x0040) == 0)
+    {
+        uint16_t cmd_base = OBJCMD_6BPP | OBJCMD_FLIPSCREEN;
+        obj_reset(o);
+        obj_cmd(o, cmd_base); obj_commit_reset(o, &obj_ptr);
+        obj_master_xy(o, 98, 20); obj_commit_reset(o, &obj_ptr);
+    }
+    else
+    {
+        uint16_t cmd_base = OBJCMD_6BPP;
+        obj_reset(o);
+        obj_cmd(o, cmd_base); obj_commit_reset(o, &obj_ptr);
+        obj_master_xy(o, 100, 20); obj_commit_reset(o, &obj_ptr);
     }
 
     for( int y = 0; y < 24; y++ )

@@ -486,20 +486,22 @@ always_ff @(posedge clk) begin
 end
 
 always_ff @(posedge clk) begin
-    cfg_hofs_200obj  <= 312; cfg_vofs_200obj  <= 254;
-    cfg_hofs_100scn0 <= 397; cfg_vofs_100scn0 <= 253;
-    cfg_hofs_100scn1 <= 397; cfg_vofs_100scn1 <= 253;
-    cfg_hofs_430grw  <= 323; cfg_vofs_430grw  <= 224;
+    if (reset) begin
+        cfg_hofs_200obj  <= 312; cfg_vofs_200obj  <= 237;
+        cfg_hofs_100scn0 <= 397; cfg_vofs_100scn0 <= 253;
+        cfg_hofs_100scn1 <= 397; cfg_vofs_100scn1 <= 253;
+        cfg_hofs_430grw  <= 323; cfg_vofs_430grw  <= 224;
 
-    case (game)
-        GAME_DEADCONXJ: begin cfg_hofs_480scp <= 322 + 11; cfg_vofs_480scp <= 224 + 17; end
-        GAME_DEADCONX:  begin cfg_hofs_480scp <= 322 + 33; cfg_vofs_480scp <= 224 + 30; end
-        GAME_METALB:    begin cfg_hofs_480scp <= 322 + 11; cfg_vofs_480scp <= 224 + 18; end
-        GAME_METALBA:   begin cfg_hofs_480scp <= 322 + 33; cfg_vofs_480scp <= 224 + 30; end
-        GAME_FOOTCHMP:  begin cfg_hofs_480scp <= 322 + 34; cfg_vofs_480scp <= 224 + 30; end
-        GAME_HTHERO:    begin cfg_hofs_480scp <= 322 + 12; cfg_vofs_480scp <= 224 + 18; end
-        default:        begin cfg_hofs_480scp <= 322;      cfg_vofs_480scp <= 224;      end
-    endcase
+        case (game)
+            GAME_DEADCONXJ: begin cfg_hofs_480scp <= 322 + 11; cfg_vofs_480scp <= 224 + 17; end
+            GAME_DEADCONX:  begin cfg_hofs_480scp <= 322 + 33; cfg_vofs_480scp <= 224 + 30; end
+            GAME_METALB:    begin cfg_hofs_480scp <= 322 + 11; cfg_vofs_480scp <= 224 + 18; end
+            GAME_METALBA:   begin cfg_hofs_480scp <= 322 + 33; cfg_vofs_480scp <= 224 + 30; end
+            GAME_FOOTCHMP:  begin cfg_hofs_480scp <= 322 + 34; cfg_vofs_480scp <= 224 + 30; end
+            GAME_HTHERO:    begin cfg_hofs_480scp <= 322 + 12; cfg_vofs_480scp <= 224 + 18; end
+            default:        begin cfg_hofs_480scp <= 322;      cfg_vofs_480scp <= 224;      end
+        endcase
+    end
 end
 
 endmodule

@@ -22,7 +22,7 @@ void init_obj_cmd_test()
         TC0200OBJ_Inst work;
         TC0200OBJ_Inst *o = &work;
 
-        uint16_t cmd = OBJCMD_6BPP;
+        uint16_t cmd = OBJCMD_6BPP | OBJCMD_FLIPSCREEN;
         uint16_t fetch = 0;
 
         switch(i)
@@ -62,6 +62,8 @@ void init_obj_cmd_test()
         obj_reset(o);
         obj_cmd_fetch(o, cmd, fetch);
         obj_commit_reset(o, &obj_ptr);
+        
+        obj_grid(120, 0, &opt, &obj_ptr);
     }
 }
 
@@ -70,7 +72,7 @@ void update_obj_cmd_test()
     if (input_pressed(BTN1))
     {
         wait_dma();
-        cmd_inst->cmd |= 0x8000;
+        cmd_inst->cmd ^= OBJCMD_FLIPSCREEN;
     }
 }
 

@@ -205,10 +205,10 @@ tc0200obj_data_shifter shifter(
     .burstcnt(read_tile_burstcnt),
     .load_complete(read_tile_complete),
 
-    .x(ctrl_flipscreen ? (flip_x_origin - latch_x) : latch_x),
-    .y(ctrl_flipscreen ? (flip_y_origin - latch_y) : latch_y),
-    .flip_x(inst_x_flip ^ ctrl_flipscreen),
-    .flip_y(inst_y_flip ^ ctrl_flipscreen),
+    .x(latch_x),
+    .y(latch_y),
+    .flip_x(inst_x_flip),
+    .flip_y(inst_y_flip),
     .color(latch_color),
 
     .row_valid,
@@ -622,6 +622,9 @@ reg line_buffer_write;
 reg [7:0] line_buffer_write_addr;
 reg [63:0] line_buffer_wdata;
 
+wire [9:0] hcnt_scanout = ctrl_flipscreen ? ~hcnt : hcnt;
+wire [7:0] vcnt_scanout = ctrl_flipscreen ? ~vcnt : vcnt;
+
 dualport_ram_unreg #(.WIDTH(64), .WIDTHAD(8)) line_buffer
 (
     // Port A
@@ -634,7 +637,7 @@ dualport_ram_unreg #(.WIDTH(64), .WIDTHAD(8)) line_buffer
     // Port B
     .clock_b(clk),
     .wren_b(0),
-    .address_b({~vcnt[0], hcnt[8:2]}),
+    .address_b({~vcnt_scanout[0], hcnt_scanout[8:2]}),
     .data_b(0),
     .q_b(lb_dout)
 );
@@ -653,7 +656,7 @@ scan_state_t scan_state = SCAN_IDLE;
 
 logic [11:0] out_color;
 always_comb begin
-    unique case (hcnt[1:0])
+    unique case (hcnt_scanout[1:0])
         0: out_color = lb_dout[11:0];
         1: out_color = lb_dout[27:16];
         2: out_color = lb_dout[43:32];
@@ -714,7 +717,7 @@ always_ff @(posedge clk) begin
         SCAN_IDLE: begin
             ddr_fb.acquire <= 0;
             ddr_fb.read <= 0;
-            fb_dirty_scan_addr <= { fb_dirty_scan_addr[15:7], hcnt[6:0] };
+            fb_dirty_scan_addr <= { fb_dirty_scan_addr[15:7], hcnt_scanout[6:0] };
             fb_dirty_scan_clear <= scanout_active & ~paused;
 
             if (scanout_newline) begin
@@ -728,8 +731,8 @@ always_ff @(posedge clk) begin
             if (~ddr_fb.busy) begin
                 ddr_fb.read <= 1;
                 ddr_fb.burstcnt <= 128;
-                ddr_fb.addr <= OBJ_FB_DDR_BASE + { 13'd0, scanout_buffer, vcnt + 8'd17, 10'd0 };
-                fb_dirty_scan_addr <= { scanout_buffer, vcnt + 8'd17, 7'd0 };
+                ddr_fb.addr <= OBJ_FB_DDR_BASE + { 13'd0, scanout_buffer, vcnt_scanout, 10'd0 };
+                fb_dirty_scan_addr <= { scanout_buffer, vcnt_scanout, 7'd0 };
                 burstidx <= 0;
                 scan_state <= SCAN_WAIT_READ;
             end
@@ -741,14 +744,14 @@ always_ff @(posedge clk) begin
                 if (ddr_fb.rdata_ready) begin
                     line_buffer_write <= 1;
                     line_buffer_wdata <= ddr_fb.rdata;
-                    line_buffer_write_addr <= {vcnt[0], burstidx};
+                    line_buffer_write_addr <= {vcnt_scanout[0], burstidx};
                     burstidx <= burstidx + 1;
 
                     fb_dirty_scan_addr <= fb_dirty_scan_addr + 1;
 
                     if (burstidx == 127) begin
                         scan_state <= SCAN_IDLE;
-                        fb_dirty_scan_addr <= { scanout_buffer, vcnt + 8'd17, 7'd0 }; // reset
+                        fb_dirty_scan_addr <= { scanout_buffer, vcnt_scanout, 7'd0 }; // reset
                     end
                 end
             end
@@ -758,59 +761,6 @@ end
 
 endmodule
 
-
-/*
-        Sprite format:
-        0000: ---xxxxxxxxxxxxx tile code (0x0000 - 0x1fff)
-        0002: xxxxxxxx-------- sprite y-zoom level
-              --------xxxxxxxx sprite x-zoom level
-
-              0x00 - non scaled = 100%
-              0x80 - scaled to 50%
-              0xc0 - scaled to 25%
-              0xe0 - scaled to 12.5%
-              0xff - scaled to zero pixels size (off)
-
-        [this zoom scale may not be 100% correct, see Gunfront flame screen]
-
-        0004: ----xxxxxxxxxxxx x-coordinate (-0x800 to 0x07ff)
-              ---x------------ latch extra scroll
-              --x------------- latch master scroll
-              -x-------------- don't use extra scroll compensation
-              x--------------- absolute screen coordinates (ignore all sprite scrolls)
-              xxxx------------ the typical use of the above is therefore
-                               1010 = set master scroll
-                               0101 = set extra scroll
-        0006: ----xxxxxxxxxxxx y-coordinate (-0x800 to 0x07ff)
-              x--------------- marks special control commands (used in conjunction with 00a)
-                               If the special command flag is set:
-              ---------------x related to sprite ram bank
-              ---x------------ unknown (deadconx, maybe others)
-              --x------------- unknown, some games (growl, gunfront) set it to 1 when
-                               screen is flipped
-        0008: --------xxxxxxxx color (0x00 - 0xff)
-              -------x-------- flipx
-              ------x--------- flipy
-              -----x---------- if set, use latched color, else use & latch specified one
-              ----x----------- if set, next sprite entry is part of sequence
-              ---x------------ if clear, use latched y coordinate, else use current y
-              --x------------- if set, y += 16
-              -x-------------- if clear, use latched x coordinate, else use current x
-              x--------------- if set, x += 16
-        000a: only valid when the special command bit in 006 is set
-              ---------------x related to sprite ram bank. I think this is the one causing
-                               the bank switch, implementing it this way all games seem
-                               to properly bank switch except for footchmp which uses the
-                               bit in byte 006 instead.
-              ------------x--- unknown; some games toggle it before updating sprite ram.
-              ------xx-------- unknown (finalb)
-              -----x---------- unknown (mjnquest)
-              ---x------------ disable the following sprites until another marker with
-                               this bit clear is found
-              --x------------- flip screen
-
-        000b - 000f : unused
-*/
 
 module tc0200obj_zoom_calc(
     input         clk,
