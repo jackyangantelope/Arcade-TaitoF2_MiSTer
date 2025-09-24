@@ -41,6 +41,7 @@ enum class GfxCacheFormat
     TC0200OBJ,
     TC0200OBJ_6BPP,
     TC0480SCP,
+    TC0100SCN
 };
 
 class GfxCache
@@ -101,11 +102,11 @@ public:
 
     SDL_Texture *GetTexture(uint16_t code, uint8_t palette)
     {
-        uint16_t pal_ofs = palette * 16;
+        uint16_t pal_ofs = (palette & 0xfc) * 16;
 
-        uint16_t rawpal[16];
+        uint16_t rawpal[64];
 
-        for (int i = 0; i < 16; i++)
+        for (int i = 0; i < 64; i++)
         {
             rawpal[i] = (m_palette_high[pal_ofs + i] << 8) |
                         (m_palette_low[pal_ofs + i] << 0);
@@ -120,79 +121,136 @@ public:
             return it->second.texture;
         }
 
+        bool dar260 = G_F2_SIGNAL(cfg_260dar);
         bool bpp15 = G_F2_SIGNAL(cfg_bpp15);
         bool bppmix = G_F2_SIGNAL(cfg_bppmix);
 
-        uint32_t pal32[16];
-        for (int i = 0; i < 16; i++)
+        bool bpp6 = true;
+
+        uint32_t pal32[64];
+        for (int i = 0; i < 64; i++)
         {
             uint8_t r, g, b;
-            if (bpp15 && bppmix)
+            uint16_t p = rawpal[i];
+
+            if (dar260)
             {
-                r = ((rawpal[i] & 0xf000) >> 8) | ((rawpal[i] & 0x0008) >> 0);
-                g = ((rawpal[i] & 0x0f00) >> 4) | ((rawpal[i] & 0x0004) << 1);
-                b = ((rawpal[i] & 0x00f0) >> 0) | ((rawpal[i] & 0x0002) << 2);
-            }
-            else if (bpp15)
-            {
-                r = ((rawpal[i] & 0x7c00) >> 7);
-                g = ((rawpal[i] & 0x03e0) >> 2);
-                b = ((rawpal[i] & 0x001f) << 3);
+                if (bpp15 && bppmix)
+                {
+                    r = ((rawpal[i] & 0xf000) >> 8) | ((rawpal[i] & 0x0008) >> 0);
+                    g = ((rawpal[i] & 0x0f00) >> 4) | ((rawpal[i] & 0x0004) << 1);
+                    b = ((rawpal[i] & 0x00f0) >> 0) | ((rawpal[i] & 0x0002) << 2);
+                }
+                else if (bpp15)
+                {
+                    r = ((p & 0x7c00) >> 7);
+                    g = ((p & 0x03e0) >> 2);
+                    b = ((p & 0x001f) << 3);
+                }
+                else
+                {
+                    r = ((rawpal[i] & 0xf000) >> 8);
+                    g = ((rawpal[i] & 0x0f00) >> 4);
+                    b = ((rawpal[i] & 0x00f0) << 0);
+                }
             }
             else
             {
-                r = ((rawpal[i] & 0xf000) >> 8);
-                g = ((rawpal[i] & 0x0f00) >> 4);
-                b = ((rawpal[i] & 0x00f0) << 0);
-             }
+                b = ((p & 0xfc00) >> 7);
+                g = ((p & 0x03e0) >> 2);
+                r = ((p & 0x001f) << 3);
+            }
 
             uint32_t c = (r << 24) | (g << 16) | (b << 8);
             pal32[i] = c;
         }
 
-        SDL_Texture *tex = SDL_CreateTexture(m_renderer, SDL_PIXELFORMAT_RGBX8888,
-                                             SDL_TEXTUREACCESS_STATIC, 16, 16);
 
-        const uint8_t *src = m_gfxmem + (code * 128);
+        const uint8_t *src;
+        int size;
+
         uint32_t pixels[16 * 16];
         uint32_t *dest = pixels;
 
+        int pal_align = (palette & 0x3) << 4;
+
         if (m_format == GfxCacheFormat::TC0200OBJ)
         {
-            for (int i = 0; i < 128; i++)
+            size = 16;
+            if (bpp6)
             {
-                dest[1] = pal32[((*src & 0xf0) >> 4)];
-                dest[0] = pal32[((*src & 0x0f) >> 0)];
-                dest += 2;
-                src++;
+                src = m_gfxmem + (code * (size * size));
+                for (int i = 0; i < 64; i++)
+                {
+                    dest[1] = pal32[((src[1] & 0xf0) >> 4)];
+                    dest[0] = pal32[((src[1] & 0x0f) >> 0)];
+                    dest[3] = pal32[((src[0] & 0xf0) >> 4)];
+                    dest[2] = pal32[((src[0] & 0x0f) >> 0)];
+                    dest += 4;
+                    src  += 4;
+                }
+            }
+            else
+            {
+                src = m_gfxmem + (code * (size * size) / 2);
+                for (int i = 0; i < 128; i++)
+                {
+                    dest[1] = pal32[pal_align + ((*src & 0xf0) >> 4)];
+                    dest[0] = pal32[pal_align + ((*src & 0x0f) >> 0)];
+                    dest += 2;
+                    src++;
+                }
             }
         }
         else if (m_format == GfxCacheFormat::TC0480SCP)
         {
+            size = 16;
+            src = m_gfxmem + (code * (size * size) / 2);
             for (int i = 0; i < 16; i++)
             {
-                dest[15] = pal32[((src[4] & 0xf0) >> 4)];
-                dest[14] = pal32[((src[4] & 0x0f) >> 0)];
-                dest[13] = pal32[((src[5] & 0xf0) >> 4)];
-                dest[12] = pal32[((src[5] & 0x0f) >> 0)];
-                dest[11] = pal32[((src[6] & 0xf0) >> 4)];
-                dest[10] = pal32[((src[6] & 0x0f) >> 0)];
-                dest[ 9] = pal32[((src[7] & 0xf0) >> 4)];
-                dest[ 8] = pal32[((src[7] & 0x0f) >> 0)];
-                dest[ 7] = pal32[((src[0] & 0xf0) >> 4)];
-                dest[ 6] = pal32[((src[0] & 0x0f) >> 0)];
-                dest[ 5] = pal32[((src[1] & 0xf0) >> 4)];
-                dest[ 4] = pal32[((src[1] & 0x0f) >> 0)];
-                dest[ 3] = pal32[((src[2] & 0xf0) >> 4)];
-                dest[ 2] = pal32[((src[2] & 0x0f) >> 0)];
-                dest[ 1] = pal32[((src[3] & 0xf0) >> 4)];
-                dest[ 0] = pal32[((src[3] & 0x0f) >> 0)];
+                dest[15] = pal32[pal_align + ((src[4] & 0xf0) >> 4)];
+                dest[14] = pal32[pal_align + ((src[4] & 0x0f) >> 0)];
+                dest[13] = pal32[pal_align + ((src[5] & 0xf0) >> 4)];
+                dest[12] = pal32[pal_align + ((src[5] & 0x0f) >> 0)];
+                dest[11] = pal32[pal_align + ((src[6] & 0xf0) >> 4)];
+                dest[10] = pal32[pal_align + ((src[6] & 0x0f) >> 0)];
+                dest[ 9] = pal32[pal_align + ((src[7] & 0xf0) >> 4)];
+                dest[ 8] = pal32[pal_align + ((src[7] & 0x0f) >> 0)];
+                dest[ 7] = pal32[pal_align + ((src[0] & 0xf0) >> 4)];
+                dest[ 6] = pal32[pal_align + ((src[0] & 0x0f) >> 0)];
+                dest[ 5] = pal32[pal_align + ((src[1] & 0xf0) >> 4)];
+                dest[ 4] = pal32[pal_align + ((src[1] & 0x0f) >> 0)];
+                dest[ 3] = pal32[pal_align + ((src[2] & 0xf0) >> 4)];
+                dest[ 2] = pal32[pal_align + ((src[2] & 0x0f) >> 0)];
+                dest[ 1] = pal32[pal_align + ((src[3] & 0xf0) >> 4)];
+                dest[ 0] = pal32[pal_align + ((src[3] & 0x0f) >> 0)];
                 dest += 16;
                 src += 8;
             }
         }
+        else if (m_format == GfxCacheFormat::TC0100SCN)
+        {
+            size = 8;
+            src = m_gfxmem + (code * (size * size) / 2);
+            for (int i = 0; i < 8; i++)
+            {
+                dest[2] = pal32[pal_align + ((src[0] & 0xf0) >> 4)];
+                dest[3] = pal32[pal_align + ((src[0] & 0x0f) >> 0)];
+                dest[0] = pal32[pal_align + ((src[1] & 0xf0) >> 4)];
+                dest[1] = pal32[pal_align + ((src[1] & 0x0f) >> 0)];
+                dest[6] = pal32[pal_align + ((src[2] & 0xf0) >> 4)];
+                dest[7] = pal32[pal_align + ((src[2] & 0x0f) >> 0)];
+                dest[4] = pal32[pal_align + ((src[3] & 0xf0) >> 4)];
+                dest[5] = pal32[pal_align + ((src[3] & 0x0f) >> 0)];
+                dest += 8;
+                src += 4;
+            }
+        }
 
-        SDL_UpdateTexture(tex, nullptr, pixels, 16 * 4);
+        SDL_Texture *tex = SDL_CreateTexture(m_renderer, SDL_PIXELFORMAT_RGBX8888,
+                                             SDL_TEXTUREACCESS_STATIC, size, size);
+
+        SDL_UpdateTexture(tex, nullptr, pixels, size * 4);
 
         auto r = m_cache.emplace(hash, GfxCacheEntry(tex, m_used_idx));
         return r.first->second.texture;

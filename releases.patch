@@ -1,6 +1,6 @@
 diff -ruN -x *.rbf -x .DS_Store releases_clean/Ah Eikou no Koshien (Japan).mra releases/Ah Eikou no Koshien (Japan).mra
 --- releases_clean/Ah Eikou no Koshien (Japan).mra	2025-09-20 20:02:44
-+++ releases/Ah Eikou no Koshien (Japan).mra	2025-09-20 20:02:50
++++ releases/Ah Eikou no Koshien (Japan).mra	2025-09-20 20:03:49
 @@ -24,7 +24,11 @@
  	<rom index="0" address="0x30000000" zip="koshien.zip">
  		<part>0d 00</part>
@@ -123,7 +123,7 @@ diff -ruN -x *.rbf -x .DS_Store releases_clean/_alternatives/_Cameltry/Cameltry 
 \ No newline at end of file
 diff -ruN -x *.rbf -x .DS_Store releases_clean/_alternatives/_Dead Connection/Dead Connection (Japan).mra releases/_alternatives/_Dead Connection/Dead Connection (Japan).mra
 --- releases_clean/_alternatives/_Dead Connection/Dead Connection (Japan).mra	2025-09-20 20:02:44
-+++ releases/_alternatives/_Dead Connection/Dead Connection (Japan).mra	2025-09-20 20:02:50
++++ releases/_alternatives/_Dead Connection/Dead Connection (Japan).mra	2025-09-20 20:03:49
 @@ -23,7 +23,7 @@
  		<dip name="Upright Controls" bits="15" values="0,1" ids="Single,Dual"/>
  	</switches>
@@ -142,7 +142,7 @@ diff -ruN -x *.rbf -x .DS_Store releases_clean/_alternatives/_Dead Connection/De
 +</misterromdescription>
 diff -ruN -x *.rbf -x .DS_Store releases_clean/_alternatives/_Drift Out/Drift Out (Europe, Cameltry conversion).mra releases/_alternatives/_Drift Out/Drift Out (Europe, Cameltry conversion).mra
 --- releases_clean/_alternatives/_Drift Out/Drift Out (Europe, Cameltry conversion).mra	2025-09-20 20:02:44
-+++ releases/_alternatives/_Drift Out/Drift Out (Europe, Cameltry conversion).mra	2025-09-20 20:02:50
++++ releases/_alternatives/_Drift Out/Drift Out (Europe, Cameltry conversion).mra	2025-09-20 20:03:49
 @@ -23,7 +23,7 @@
  		<dip name="Unused" bits="15" values="1,0" ids="Off,On"/>
  	</switches>
@@ -270,9 +270,28 @@ diff -ruN -x *.rbf -x .DS_Store releases_clean/_alternatives/_Football Champ/Foo
 -	</rom>
 -</misterromdescription>
 \ No newline at end of file
+diff -ruN -x *.rbf -x .DS_Store releases_clean/_alternatives/_Football Champ/Hat Trick Hero (Japan).mra releases/_alternatives/_Football Champ/Hat Trick Hero (Japan).mra
+--- releases_clean/_alternatives/_Football Champ/Hat Trick Hero (Japan).mra	2025-09-20 20:02:44
++++ releases/_alternatives/_Football Champ/Hat Trick Hero (Japan).mra	2025-09-22 22:20:42
+@@ -22,7 +22,7 @@
+ 		<dip name="Difficulty" bits="14,15" values="1,3,2,0" ids="Easy,Medium,Hard,Hardest"/>
+ 	</switches>
+ 	<rom index="0" address="0x30000000" zip="htheroj.zip|footchmp.zip">
+-		<part>0c 00</part>
++		<part>1e 00</part>
+ 		<!--Region: maincpu, Size: 524288 bytes-->
+ 		<part>00080000</part>
+ 		<interleave output="16">
+@@ -50,4 +50,4 @@
+ 		<part>04100000</part>
+ 		<part crc="609938d5" name="c80-03.57"/>
+ 	</rom>
+-</misterromdescription>
+\ No newline at end of file
++</misterromdescription>
 diff -ruN -x *.rbf -x .DS_Store releases_clean/_alternatives/_Metal Black/Metal Black (World, single PCB).mra releases/_alternatives/_Metal Black/Metal Black (World, single PCB).mra
 --- releases_clean/_alternatives/_Metal Black/Metal Black (World, single PCB).mra	2025-09-20 20:02:44
-+++ releases/_alternatives/_Metal Black/Metal Black (World, single PCB).mra	2025-09-20 20:02:50
++++ releases/_alternatives/_Metal Black/Metal Black (World, single PCB).mra	2025-09-20 20:03:49
 @@ -22,7 +22,7 @@
  		<dip name="Upright Controls" bits="15" values="0,1" ids="Single,Dual"/>
  	</switches>

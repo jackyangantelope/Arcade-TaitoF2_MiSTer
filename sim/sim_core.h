@@ -27,6 +27,7 @@ public:
 
     std::unique_ptr<GfxCache> gfx_480scp;
     std::unique_ptr<GfxCache> gfx_200obj;
+    std::unique_ptr<GfxCache> gfx_100scn;
     
     // Simulation state (made public for compatibility)
     uint64_t m_total_ticks;

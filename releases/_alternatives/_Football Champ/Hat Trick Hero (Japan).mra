@@ -22,7 +22,7 @@
 		<dip name="Difficulty" bits="14,15" values="1,3,2,0" ids="Easy,Medium,Hard,Hardest"/>
 	</switches>
 	<rom index="0" address="0x30000000" zip="htheroj.zip|footchmp.zip">
-		<part>0c 00</part>
+		<part>1e 00</part>
 		<!--Region: maincpu, Size: 524288 bytes-->
 		<part>00080000</part>
 		<interleave output="16">
