@@ -15,9 +15,6 @@ SRCS += interrupts_default.c comms.c tilemap.c input.c color.c printf/printf.c
 SRCS += obj_test.c audio_240p.c tc0360pri.c crc16.c
 
 SRCS += pages/access_timing.c
-SRCS += pages/obj_test1.c
-SRCS += pages/obj_test2.c
-SRCS += pages/obj_test3.c
 SRCS += pages/sound_test.c
 SRCS += pages/finalb_obj.c
 SRCS += pages/general_360pri.c
@@ -27,6 +24,11 @@ SRCS += pages/general_480scp.c
 SRCS += pages/align_430grw.c
 SRCS += pages/obj_cmd_test.c
 SRCS += pages/general_100scn.c
+SRCS += pages/obj_position.c
+SRCS += pages/obj_test1.c
+SRCS += pages/obj_test2.c
+SRCS += pages/obj_test3.c
+SRCS += pages/obj_latching.c
 
 CHR = font.chr 
 ASM = savestate.s

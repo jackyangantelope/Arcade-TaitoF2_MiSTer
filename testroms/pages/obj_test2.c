@@ -26,6 +26,8 @@ void update_obj_test2()
     obj_master_xy(o, 100, 30); obj_commit_reset(o, &obj_ptr);
 
     GridOptions opt;
+    opt.tile = 0;
+    opt.color = 0;
     opt.w = 3; opt.h = 3;
     opt.zoom_x = 0; opt.zoom_y = 0;
     opt.zoom = 0b100'000'000;

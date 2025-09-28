@@ -125,7 +125,7 @@ public:
         bool bpp15 = G_F2_SIGNAL(cfg_bpp15);
         bool bppmix = G_F2_SIGNAL(cfg_bppmix);
 
-        bool bpp6 = true;
+        bool bpp6 = G_F2_SIGNAL(tc0200obj,ctrl_6bpp);
 
         uint32_t pal32[64];
         for (int i = 0; i < 64; i++)

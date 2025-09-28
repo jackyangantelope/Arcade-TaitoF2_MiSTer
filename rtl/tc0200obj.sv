@@ -74,24 +74,20 @@ reg [15:0] work_buffer[8];
 wire [12:0] inst_tile_code       =  work_buffer[0][12:0];
 wire [7:0]  inst_x_zoom          =  work_buffer[1][7:0];
 wire [7:0]  inst_y_zoom          =  work_buffer[1][15:8];
-wire [11:0] inst_x_coord         =  work_buffer[6][11:0];
-wire        inst_latch_extra     =  work_buffer[6][12];
-wire        inst_latch_master    =  work_buffer[6][13];
-wire        inst_use_extra       = ~work_buffer[6][14];
-wire        inst_use_scroll      = ~work_buffer[6][15];
-wire [11:0] inst_y_coord         =  work_buffer[7][11:0];
-wire        inst_is_cmd          =  work_buffer[7][15];
-wire [2:0]  inst_unk1            =  work_buffer[7][14:12];
+wire        inst_is_cmd          =  work_buffer[3][15];
+wire [2:0]  inst_unk1            =  work_buffer[3][14:12];
 wire [7:0]  inst_color           =  work_buffer[4][7:0];
 wire        inst_x_flip          =  work_buffer[4][8];
 wire        inst_y_flip          =  work_buffer[4][9];
 wire        inst_reuse_color     =  work_buffer[4][10];
-wire        inst_next_seq        =  work_buffer[4][11];
+wire        inst_seq        =  work_buffer[4][11];
 wire        inst_use_latch_y     =  work_buffer[4][12];
 wire        inst_inc_y           =  work_buffer[4][13];
 wire        inst_use_latch_x     =  work_buffer[4][14];
 wire        inst_inc_x           =  work_buffer[4][15];
 wire [15:0] inst_cmd             =  work_buffer[5];
+wire [11:0] inst_base_x          =  work_buffer[6][11:0];
+wire [11:0] inst_base_y          =  work_buffer[7][11:0];
 reg         inst_debug;
 
 assign code_original = inst_tile_code;
@@ -173,7 +169,9 @@ dualport_ram_unreg #(.WIDTH(1), .WIDTHAD(16)) fb_dirty_buffer
     .q_b(fb_dirty_is_set)
 );
 
-reg [11:0] master_x, master_y, extra_x, extra_y;
+reg [11:0] dma_master_x, dma_master_y, dma_extra_x, dma_extra_y, dma_x, dma_y;
+reg dma_ignore_all, dma_ignore_extra, dma_latch_extra, dma_latch_master;
+
 reg [11:0] latch_x, latch_y;
 reg [7:0]  latch_color;
 reg prev_vbl_n, vbl_edge;
@@ -261,7 +259,7 @@ tc0200obj_zoom_calc column_calc(
 reg [17:0] read_pacing;
 reg [4:0] busy_count;
 reg test_pause = 0;
-    
+
 reg [11:0] base_x, base_y;
 reg prev_seq;
 reg is_seq_start;
@@ -326,10 +324,6 @@ always @(posedge clk) begin
             scanout_buffer <= ~scanout_buffer;
             busy_count <= 0;
             obj_state <= ST_PRE_DMA;
-
-            // FIXME, verify that this resets
-            extra_x <= 0;
-            extra_y <= 0;
         end
 
         ST_PRE_DMA: if (ce_13m) begin
@@ -355,20 +349,26 @@ always @(posedge clk) begin
                 0: begin
                     obj_addr <= dma_addr + 13'd2;
                 end
-                1: work_buffer[1] <= Din;
+                1: {dma_ignore_all, dma_ignore_extra, dma_latch_master, dma_latch_extra, dma_x} <= Din;
                 2: begin
                     obj_addr <= dma_addr + 13'd3;
                 end
-                3: work_buffer[2] <= Din;
+                3: begin
+                    dma_y <= Din[11:0];
+                    if (dma_latch_master) dma_master_x <= dma_x;
+                    if (dma_latch_extra) dma_extra_x <= dma_x;
+                end
                 4: begin
                     obj_addr <= dma_addr + 13'd6;
-                    Dout <= work_buffer[1];
+                    Dout <= {4'd0, dma_ignore_all ? dma_x : dma_ignore_extra ? ( dma_x + dma_master_x ) : ( dma_x + dma_master_x + dma_extra_x )};
+                    if (dma_latch_master) dma_master_y <= dma_y;
+                    if (dma_latch_extra) dma_extra_y <= dma_y;
                     RDWEn <= 0;
                 end
                 5: RDWEn <= 1;
                 6: begin
                     obj_addr <= dma_addr + 13'd7;
-                    Dout <= work_buffer[2];
+                    Dout <= {4'd0, dma_ignore_all ? dma_y : dma_ignore_extra ? ( dma_y + dma_master_y ) : ( dma_y + dma_master_y + dma_extra_y )};
                     RDWEn <= 0;
                 end
                 7: RDWEn <= 1;
@@ -435,27 +435,28 @@ always @(posedge clk) begin
         end
 
         ST_EVAL0: begin
-            is_seq_start <= (inst_next_seq & ~prev_seq) | (~inst_next_seq & ~prev_seq);
-            prev_seq <= inst_next_seq;
+            prev_seq <= inst_seq;
             obj_state <= ST_EVAL1;
+            base_x <= inst_base_x;
+            if ((inst_seq & ~prev_seq) | (~inst_seq & ~prev_seq)) begin
+                base_y <= inst_base_y;
+                is_seq_start <= 1;
+            end else begin
+                is_seq_start <= 0;
+            end
         end
 
         ST_EVAL1: begin
-            if (is_seq_start) begin
-                base_x <= inst_x_coord + (inst_use_scroll ? ( master_x + (inst_use_extra ? extra_x : 12'd0) ) : 12'd0);
-                base_y <= inst_y_coord + (inst_use_scroll ? ( master_y + (inst_use_extra ? extra_y : 12'd0) ) : 12'd0);
+            if (inst_use_latch_y) begin
+                latch_y <= latch_y + {7'd0, row_count};
+            end else begin
+                latch_y <= base_y;
             end
 
-            // FIXME confirm hardware behavior when only latch bit is set
-            // liquidk sometimes does this and mame ignores it
-            if (inst_latch_extra & ~inst_use_extra) begin
-                extra_x <= inst_x_coord;
-                extra_y <= inst_y_coord;
-            end
-
-            if (inst_latch_master & ~inst_use_scroll) begin
-                master_x <= inst_x_coord;
-                master_y <= inst_y_coord;
+            if (inst_use_latch_x | inst_inc_x) begin
+                latch_x <= latch_x + {7'd0, inst_inc_x ? col_count : 5'd0};
+            end else begin
+                latch_x <= base_x + {7'd0, inst_inc_x ? col_count : 5'd0};
             end
 
             obj_state <= ST_EVAL2;
@@ -470,18 +471,6 @@ always @(posedge clk) begin
             end else begin
                 row_calc_start <= 1;
                 col_calc_start <= inst_inc_x;
-            end
-
-            // We are intentionally using the previous col_count and row_count
-            if (inst_use_latch_y) begin
-                latch_y <= latch_y + {7'd0, row_count};
-            end else begin
-                latch_y <= base_y;
-            end
-            if (inst_use_latch_x | inst_inc_x) begin
-                latch_x <= latch_x + {7'd0, inst_inc_x ? col_count : 5'd0};
-            end else begin
-                latch_x <= base_x + {7'd0, inst_inc_x ? col_count : 5'd0};
             end
 
             if (~inst_reuse_color) begin

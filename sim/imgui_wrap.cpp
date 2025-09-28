@@ -13,6 +13,7 @@ SDL_Renderer *sdl_renderer;
 #define BTN_LEFT 0x0002
 #define BTN_DOWN 0x0004
 #define BTN_UP 0x0008
+#define BTN_BTN1 0x0010
 #define BTN_START 0x00010000
 
 
@@ -116,6 +117,9 @@ bool imgui_begin_frame()
                     break;
                 case SDLK_1:
                     bits = BTN_START;
+                    break;
+                case SDLK_LCTRL:
+                    bits = BTN_BTN1;
                     break;
                 }
 
