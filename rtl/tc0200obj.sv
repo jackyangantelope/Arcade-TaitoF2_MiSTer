@@ -598,7 +598,7 @@ wire [9:0] HB_END = 8;
 
 wire [7:0] VS_START = 240;
 wire [7:0] VS_END = sync_fix ? (244 - 1) : (246 - 1);
-wire [7:0] VB_START = 224;
+wire [7:0] VB_START = 241; // FIXME - this controls the DMA timing and should really be synced to the external vblank
 wire [7:0] VB_END = 255;
 wire [7:0] V_EXVBL_RESET = 250; // from signal trace
 
