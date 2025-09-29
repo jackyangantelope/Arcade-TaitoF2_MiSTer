@@ -853,13 +853,6 @@ TC0200OBJ_Koshien #(.SS_IDX(SSIDX_KOSHIEN)) tc0200obj_koshien(
 );
 
 
-wire HSYNCn;
-wire VSYNCn;
-wire HBLn;
-wire VBLn;
-wire HBLOn;
-wire VBLOn;
-
 wire [7:0] dar_red, dar_green, dar_blue;
 wire dar_hblank_n, dar_vblank_n;
 
@@ -953,9 +946,9 @@ TC0100SCN #(.SS_IDX(SSIDX_SCN_0)) scn0(
     // Video interface
     .SC(scn0_dot_color),
     .HSYNn(),
-    .HBLOn,
+    .HBLOn(),
     .VSYNn(),
-    .VBLOn,
+    .VBLOn(),
     .OLDH(),
     .OLDV(),
     .IHLD(global_hcnt == cfg_hofs_100scn0),
@@ -1253,8 +1246,8 @@ TC0110PR tc0110pr(
     .DACKn(CDTACKn),
 
     // Video Input
-    .HSYn(HSYNCn),
-    .VSYn(VSYNCn),
+    .HSYn(~hsync),
+    .VSYn(~vsync),
 
     .SC(scn0_dot_color),
     .OB({3'b0, obj_dot}),
@@ -1370,7 +1363,7 @@ wire ICLR1n = ~(~IACKn & (cpu_addr[2:0] == 3'b101) & ~cpu_ds_n[0]);
 wire ICLR2n = ~(~IACKn & (cpu_addr[2:0] == 3'b110) & ~cpu_ds_n[0]);
 
 reg int_req1, int_req2;
-reg vbl_prev, dma_prev;
+reg vbl_prev_n, dma_prev_n;
 
 assign IPLn = ss_irq ? ~3'b111 :
               int_req2 ? ~3'b110 :
@@ -1378,17 +1371,17 @@ assign IPLn = ss_irq ? ~3'b111 :
               ~3'b000;
 
 always_ff @(posedge clk) begin
-    vbl_prev <= VBLn;
-    dma_prev <= DMAn;
+    vbl_prev_n <= ~global_vblank;
+    dma_prev_n <= DMAn;
 
     if (reset) begin
         int_req2 <= 0;
         int_req1 <= 0;
     end else begin
-        if (vbl_prev & ~VBLn) begin
+        if (vbl_prev_n & global_vblank) begin
             int_req1 <= 1;
         end
-        if (~dma_prev & DMAn) begin
+        if (~dma_prev_n & DMAn) begin
             int_req2 <= 1;
         end
 
