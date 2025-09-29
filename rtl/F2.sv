@@ -782,18 +782,12 @@ TC0200OBJ tc0200obj(
     .RDWEn(ORDWEn),
 
     .EDMAn(DMAn),
+    .dma_start(global_vblank),
 
     .DOT(obj_dot),
 
     .EXHBLn(global_hcnt != cfg_hofs_200obj),
     .EXVBLn(global_vcnt != cfg_vofs_200obj),
-
-    .HSYNCn,
-    .VSYNCn,
-    .HBLn,
-    .VBLn,
-
-    .sync_fix,
 
     .code_modify_req(obj_code_modify_req),
     .code_original(obj_code_original),

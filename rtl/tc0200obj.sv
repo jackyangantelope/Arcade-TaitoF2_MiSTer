@@ -17,19 +17,12 @@ module TC0200OBJ #(parameter SS_IDX=-1) (
     output reg RDWEn,
 
     output reg EDMAn, // TODO - is dma started by vblank?
+    input dma_start,
 
     output [11:0] DOT,
 
     input EXHBLn,
     input EXVBLn,
-
-    output reg HSYNCn,
-    output reg VSYNCn,
-    output reg HBLn,
-    output reg VBLn,
-
-    // Make the sync more compatible with consumer CRTs
-    input sync_fix,
 
     // bank switching and extension support
     output reg code_modify_req,
@@ -269,13 +262,8 @@ always @(posedge clk) begin
     code_modify_req <= 0;
     row_calc_start <= 0;
     col_calc_start <= 0;
-    
-    paused <= 0;
 
-    prev_vbl_n <= VBLn;
-    if (prev_vbl_n & ~VBLn) begin
-        vbl_edge <= 1;
-    end
+    paused <= 0;
 
     if (ce_13m) begin
         read_pacing <= read_pacing + 1;
@@ -292,8 +280,7 @@ always @(posedge clk) begin
             RDWEn <= 1;
             EDMAn <= 1;
 
-            if (vbl_edge) begin
-                vbl_edge <= 0;
+            if (dma_start) begin
                 if (pause)
                     obj_state <= ST_PAUSE_INIT;
                 else
@@ -308,8 +295,7 @@ always @(posedge clk) begin
 
         ST_PAUSE: begin
             paused <= 1;
-            if (vbl_edge) begin
-                vbl_edge <= 0;
+            if (dma_start) begin
                 if (~pause) begin
                     scanout_buffer <= ~scanout_buffer;
                     obj_state <= ST_DMA_INIT;
@@ -383,7 +369,7 @@ always @(posedge clk) begin
         end
 
         ST_READ_START: if (ce_13m) begin
-            if (obj_addr[12:3] == 835 || vbl_edge) begin
+            if (obj_addr[12:3] == 835) begin
                 obj_state <= ST_IDLE;
             end else begin
                 if (read_pacing[17:8] >= obj_addr[12:3]) begin
@@ -591,15 +577,10 @@ end
 wire [9:0] H_OFS = 90;
 wire [9:0] H_START = 0 + H_OFS;
 wire [9:0] H_END = 424 + H_OFS - 1;
-wire [9:0] HS_START = 340 + H_OFS;
-wire [9:0] HS_END = sync_fix ? (372 + H_OFS - 1) : (404 + H_OFS - 1);
 wire [9:0] HB_START = 320 + H_OFS;
-wire [9:0] HB_END = 8;
 
 wire [7:0] VS_START = 240;
-wire [7:0] VS_END = sync_fix ? (244 - 1) : (246 - 1);
-wire [7:0] VB_START = 241; // FIXME - this controls the DMA timing and should really be synced to the external vblank
-wire [7:0] VB_END = 255;
+wire [7:0] VS_END = 246 - 1;
 wire [7:0] V_EXVBL_RESET = 250; // from signal trace
 
 
@@ -634,7 +615,7 @@ dualport_ram_unreg #(.WIDTH(64), .WIDTHAD(8)) line_buffer
 
 wire [63:0] lb_dout;
 
-reg ex_vbl_n_prev, vbl_n_prev;
+reg ex_vbl_n_prev;
 reg ex_vbl_end, vbl_start;
 reg scanout_active;
 reg scanout_newline;
@@ -666,13 +647,11 @@ always_ff @(posedge clk) begin
     if (ce_pixel) begin
         ex_vbl_n_prev <= EXVBLn;
         ex_hbl_n_prev <= EXHBLn;
-        vbl_n_prev <= VBLn;
 
         if (EXVBLn & ~ex_vbl_n_prev) begin
             ex_vbl_end <= 1;
         end
-        if (~VBLn & vbl_n_prev) begin
-            //vbl_start <= 1;
+        if (~EXVBLn & ex_vbl_n_prev) begin
             scanout_active <= 0;
         end
 
@@ -692,11 +671,6 @@ always_ff @(posedge clk) begin
                 end
             end
         end
-
-        HSYNCn <= ~(hcnt >= HS_START && hcnt <= HS_END);
-        HBLn <= ~(hcnt >= HB_START && hcnt <= HB_END);
-        VSYNCn <= ~(vcnt >= VS_START && vcnt <= VS_END);
-        VBLn <= ~(vcnt >= VB_START); // && vcnt <= VB_END);
     end
 
     fb_dirty_scan_clear <= 0;
