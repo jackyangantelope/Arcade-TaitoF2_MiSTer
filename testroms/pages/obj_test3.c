@@ -43,6 +43,7 @@ void update_obj_test3()
     if (test3_index < 0) test3_index = 10;
 
     GridOptions opt;
+    memset(&opt, 0, sizeof(opt));
     opt.w = 3; opt.h = 3;
     opt.extra = 0;
     opt.pos = opt.zoom = 0b100'000'000;

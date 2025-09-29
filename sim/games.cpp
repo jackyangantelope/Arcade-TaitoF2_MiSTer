@@ -19,8 +19,8 @@ static const char *game_names[N_GAMES] = {
     "solfigtr",      "qzquest",     "pulirula",     "metalb",
     "qzchikyu",      "yesnoj",      "deadconx",     "dinorex",
     "qjinsei",       "qcrayon",     "qcrayon2",     "driftout",
-    "deadconxj",     "metalba",     "finalb_test",  "qjinsei_test",
-    "driftout_test", "deadconx_test",
+    "deadconxj",     "metalba",     "hthero",
+    "finalb_test",   "qjinsei_test","driftout_test","deadconx_test",
 };
 
 game_t game_find(const char *name)

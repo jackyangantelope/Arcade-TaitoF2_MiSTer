@@ -34,6 +34,7 @@ void update_obj_test1()
     obj_master_xy(o, 100, 30); obj_commit_reset(o, &obj_ptr);
   
     GridOptions opt;
+    memset(&opt, 0, sizeof(opt));
     opt.w = 3; opt.h = 3;
     opt.extra = opt.zoom = 0b100'000'000;
     opt.zoom_x = 0; opt.zoom_y = 0;

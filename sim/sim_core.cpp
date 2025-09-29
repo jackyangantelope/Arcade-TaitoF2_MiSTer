@@ -45,6 +45,7 @@ void SimCore::Init()
 
     gfx_200obj = std::make_unique<GfxCache>();
     gfx_480scp = std::make_unique<GfxCache>();
+    gfx_100scn = std::make_unique<GfxCache>();
 }
 
 void SimCore::Tick(int count)

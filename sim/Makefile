@@ -38,6 +38,7 @@ SRCS = imgui/imgui.cpp \
 		imgui_wrap.cpp \
 		tc0200obj.cpp \
 		tc0360pri.cpp \
+		tc0100scn.cpp \
 		tc0480scp.cpp \
 		third_party/miniz.cpp \
 		third_party/pugixml.cpp \
@@ -68,7 +69,7 @@ HDL_SRC += ../rtl/system_consts.sv ../rtl/address_translator.sv ../rtl/game_boar
 HDL_SRC += ../rtl/rom_cache.sv
 HDL_SRC += ../rtl/tmp82c265.sv ../rtl/tc0030cmd.sv ../rtl/te7750.sv
 HDL_SRC += ../rtl/F2.sv ../rtl/video_timing.sv
-HDL_SRC += ../rtl/tc0430grw.sv ../rtl/tc0480scp.sv
+HDL_SRC += ../rtl/tc0430grw.sv ../rtl/tc0480scp.sv ../rtl/tc0200obj_koshien.sv
 HDL_SRC += ../rtl/tc0100scn.sv ../rtl/tc0110pr.sv ../rtl/tc0220ioc.sv ../rtl/tc0200obj.sv ../rtl/tc0140syt.sv
 HDL_SRC += ../rtl/tc0260dar.sv ../rtl/tc0200obj_extender.sv ../rtl/tc0360pri.sv ../rtl/tc0190fmc.sv
 HDL_SRC += ../rtl/ram.sv ../rtl/jtframe_frac_cen.v ../rtl/memory_stream.sv ../rtl/savestates.sv ../rtl/ddram.sv

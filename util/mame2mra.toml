@@ -25,8 +25,8 @@ ssi = "08 00"
 gunfront = "09 00"
 growl = "0a 00"
 #mjnquest = "0b 00"
-#footchmp = "0c 00"
-#koshien = "0d 00"
+footchmp = "0c 00"
+koshien = "0d 00"
 #yuyugogo = "0e 00"
 ninjak = "0f 00"
 solfigtr = "10 00"
@@ -66,6 +66,7 @@ deadconx = { snes = "B,A,Start,Select,L,R", game = "Fire,Dive,-,-,-,-,Start,Coin
 
 dinorex = { snes = "B,A,Start,Select,L,R", game = "Bite/Punch,Kick,-,-,-,-,Start,Coin,Pause,SS" }
 driftout = { snes = "B,A,Start,Select,L,R", game = "Accelerator,Brake,-,-,-,-,Start,Coin,Pause,SS" }
+footchmp = { snes = "B,A,Start,Select,L,R", game = "Shoot/Slide,Pass/Rough,-,-,-,-,Start,Coin,Pause,SS" }
 
 
 [pretty_names]
@@ -90,6 +91,7 @@ quizhq = "Quiz H.Q."
 koshien = "Ah Eikou no Koshien"
 metalb = "Metal Black"
 deadconx = "Dead Connection"
+footchmp = "Football Champ"
 
 [abbreviations]
 # Dip switch name abbreviations (24 character limit)

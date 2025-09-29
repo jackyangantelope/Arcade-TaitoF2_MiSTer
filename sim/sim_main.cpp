@@ -99,7 +99,12 @@ int main(int argc, char **argv)
                        g_sim_core.sdram->data + SCN1_ROM_SDR_BASE,
                        G_F2_SIGNAL(color_ram, ram_l).m_storage,
                        G_F2_SIGNAL(color_ram, ram_h).m_storage);
-     }
+        g_sim_core.gfx_100scn->Init(imgui_get_renderer(),
+                       GfxCacheFormat::TC0100SCN,
+                       g_sim_core.sdram->data + SCN0_ROM_SDR_BASE,
+                       G_F2_SIGNAL(color_ram, ram_l).m_storage,
+                       G_F2_SIGNAL(color_ram, ram_h).m_storage);
+      }
     else
     {
         // Minimal init for headless mode
@@ -285,6 +290,7 @@ int main(int argc, char **argv)
         {
             g_sim_core.gfx_200obj->PruneCache();
             g_sim_core.gfx_480scp->PruneCache();
+            g_sim_core.gfx_100scn->PruneCache();
             
             // Interactive mode
             if (!ui_begin_frame())
