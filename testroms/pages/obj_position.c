@@ -37,13 +37,13 @@ void update_obj_position()
     obj_xy(o, 0, 0); obj_commit_reset(o, &obj_ptr);
     obj_xy(o, 2, 2); o->ignore_extra = 1; obj_commit_reset(o, &obj_ptr);
     obj_xy(o, 4, 4); o->ignore_all = 1; obj_commit_reset(o, &obj_ptr);
-    obj_xy(o, 8, 8); obj_commit_reset(o, &obj_ptr);
+    obj_xy(o, 8, 8); o->is_seq = 1; o->zoom_y = 0xbd; obj_commit_reset(o, &obj_ptr);
     obj_xy(o, -100, -100); o->ignore_extra = 1; o->latch_master = 1; obj_commit_reset(o, &obj_ptr);
     obj_xy(o, 0, 0); obj_commit_reset(o, &obj_ptr);
 
     on_layer(FG0);
     pen_color(0);
-    move_to(2, 2);
+    move_to(1, 2);
     print("   X     Y  MEIA    LX    LY\n");
 
     wait_dma();
@@ -57,7 +57,7 @@ void update_obj_position()
         int16_t lx = ((int16_t)(obj->c << 4)) >> 4;;
         int16_t ly = ((int16_t)(obj->e << 4)) >> 4;;
 
-        print("%4d  %4d  %d%d%d%d  %4d  %4d\n", x, y, obj->latch_master, obj->latch_extra, obj->ignore_extra, obj->ignore_all, lx, ly);
+        print("%4d  %4d  %d%d%d%d  %4d  %4d %04X %04X\n", x, y, obj->latch_master, obj->latch_extra, obj->ignore_extra, obj->ignore_all, lx, ly, obj->c, obj->e);
         obj++;
     }
 }

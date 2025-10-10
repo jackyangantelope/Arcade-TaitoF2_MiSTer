@@ -24,11 +24,12 @@ SRCS += pages/general_480scp.c
 SRCS += pages/align_430grw.c
 SRCS += pages/obj_cmd_test.c
 SRCS += pages/general_100scn.c
-SRCS += pages/obj_position.c
 SRCS += pages/obj_test1.c
 SRCS += pages/obj_test2.c
-SRCS += pages/obj_test3.c
 SRCS += pages/obj_latching.c
+SRCS += pages/obj_test3.c
+SRCS += pages/obj_position.c
+SRCS += pages/obj_spooky.c
 
 CHR = font.chr 
 ASM = savestate.s

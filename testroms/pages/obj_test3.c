@@ -147,7 +147,12 @@ void update_obj_test3()
         obj_grid(190, 10, &opt, &obj_ptr);
     }
     
-    obj_cmd(o, cmd_base | OBJCMD_DISABLE); obj_commit_reset(o, &obj_ptr);
+    //obj_cmd(o, cmd_base | OBJCMD_DISABLE); obj_commit_reset(o, &obj_ptr);
+    o->zoom_x = 0x00; o->zoom_y = 0x20; obj_commit_reset(o, &obj_ptr);
+    o->zoom_x = 0x00; o->zoom_y = 0x70; obj_commit_reset(o, &obj_ptr);
+    
+    //obj_grid(190, 10, &opt, &obj_ptr);
+    //obj_cmd(o, cmd_base | OBJCMD_DISABLE); obj_commit_reset(o, &obj_ptr);
 }
 
 PAGE_REGISTER(obj_test3, init_obj_test3, update_obj_test3, NULL);

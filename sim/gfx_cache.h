@@ -162,7 +162,10 @@ public:
             }
 
             uint32_t c = (r << 24) | (g << 16) | (b << 8);
-            pal32[i] = c;
+            if (i & 15)
+                pal32[i] = c | 0xff;
+            else
+                pal32[i] = 0xff0000ff;
         }
 
         const uint8_t *src;
@@ -246,7 +249,7 @@ public:
             }
         }
 
-        SDL_Texture *tex = SDL_CreateTexture(m_renderer, SDL_PIXELFORMAT_RGBX8888,
+        SDL_Texture *tex = SDL_CreateTexture(m_renderer, SDL_PIXELFORMAT_RGBA8888,
                                              SDL_TEXTUREACCESS_STATIC, size, size);
 
         SDL_UpdateTexture(tex, nullptr, pixels, size * 4);
