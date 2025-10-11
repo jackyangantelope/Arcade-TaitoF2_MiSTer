@@ -447,7 +447,7 @@ always @(posedge clk) begin
 
         ST_EVAL2: begin
             if (is_seq_start) begin
-                zoom_dx <= 9'h100 - { 1'b0, inst_x_zoom };
+                zoom_dx <= |inst_x_zoom ? { 1'b0, ~inst_x_zoom } : 9'h100;
                 zoom_dy <= |inst_y_zoom ? { 1'b0, ~inst_y_zoom } : 9'h100;
                 row_calc_start <= 1;
                 col_calc_start <= 1;
