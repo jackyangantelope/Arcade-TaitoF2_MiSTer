@@ -25,11 +25,12 @@
 	<rom index="0" address="0x30000000" zip="qjinsei.zip">
 		<part>18 00</part>
 		<!--Region: maincpu, Size: 1572864 bytes-->
-		<part>00180000</part>
+		<part>00200000</part>
 		<interleave output="16">
 			<part crc="a573b68d" name="d48-09" map="10"/>
 			<part crc="37143a5b" name="d48-10" map="01"/>
 		</interleave>
+		<part repeat="0x80000">00</part>
 		<part crc="fb5ea8dc" name="d48-03"/>
 		<!--Region: tc0100scn_1, Size: 1048576 bytes-->
 		<part>01100000</part>
