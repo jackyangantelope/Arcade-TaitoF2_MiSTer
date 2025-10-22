@@ -220,7 +220,7 @@ always_ff @(posedge clk) begin
         cfg_addr_io1       <= {8'h58, 8'hFF}; // 0x50xxxx DSW/Coin/Input, 0x58xxxx DSW/Input/Watchdog
         cfg_addr_sound    <= {8'h60, 8'hFF}; // 0x600001, 0x600003 (TC0140SYT)
         // 0x680000 - 0x680001 : NOP Write (unknown?)
-        cfg_addr_screen0  <= {8'h80, 8'hF0}; // 0x800000 - 0x80FFFF (TC0100SCN RAM)
+        cfg_addr_screen0  <= {8'h80, 8'hF1}; // 0x800000 - 0x80FFFF (TC0100SCN RAM)
         // 0x810000 - 0x81FFFF : NOP Write (error in game init code?)
         cfg_addr_obj    <= {8'h90, 8'hFF}; // 0x900000 - 0x90FFFF
       end
