@@ -24,11 +24,12 @@
 	<rom index="0" address="0x30000000" zip="qzquest.zip">
 		<part>11 00</part>
 		<!--Region: maincpu, Size: 786432 bytes-->
-		<part>000c0000</part>
+		<part>00180000</part>
 		<interleave output="16">
 			<part crc="424be722" name="c92-06.8" map="10"/>
 			<part crc="da470f93" name="c92-05.7" map="01"/>
 		</interleave>
+		<part repeat="0xc0000">00</part>
 		<part crc="1d697606" name="c92-03.6"/>
 		<!--Region: tc0100scn_1, Size: 1048576 bytes-->
 		<part>01100000</part>
