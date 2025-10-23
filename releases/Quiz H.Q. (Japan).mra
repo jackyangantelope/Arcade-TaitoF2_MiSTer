@@ -23,11 +23,12 @@
 	<rom index="0" address="0x30000000" zip="quizhq.zip">
 		<part>07 00</part>
 		<!--Region: maincpu, Size: 524288 bytes-->
-		<part>00080000</part>
+		<part>000c0000</part>
 		<interleave output="16">
 			<part crc="c798fc20" name="c53-05.bin" map="10"/>
 			<part crc="bf44c93e" name="c53-01.bin" map="01"/>
 		</interleave>
+        <part repeat="0x40000">00</part>
 		<interleave output="16">
 			<part crc="12e14aca" name="c53-52.bin" map="10"/>
 			<part crc="b3ef66f3" name="c53-51.bin" map="01"/>
