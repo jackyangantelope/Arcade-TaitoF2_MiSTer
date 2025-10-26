@@ -6,21 +6,22 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "file_search.h"
+#include "sim_memory.h"
 
-class SimSDRAM
+class SimSDRAM : public MemoryInterface
 {
   public:
     SimSDRAM(uint32_t sz)
     {
-        size = sz;
-        mask = sz - 1;
-        data = new uint8_t[size];
+        mSize = sz;
+        mMask = sz - 1;
+        mData = new uint8_t[mSize];
     }
 
     ~SimSDRAM()
     {
-        delete[] data;
-        data = nullptr;
+        delete[] mData;
+        mData = nullptr;
     }
 
     void update_channel_16(int ch, int dly, uint32_t addr, uint8_t req,
@@ -30,25 +31,25 @@ class SimSDRAM
         if (req == *ack)
             return;
 
-        delay[ch]--;
-        if (delay[ch] > 0)
+        mDelay[ch]--;
+        if (mDelay[ch] > 0)
             return;
-        delay[ch] = rand() % dly;
+        mDelay[ch] = rand() % dly;
 
-        addr &= mask;
+        addr &= mMask;
         addr &= 0xfffffffe;
 
         if (rw)
         {
-            *dout = (data[addr + 1] << 8) | data[addr];
+            *dout = (mData[addr + 1] << 8) | mData[addr];
             *ack = req;
         }
         else
         {
             if (be & 1)
-                data[addr + 0] = din & 0xff;
+                mData[addr + 0] = din & 0xff;
             if (be & 2)
-                data[addr + 1] = (din >> 8) & 0xff;
+                mData[addr + 1] = (din >> 8) & 0xff;
             *ack = req;
         }
     }
@@ -60,30 +61,30 @@ class SimSDRAM
         if (req == *ack)
             return;
 
-        delay[ch]--;
-        if (delay[ch] > 0)
+        mDelay[ch]--;
+        if (mDelay[ch] > 0)
             return;
-        delay[ch] = rand() % dly;
+        mDelay[ch] = rand() % dly;
 
-        addr &= mask;
+        addr &= mMask;
         addr &= 0xfffffffe;
 
         if (rw)
         {
-            *dout = (data[addr + 3] << 24) | (data[addr + 2] << 16) |
-                    (data[addr + 1] << 8) | (data[addr + 0]);
+            *dout = (mData[addr + 3] << 24) | (mData[addr + 2] << 16) |
+                    (mData[addr + 1] << 8) | (mData[addr + 0]);
             *ack = req;
         }
         else
         {
             if (be & 1)
-                data[addr + 0] = din & 0xff;
+                mData[addr + 0] = din & 0xff;
             if (be & 2)
-                data[addr + 1] = (din >> 8) & 0xff;
+                mData[addr + 1] = (din >> 8) & 0xff;
             if (be & 4)
-                data[addr + 2] = (din >> 16) & 0xff;
+                mData[addr + 2] = (din >> 16) & 0xff;
             if (be & 8)
-                data[addr + 3] = (din >> 24) & 0xff;
+                mData[addr + 3] = (din >> 24) & 0xff;
             *ack = req;
         }
     }
@@ -95,44 +96,44 @@ class SimSDRAM
         if (req == *ack)
             return;
 
-        delay[ch]--;
-        if (delay[ch] > 0)
+        mDelay[ch]--;
+        if (mDelay[ch] > 0)
             return;
-        delay[ch] = rand() % dly;
+        mDelay[ch] = rand() % dly;
 
-        addr &= mask;
+        addr &= mMask;
         addr &= 0xfffffffe;
 
         if (rw)
         {
-            *dout = ((uint64_t)data[addr + 7] << 56) |
-                    ((uint64_t)data[addr + 6] << 48) |
-                    ((uint64_t)data[addr + 5] << 40) |
-                    ((uint64_t)data[addr + 4] << 32) |
-                    ((uint64_t)data[addr + 3] << 24) |
-                    ((uint64_t)data[addr + 2] << 16) |
-                    ((uint64_t)data[addr + 1] << 8) |
-                    ((uint64_t)data[addr + 0]);
+            *dout = ((uint64_t)mData[addr + 7] << 56) |
+                    ((uint64_t)mData[addr + 6] << 48) |
+                    ((uint64_t)mData[addr + 5] << 40) |
+                    ((uint64_t)mData[addr + 4] << 32) |
+                    ((uint64_t)mData[addr + 3] << 24) |
+                    ((uint64_t)mData[addr + 2] << 16) |
+                    ((uint64_t)mData[addr + 1] << 8) |
+                    ((uint64_t)mData[addr + 0]);
             *ack = req;
         }
         else
         {
             if (be & 0x01)
-                data[addr + 0] = din & 0xff;
+                mData[addr + 0] = din & 0xff;
             if (be & 0x02)
-                data[addr + 1] = (din >> 8) & 0xff;
+                mData[addr + 1] = (din >> 8) & 0xff;
             if (be & 0x04)
-                data[addr + 2] = (din >> 16) & 0xff;
+                mData[addr + 2] = (din >> 16) & 0xff;
             if (be & 0x08)
-                data[addr + 3] = (din >> 24) & 0xff;
+                mData[addr + 3] = (din >> 24) & 0xff;
             if (be & 0x10)
-                data[addr + 4] = (din >> 32) & 0xff;
+                mData[addr + 4] = (din >> 32) & 0xff;
             if (be & 0x20)
-                data[addr + 5] = (din >> 40) & 0xff;
+                mData[addr + 5] = (din >> 40) & 0xff;
             if (be & 0x40)
-                data[addr + 6] = (din >> 48) & 0xff;
+                mData[addr + 6] = (din >> 48) & 0xff;
             if (be & 0x80)
-                data[addr + 7] = (din >> 56) & 0xff;
+                mData[addr + 7] = (din >> 56) & 0xff;
             *ack = req;
         }
     }
@@ -149,7 +150,7 @@ class SimSDRAM
         uint32_t addr = offset;
         for (uint8_t byte : buffer)
         {
-            data[addr & mask] = byte;
+            mData[addr & mMask] = byte;
             addr += stride;
         }
 
@@ -167,7 +168,7 @@ class SimSDRAM
             return false;
         }
 
-        // Ensure the buffer size is even
+        // Ensure the buffer mSize is even
         if (buffer.size() % 2 != 0)
         {
             buffer.push_back(0); // Pad with zero if odd
@@ -177,8 +178,8 @@ class SimSDRAM
         for (size_t i = 0; i < buffer.size(); i += 2)
         {
             // Store in big-endian format (swapping bytes)
-            data[addr & mask] = buffer[i + 1];
-            data[(addr + 1) & mask] = buffer[i + 0];
+            mData[addr & mMask] = buffer[i + 1];
+            mData[(addr + 1) & mMask] = buffer[i + 0];
             addr += stride;
         }
 
@@ -195,7 +196,7 @@ class SimSDRAM
             return false;
         }
 
-        if (fwrite(data, 1, size, fp) != size)
+        if (fwrite(mData, 1, mSize, fp) != mSize)
         {
             fclose(fp);
             return false;
@@ -205,10 +206,28 @@ class SimSDRAM
         return true;
     }
 
-    uint32_t size;
-    uint32_t mask;
-    uint8_t *data;
-    int delay[8];
+    // ------------------------------------------------------------------
+    // MemoryInterface
+    virtual void Read(uint32_t address, uint32_t size, void *data) const
+    {
+        size = ClampSize(mSize, address, size);
+        memcpy(data, mData + address, size);
+    }
+
+    virtual void Write(uint32_t address, uint32_t size, const void *data)
+    {
+        size = ClampSize(mSize, address, size);
+        memcpy(mData + address, data, size);
+    }
+
+    virtual uint32_t GetSize() const { return mSize; }
+    virtual bool IsReadonly() const { return false; }
+
+
+    uint32_t mSize;
+    uint32_t mMask;
+    uint8_t *mData;
+    int mDelay[8];
 };
 
 // SimSDRAM global instance is now provided via sim_core.h

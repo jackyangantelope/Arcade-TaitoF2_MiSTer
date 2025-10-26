@@ -149,11 +149,13 @@ class M68000Window : public Window
 public:
     M68000Window() : Window("68000") {}
 
+    void Init() {};
+
     void Draw()
     {
         uint32_t pc = G_F2_SIGNAL(m68000,excUnit,PcL) | (G_F2_SIGNAL(m68000,excUnit,PcH) << 16);
         ImGui::LabelText("PC", "%08X", pc);
-        Dis68k dis(g_sim_core.sdram->data + pc, g_sim_core.sdram->data + pc + 64, pc);
+        Dis68k dis(g_sim_core.sdram->mData + pc, g_sim_core.sdram->mData + pc + 64, pc);
         char optxt[128];
         uint32_t addr;
         dis.disasm(&addr, optxt, sizeof(optxt));

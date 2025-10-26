@@ -6,9 +6,10 @@
 #include <vector>
 #include <string>
 #include "file_search.h"
+#include "sim_memory.h"
 
 // Class to simulate a 64-bit wide memory device
-class SimDDR
+class SimDDR : public MemoryInterface
 {
   public:
     SimDDR(uint32_t base, uint32_t size_bytes)
@@ -280,6 +281,28 @@ class SimDDR
         write_latency = cycles;
     }
 
+    // ------------------------------------------------------------------
+    // MemoryInterface
+    virtual void Read(uint32_t address, uint32_t sz, void *data) const
+    {
+        if (address < base_addr) return;
+        address = address - base_addr;
+        sz = ClampSize(size, address, sz);
+        memcpy(data, memory.data() + address, sz);
+    }
+
+    virtual void Write(uint32_t address, uint32_t sz, const void *data)
+    {
+        if (address < base_addr) return;
+        address = address - base_addr;
+        sz = ClampSize(size, address, sz);
+        memcpy(memory.data() + address, data, sz);
+    }
+
+    virtual uint32_t GetSize() const { return size + base_addr; }
+    virtual bool IsReadonly() const { return false; }
+
+    
   private:
     std::vector<uint8_t> memory;
     uint32_t size;

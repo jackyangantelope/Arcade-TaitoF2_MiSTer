@@ -74,7 +74,7 @@ int main(int argc, char **argv)
 
     g_fs.addSearchPath(".");
 
-    sim_debug_data = (SimDebug *)(g_sim_core.sdram->data + 0x80000);
+    sim_debug_data = (SimDebug *)(g_sim_core.sdram->mData + 0x80000);
 
     g_sim_core.top->ss_do_save = 0;
     g_sim_core.top->ss_do_restore = 0;
@@ -89,21 +89,8 @@ int main(int argc, char **argv)
     {
         g_sim_core.video->init(320, 224, imgui_get_renderer());
         
-        g_sim_core.gfx_200obj->Init(imgui_get_renderer(),
-                       GfxCacheFormat::TC0200OBJ,
-                       &(*g_sim_core.ddr_memory)[OBJ_DATA_DDR_BASE],
-                       G_F2_SIGNAL(color_ram, ram_l).m_storage,
-                       G_F2_SIGNAL(color_ram, ram_h).m_storage);
-        g_sim_core.gfx_480scp->Init(imgui_get_renderer(),
-                       GfxCacheFormat::TC0480SCP,
-                       g_sim_core.sdram->data + SCN1_ROM_SDR_BASE,
-                       G_F2_SIGNAL(color_ram, ram_l).m_storage,
-                       G_F2_SIGNAL(color_ram, ram_h).m_storage);
-        g_sim_core.gfx_100scn->Init(imgui_get_renderer(),
-                       GfxCacheFormat::TC0100SCN,
-                       g_sim_core.sdram->data + SCN0_ROM_SDR_BASE,
-                       G_F2_SIGNAL(color_ram, ram_l).m_storage,
-                       G_F2_SIGNAL(color_ram, ram_h).m_storage);
+        g_sim_core.gfx_cache->Init(imgui_get_renderer(),
+                       g_sim_core.Memory(MemoryRegion::COLOR));
       }
     else
     {
@@ -288,9 +275,7 @@ int main(int argc, char **argv)
         }
         else if (!command_queue.is_headless())
         {
-            g_sim_core.gfx_200obj->PruneCache();
-            g_sim_core.gfx_480scp->PruneCache();
-            g_sim_core.gfx_100scn->PruneCache();
+            g_sim_core.gfx_cache->PruneCache();
             
             // Interactive mode
             if (!ui_begin_frame())

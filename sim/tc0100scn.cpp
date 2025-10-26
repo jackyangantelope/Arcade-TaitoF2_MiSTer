@@ -16,6 +16,8 @@ public:
 
     TC0100SCNViewWindow() : Window("TC0100SCN View", ImGuiWindowFlags_AlwaysAutoResize) {}
 
+    void Init() {}
+
     bool IsWide()
     {
         const uint16_t ctrl = G_F2_SIGNAL(scn0, ctrl)[6];
@@ -58,7 +60,7 @@ public:
                     uint16_t attrib = MemWord(addr);
                     uint16_t code = MemWord(addr + 2) & 0x7fff;
                     ImGui::TableNextColumn();
-                    SDL_Texture *tex = g_sim_core.gfx_100scn->GetTexture(code, attrib & 0xff);
+                    SDL_Texture *tex = g_sim_core.gfx_cache->GetTexture(MemoryRegion::SCN0_ROM, GfxCacheFormat::TC0100SCN, code, attrib & 0xff);
                     ImGui::Image((ImTextureID)tex, ImVec2(16, 16));
                 }
             }
@@ -76,7 +78,7 @@ public:
                 ImGui::LabelText("Code", "%04X", code);
                 ImGui::LabelText("Attrib", "%04X", attrib);
                 ImGui::LabelText("Address", "%04X", addr);
-                SDL_Texture *tex = g_sim_core.gfx_100scn->GetTexture(code, attrib & 0xff);
+                SDL_Texture *tex = g_sim_core.gfx_cache->GetTexture(MemoryRegion::SCN0_ROM, GfxCacheFormat::TC0100SCN, code, attrib & 0xff);
                 ImGui::Image((ImTextureID)tex, ImVec2(64, 64));
                 ImGui::End();
             }

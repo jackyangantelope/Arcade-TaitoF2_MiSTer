@@ -20,50 +20,37 @@ static CommandQueue* g_command_queue = nullptr;
 extern uint32_t dipswitch_a;
 extern uint32_t dipswitch_b;
 
-#define blockram_16_rw(instance, size)                                         \
-    ImU8 instance##_read(const ImU8 *, size_t off, void *)                     \
-    {                                                                          \
-        size_t word_off = off >> 1;                                            \
-        if (off & 1)                                                           \
-            return g_sim_core.top->rootp->F2_SIGNAL(instance, ram_l)[word_off];            \
-        else                                                                   \
-            return g_sim_core.top->rootp->F2_SIGNAL(instance, ram_h)[word_off];            \
-    }                                                                          \
-    void instance##_write(ImU8 *, size_t off, ImU8 d, void *)                  \
-    {                                                                          \
-        size_t word_off = off >> 1;                                            \
-        if (off & 1)                                                           \
-            g_sim_core.top->rootp->F2_SIGNAL(instance, ram_l)[word_off] = d;               \
-        else                                                                   \
-            g_sim_core.top->rootp->F2_SIGNAL(instance, ram_h)[word_off] = d;               \
-    }                                                                          \
-    class instance##_Editor : public MemoryEditor                              \
-    {                                                                          \
-      public:                                                                  \
-        instance##_Editor() : MemoryEditor()                                   \
-        {                                                                      \
-            ReadFn = instance##_read;                                          \
-            WriteFn = instance##_write;                                        \
-        }                                                                      \
-        void DrawContents()                                                    \
-        {                                                                      \
-            MemoryEditor::DrawContents(nullptr, size);                         \
-        }                                                                      \
-    };                                                                         \
-    instance##_Editor instance;
+class MemoryInterfaceEditor : public MemoryEditor
+{
+public:
+    MemoryInterfaceEditor(MemoryInterface &mem) : MemoryEditor(), mMemory(mem)
+    {
+        ReadFn = ReadMem;
+        WriteFn = WriteMem;
+        UserData = this;
+    }
 
-blockram_16_rw(scn_ram_0, 64 * 1024);
-blockram_16_rw(scn_mux_ram, 64 * 1024);
-blockram_16_rw(color_ram, 8 * 1024);
-blockram_16_rw(obj_ram, 64 * 1024);
-blockram_16_rw(work_ram, 64 * 1024);
-blockram_16_rw(pivot_ram, 8 * 1024);
+    void DrawContents()
+    {
+        MemoryEditor::DrawContents(nullptr, mMemory.GetSize());
+    }
 
-MemoryEditor scn_main_rom;
-MemoryEditor rom_mem;
-MemoryEditor sound_ram;
-MemoryEditor sound_rom;
-MemoryEditor extension_ram;
+    static ImU8 ReadMem(const ImU8 *, size_t off, void *user)
+    {
+        MemoryInterfaceEditor *_this = (MemoryInterfaceEditor *)user;
+        ImU8 data;
+        _this->mMemory.Read(off, 1, &data);
+        return data;
+    }
+
+    static void WriteMem(ImU8 *, size_t off, ImU8 data, void *user)
+    {
+        MemoryInterfaceEditor *_this = (MemoryInterfaceEditor *)user;
+        _this->mMemory.Write(off, 1, &data);
+    }
+         
+    MemoryInterface& mMemory;
+};
 
 void ui_init(const char *title)
 {
@@ -245,6 +232,7 @@ class OffsetsWindow : public Window
 public:
     OffsetsWindow() : Window("Layer Offsets") {}
 
+    void Init() {};
     void Input(const char *label, uint16_t *h, uint16_t *v)
     {
         int vals[2] = {*h, *v};
@@ -275,6 +263,7 @@ class DipswitchWindow : public Window
 public:
     DipswitchWindow() : Window("Dipswitches") {}
 
+    void Init() {};
     void Draw()
     {
         if (ImGui::BeginTable("dipswitches", 9))
@@ -319,27 +308,42 @@ DipswitchWindow s_DipswitchWindow;
 class ROMWindow : public Window
 {
 public:
+    struct Tab
+    {
+        const char *mName;
+        std::unique_ptr<MemoryInterfaceEditor> mEditor;
+
+        Tab(const char *name, MemoryInterface& memory)
+            : mName(name),
+              mEditor(std::make_unique<MemoryInterfaceEditor>(memory)) {}
+    };
+
+    std::vector<Tab> mTabs;
+
     ROMWindow() : Window("ROM View") {}
+
+    void Init()
+    {
+        mTabs.clear();
+        mTabs.emplace_back("CPU", g_sim_core.Memory(MemoryRegion::CPU_ROM));
+        mTabs.emplace_back("Sound", g_sim_core.Memory(MemoryRegion::SOUND_ROM));
+        mTabs.emplace_back("SCN0", g_sim_core.Memory(MemoryRegion::SCN0_ROM));
+        mTabs.emplace_back("SCN1", g_sim_core.Memory(MemoryRegion::SCN1_ROM));
+        mTabs.emplace_back("OBJ", g_sim_core.Memory(MemoryRegion::OBJ_ROM));
+    }
 
     void Draw()
     {
         if (ImGui::BeginTabBar("rom_tabs"))
         {
-            if (ImGui::BeginTabItem("CPU ROM"))
+            for (auto &it : mTabs)
             {
-                rom_mem.DrawContents(g_sim_core.sdram->data + CPU_ROM_SDR_BASE,
-                                     1024 * 1024);
-                ImGui::EndTabItem();
+                if (ImGui::BeginTabItem(it.mName))
+                {
+                    it.mEditor->DrawContents();
+                    ImGui::EndTabItem();
+                }
             }
-
-            if (ImGui::BeginTabItem("Sound ROM"))
-            {
-                sound_rom.DrawContents(
-                    g_sim_core.top->rootp->F2_SIGNAL(sound_rom, ram).m_storage,
-                    128 * 1024);
-                ImGui::EndTabItem();
-            }
-
             ImGui::EndTabBar();
         }
     }
@@ -350,64 +354,45 @@ ROMWindow s_ROMWindow;
 class RAMWindow : public Window
 {
 public:
+    struct Tab
+    {
+        const char *mName;
+        std::unique_ptr<MemoryInterfaceEditor> mEditor;
+
+        Tab(const char *name, MemoryInterface& memory)
+            : mName(name),
+              mEditor(std::make_unique<MemoryInterfaceEditor>(memory)) {}
+    };
+
+    std::vector<Tab> mTabs;
+
     RAMWindow() : Window("RAM View") {}
+
+    void Init()
+    {
+        mTabs.clear();
+        mTabs.emplace_back("Work", g_sim_core.Memory(MemoryRegion::WORK));
+        mTabs.emplace_back("Screen", g_sim_core.Memory(MemoryRegion::SCN_0));
+        mTabs.emplace_back("Screen Mux", g_sim_core.Memory(MemoryRegion::SCN_MUX));
+        mTabs.emplace_back("Color", g_sim_core.Memory(MemoryRegion::COLOR));
+        mTabs.emplace_back("Pivot", g_sim_core.Memory(MemoryRegion::PIVOT));
+        mTabs.emplace_back("OBJ", g_sim_core.Memory(MemoryRegion::OBJ));
+        mTabs.emplace_back("OBJ Extension", g_sim_core.Memory(MemoryRegion::OBJ_EXT));
+        mTabs.emplace_back("Sound", g_sim_core.Memory(MemoryRegion::SOUND));
+    }
 
     void Draw()
     {
         if (ImGui::BeginTabBar("memory_tabs"))
         {
-            if (ImGui::BeginTabItem("Work RAM"))
+            for (auto &it : mTabs)
             {
-                work_ram.DrawContents();
-                ImGui::EndTabItem();
+                if (ImGui::BeginTabItem(it.mName))
+                {
+                    it.mEditor->DrawContents();
+                    ImGui::EndTabItem();
+                }
             }
-
-            if (ImGui::BeginTabItem("Screen RAM"))
-            {
-                scn_ram_0.DrawContents();
-                ImGui::EndTabItem();
-            }
-
-            if (ImGui::BeginTabItem("Screen MUX RAM"))
-            {
-                scn_mux_ram.DrawContents();
-                ImGui::EndTabItem();
-            }
-
-            if (ImGui::BeginTabItem("Color RAM"))
-            {
-                color_ram.DrawContents();
-                ImGui::EndTabItem();
-            }
-
-            if (ImGui::BeginTabItem("OBJ RAM"))
-            {
-                obj_ram.DrawContents();
-                ImGui::EndTabItem();
-            }
-
-            if (ImGui::BeginTabItem("Extension RAM"))
-            {
-                extension_ram.DrawContents(
-                    g_sim_core.top->rootp->F2_SIGNAL(tc0200obj_extender, extension_ram, ram).m_storage,
-                    4 * 1024);
-                ImGui::EndTabItem();
-            }
-
-            if (ImGui::BeginTabItem("Pivot RAM"))
-            {
-                pivot_ram.DrawContents();
-                ImGui::EndTabItem();
-            }
-
-            if (ImGui::BeginTabItem("Sound RAM"))
-            {
-                sound_ram.DrawContents(
-                    g_sim_core.top->rootp->F2_SIGNAL(sound_ram, ram).m_storage,
-                    16 * 1024);
-                ImGui::EndTabItem();
-            }
-
             ImGui::EndTabBar();
         }
     }

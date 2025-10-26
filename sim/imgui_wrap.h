@@ -26,8 +26,11 @@ public:
     Window(const char *name, ImGuiWindowFlags flags = 0);
     virtual ~Window();
 
+    // Called before first frame and after sim is initialized
+
     void Update();
 
+    virtual void Init() = 0;
     virtual void Draw() = 0;
 
     static void SortWindows();

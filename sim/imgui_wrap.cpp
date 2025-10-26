@@ -80,6 +80,11 @@ bool imgui_init(const char *title)
     ini_handler.WriteAllFn = Window::SettingsHandler_WriteAll;
     ImGui::AddSettingsHandler(&ini_handler);
 
+    for( Window *window : Window::s_windows )
+    {
+        window->Init();
+    }
+
     return true;
 }
 
@@ -146,6 +151,12 @@ bool imgui_begin_frame()
             }
             ImGui::EndMenu();
         }
+
+        char status[128];
+        snprintf(status, sizeof(status), "FPS: %.1f", ImGui::GetIO().Framerate);
+        float width = ImGui::CalcTextSize(status).x + 5;
+        ImGui::Dummy(ImVec2(ImGui::GetContentRegionAvail().x - width, 1));
+        ImGui::TextUnformatted(status);
         ImGui::EndMainMenuBar();
     }
 

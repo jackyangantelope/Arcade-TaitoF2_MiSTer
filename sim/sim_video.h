@@ -16,6 +16,8 @@ class SimVideo : public Window
     {
         deinit();
     }
+    
+    void Init() {}
 
     void init(int w, int h, SDL_Renderer *renderer)
     {

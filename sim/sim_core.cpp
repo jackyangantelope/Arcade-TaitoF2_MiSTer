@@ -1,5 +1,6 @@
 
 #include "sim_core.h"
+#include "games.h"
 #include "sim_hierarchy.h"
 #include "F2.h"
 #include "F2___024root.h"
@@ -32,6 +33,25 @@ SimCore::~SimCore()
     Shutdown();
 }
 
+#define unique_memory_16b(instance, size)                   \
+    std::make_unique<Memory16b>(                            \
+        top->rootp->F2_SIGNAL(instance, ram_l).m_storage,   \
+        top->rootp->F2_SIGNAL(instance, ram_h).m_storage,   \
+        size )
+
+#define unique_memory_8b(instance, size)                   \
+    std::make_unique<Memory8b>(                            \
+        top->rootp->F2_SIGNAL(instance, ram).m_storage,    \
+        size )
+
+#define unique_memory_8b_2(instance1, instance2, size)                   \
+    std::make_unique<Memory8b>(                            \
+        top->rootp->F2_SIGNAL(instance1, instance2, ram).m_storage,    \
+        size )
+
+
+
+
 void SimCore::Init()
 {
     m_contextp = new VerilatedContext;
@@ -43,9 +63,21 @@ void SimCore::Init()
     ddr_memory = std::make_unique<SimDDR>(0x30000000, 256 * 1024 * 1024);
     video = std::make_unique<SimVideo>();
 
-    gfx_200obj = std::make_unique<GfxCache>();
-    gfx_480scp = std::make_unique<GfxCache>();
-    gfx_100scn = std::make_unique<GfxCache>();
+    gfx_cache = std::make_unique<GfxCache>();
+
+    SetMemory(MemoryRegion::SCN_0, unique_memory_16b(scn_ram_0, 64 * 1024));
+    SetMemory(MemoryRegion::SCN_MUX, unique_memory_16b(scn_mux_ram, 64 * 1024));
+    SetMemory(MemoryRegion::COLOR, unique_memory_16b(color_ram, 16 * 1024));
+    SetMemory(MemoryRegion::OBJ, unique_memory_16b(obj_ram, 64 * 1024));
+    SetMemory(MemoryRegion::WORK, unique_memory_16b(work_ram, 64 * 1024));
+    SetMemory(MemoryRegion::PIVOT, unique_memory_16b(pivot_ram, 8 * 1024));
+    SetMemory(MemoryRegion::OBJ_EXT, unique_memory_8b_2(tc0200obj_extender, extension_ram, 8 * 1024));
+    SetMemory(MemoryRegion::SOUND, unique_memory_8b(sound_ram, 64 * 1024));
+    SetMemory(MemoryRegion::SOUND_ROM, unique_memory_8b(sound_ram, 128 * 1024));
+    SetMemory(MemoryRegion::CPU_ROM, std::make_unique<MemorySlice>(*sdram, CPU_ROM_SDR_BASE, 1024 * 1024));
+    SetMemory(MemoryRegion::SCN0_ROM, std::make_unique<MemorySlice>(*sdram, SCN0_ROM_SDR_BASE, 2048 * 1024));
+    SetMemory(MemoryRegion::SCN1_ROM, std::make_unique<MemorySlice>(*sdram, SCN1_ROM_SDR_BASE, 2048 * 1024));
+    SetMemory(MemoryRegion::OBJ_ROM, std::make_unique<MemorySlice>(*ddr_memory, OBJ_DATA_DDR_BASE, 6 * 1024 * 1024));
 }
 
 void SimCore::Tick(int count)

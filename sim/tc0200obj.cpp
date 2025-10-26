@@ -65,6 +65,8 @@ public:
     bool m_hide_empty = false;
 
     TC0200OBJ_Window() : Window("TC0200OBJ Instances") {}
+    
+    void Init() {};
 
     void Draw()
     {
@@ -237,7 +239,7 @@ public:
                 uint16_t code = extcode[tooltip_idx];
                 if (code != 0)
                 {
-                    SDL_Texture *tex = g_sim_core.gfx_200obj->GetTexture(code, latched_color[tooltip_idx]);
+                    SDL_Texture *tex = g_sim_core.gfx_cache->GetTexture(MemoryRegion::OBJ_ROM, GfxCacheFormat::TC0200OBJ, code, latched_color[tooltip_idx]);
                     ImGui::BeginTooltip();
                     ImGui::LabelText("Code", "%04X", code);
                     ImGui::LabelText("Color", "%02X", latched_color[tooltip_idx]);
@@ -260,6 +262,7 @@ public:
     TC0200OBJ_Preview_Window() : Window("TC0200OBJ Preview") {}
     int m_color = 0;
 
+    void Init() {};
     void Draw()
     {
         ImGui::SliderInt("Color", &m_color, 0, 0xff, "%02X");
@@ -306,7 +309,7 @@ public:
                     for (int i = 0; i < 16; i++)
                     {
                         ImGui::TableNextColumn();
-                        SDL_Texture *tex = g_sim_core.gfx_200obj->GetTexture(base_code + i, m_color);
+                        SDL_Texture *tex = g_sim_core.gfx_cache->GetTexture(MemoryRegion::OBJ_ROM, GfxCacheFormat::TC0200OBJ, base_code + i, m_color);
                         ImGui::Image((ImTextureID)tex, ImVec2(32, 32));
                     }
                 }

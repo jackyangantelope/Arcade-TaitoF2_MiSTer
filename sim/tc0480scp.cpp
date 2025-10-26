@@ -14,6 +14,8 @@ class TC0480SCPFlagsWindow : public Window
 public:
     TC0480SCPFlagsWindow() : Window("TC0480SCP Flags") {}
 
+    void Init() {}
+
     void Draw()
     {
         int16_t ctrl[32];
@@ -45,6 +47,8 @@ public:
 
     TC0480SCPViewWindow() : Window("TC0480SCP View") {}
 
+    void Init() {}
+    
     bool IsWide()
     {
         const uint16_t ctrl = G_F2_SIGNAL(tc0480scp, ctrl)[15];
@@ -86,7 +90,7 @@ public:
                     uint16_t attrib = MemWord(addr);
                     uint16_t code = MemWord(addr + 2) & 0x7fff;
                     ImGui::TableNextColumn();
-                    SDL_Texture *tex = g_sim_core.gfx_480scp->GetTexture(code, attrib & 0xff);
+                    SDL_Texture *tex = g_sim_core.gfx_cache->GetTexture(MemoryRegion::SCN1_ROM, GfxCacheFormat::TC0480SCP, code, attrib & 0xff);
                     ImGui::Image((ImTextureID)tex, ImVec2(32, 32));
                     ImGui::Text("%04X", code);
                 }

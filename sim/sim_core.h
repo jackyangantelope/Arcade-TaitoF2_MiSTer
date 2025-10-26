@@ -8,6 +8,7 @@
 #include <cstdint>
 
 #include "games.h"
+#include "sim_memory.h"
 
 class VerilatedContext;
 class F2;
@@ -17,6 +18,25 @@ class SimDDR;
 class SimVideo;
 class GfxCache;
 
+enum class MemoryRegion : int
+{
+    SCN_0 = 0,
+    SCN_MUX,
+    COLOR,
+    OBJ,
+    WORK,
+    PIVOT,
+    OBJ_EXT,
+    SOUND,
+    CPU_ROM,
+    SOUND_ROM,
+    SCN0_ROM,
+    SCN1_ROM,
+    OBJ_ROM,
+
+    COUNT
+};
+
 class SimCore {
 public:
     // Public members that external code needs access to
@@ -25,10 +45,8 @@ public:
     std::unique_ptr<SimDDR> ddr_memory;
     std::unique_ptr<SimSDRAM> sdram;
 
-    std::unique_ptr<GfxCache> gfx_480scp;
-    std::unique_ptr<GfxCache> gfx_200obj;
-    std::unique_ptr<GfxCache> gfx_100scn;
-    
+    std::unique_ptr<GfxCache> gfx_cache;
+   
     // Simulation state (made public for compatibility)
     uint64_t m_total_ticks;
     bool m_simulation_run;
@@ -42,6 +60,7 @@ public:
     char m_trace_filename[64];
     int m_trace_depth;
     
+
     // Constructor/Destructor
     SimCore();
     ~SimCore();
@@ -67,15 +86,20 @@ public:
     void SetGame(game_t game);
     game_t GetGame() const;
     const char *GetGameName() const;
-    
+
+    MemoryInterface& Memory(MemoryRegion region) { return *m_memory_region[(int)region]; }
+
 private:
     // Verilator context and top module
     VerilatedContext* m_contextp;
     std::unique_ptr<VerilatedFstC> m_tfp;
     
+    std::unique_ptr<MemoryInterface> m_memory_region[(int)MemoryRegion::COUNT];
+    
     // IOCTL helper methods
     void WaitForIOCTLReady();
-    
+
+    void SetMemory(MemoryRegion region, std::unique_ptr<MemoryInterface> &&memory) { m_memory_region[(int)region].swap(memory); }
 };
 
 // Global instance

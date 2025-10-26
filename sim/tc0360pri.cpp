@@ -12,6 +12,7 @@ class TC0360PRIWindow : public Window
 public:
     TC0360PRIWindow() : Window("TC0360PRI") {}
 
+    void Init() {};
     void Draw()
     {
         uint16_t color_in0 = G_F2_SIGNAL(tc0360pri, color_in0);
