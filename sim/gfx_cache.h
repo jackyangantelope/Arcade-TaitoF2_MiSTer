@@ -47,7 +47,8 @@ enum class GfxCacheFormat
 {
     TC0200OBJ,
     TC0480SCP,
-    TC0100SCN
+    TC0100SCN,
+    TC0100SCN_FG
 };
 
 class GfxCache
@@ -176,6 +177,11 @@ public:
 
     SDL_Texture *GetTexture(MemoryRegion region, GfxCacheFormat format, uint16_t code, uint8_t palette_idx)
     {
+        return GetTexture(g_sim_core.Memory(region), format, code, palette_idx);
+    }
+
+    SDL_Texture *GetTexture(MemoryInterface& gfxmem, GfxCacheFormat format, uint16_t code, uint8_t palette_idx)
+    {
         const GfxPalette *palette = GetPalette(palette_idx);
 
         int size;
@@ -202,6 +208,14 @@ public:
                 break;
             }
 
+            case GfxCacheFormat::TC0100SCN_FG:
+            {
+                size = 8;
+                bytesize = 8 * 2;
+                dynamic = true;
+                break;
+            }
+
             case GfxCacheFormat::TC0480SCP:
             {
                 size = 16;
@@ -211,10 +225,9 @@ public:
             }
         }
        
-        uint32_t addr = code * bytesize;
+        uint32_t addr = (code * bytesize);
         uint8_t src_data[16 * 16];
 
-        MemoryInterface& gfxmem = g_sim_core.Memory(region);
         uint64_t hash;
 
         if (dynamic)
@@ -310,6 +323,22 @@ public:
                 dest[5] = pal32[((src[3] & 0x0f) >> 0)];
                 dest += 8;
                 src += 4;
+            }
+        }
+        else if (format == GfxCacheFormat::TC0100SCN_FG)
+        {
+            for (int i = 0; i < 8; i++)
+            {
+                dest[7] = pal32[((src[1] >> 0) & 0x1) | ((src[0] << 1) & 0x2)];
+                dest[6] = pal32[((src[1] >> 1) & 0x1) | ((src[0] << 0) & 0x2)];
+                dest[5] = pal32[((src[1] >> 2) & 0x1) | ((src[0] >> 1) & 0x2)];
+                dest[4] = pal32[((src[1] >> 3) & 0x1) | ((src[0] >> 2) & 0x2)];
+                dest[3] = pal32[((src[1] >> 4) & 0x1) | ((src[0] >> 3) & 0x2)];
+                dest[2] = pal32[((src[1] >> 5) & 0x1) | ((src[0] >> 4) & 0x2)];
+                dest[1] = pal32[((src[1] >> 6) & 0x1) | ((src[0] >> 5) & 0x2)];
+                dest[0] = pal32[((src[1] >> 7) & 0x1) | ((src[0] >> 6) & 0x2)];
+                dest += 8;
+                src += 2;
             }
         }
 
