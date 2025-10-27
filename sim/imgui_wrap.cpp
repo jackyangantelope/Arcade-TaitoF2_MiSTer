@@ -41,7 +41,7 @@ bool imgui_init(const char *title)
     }
 
     SDL_Renderer *renderer = SDL_CreateRenderer(
-        window, -1, SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED);
+        window, -1, SDL_RENDERER_ACCELERATED);
     if (renderer == nullptr)
     {
         SDL_Log("Error creating SDL_Renderer!");
@@ -90,6 +90,17 @@ bool imgui_init(const char *title)
 
 bool imgui_begin_frame()
 {
+    static uint64_t prev_ticks = 0;
+
+    uint64_t ticks = SDL_GetTicks64();
+    uint64_t delta = ticks - prev_ticks;
+    if (delta < 16)
+    {
+        SDL_Delay((int)(16 - delta));
+    }
+
+    prev_ticks = SDL_GetTicks64();
+    
     SDL_Event event;
     while (SDL_PollEvent(&event))
     {
@@ -139,7 +150,6 @@ bool imgui_begin_frame()
     ImGui_ImplSDLRenderer2_NewFrame();
     ImGui_ImplSDL2_NewFrame();
     ImGui::NewFrame();
-
 
     if (ImGui::BeginMainMenuBar())
     {
