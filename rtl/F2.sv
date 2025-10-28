@@ -555,8 +555,7 @@ always_comb begin
         GAME_QZCHIKYU,
         GAME_YESNOJ,
         GAME_QJINSEI,
-        GAME_QCRAYON,
-        GAME_QCRAYON2: begin
+        GAME_QCRAYON: begin
             IN0 = { start[0], 1'b0, joystick_p1[9:4] };
             IN1 = { start[1], 1'b0, joystick_p2[9:4] };
             IN2 = { 4'b0000, coin[1:0], 2'b00 };
