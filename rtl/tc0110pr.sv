@@ -87,6 +87,7 @@ always_ff @(posedge clk) begin
 
     if (SCEn) begin
         dtack_n <= 1;
+        cpu_mode <= 0;
     end
 
     if (ce_pixel) begin
