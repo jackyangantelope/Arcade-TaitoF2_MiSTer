@@ -19,10 +19,9 @@ uint32_t imgui_get_buttons();
 struct SDL_Renderer;
 SDL_Renderer *imgui_get_renderer();
 
-
 class Window
 {
-public:
+  public:
     Window(const char *name, ImGuiWindowFlags flags = 0);
     virtual ~Window();
 
@@ -35,8 +34,8 @@ public:
 
     static void SortWindows();
     static void *SettingsHandler_ReadOpen(ImGuiContext *, ImGuiSettingsHandler *, const char *name);
-    static void SettingsHandler_ReadLine(ImGuiContext*, ImGuiSettingsHandler*, void* entry, const char* line);
-    static void SettingsHandler_WriteAll(ImGuiContext*, ImGuiSettingsHandler* handler, ImGuiTextBuffer* buf);
+    static void SettingsHandler_ReadLine(ImGuiContext *, ImGuiSettingsHandler *, void *entry, const char *line);
+    static void SettingsHandler_WriteAll(ImGuiContext *, ImGuiSettingsHandler *handler, ImGuiTextBuffer *buf);
 
     std::string m_title;
     bool m_enabled;
@@ -44,7 +43,7 @@ public:
 
     Window *m_next;
     static Window *s_head;
-    static std::vector<Window*> s_windows;
+    static std::vector<Window *> s_windows;
 };
 
 #endif // IMGUI_WRAP_H

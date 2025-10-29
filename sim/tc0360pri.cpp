@@ -9,8 +9,10 @@
 
 class TC0360PRIWindow : public Window
 {
-public:
-    TC0360PRIWindow() : Window("TC0360PRI") {}
+  public:
+    TC0360PRIWindow() : Window("TC0360PRI")
+    {
+    }
 
     void Init() {};
     void Draw()
@@ -24,24 +26,15 @@ public:
             ctrl[i] = G_F2_SIGNAL(tc0360pri, ctrl)[i];
         }
 
-        ImGui::Text("Color0: %03X  Sel0: %d", color_in0 & 0xfff,
-                    (color_in0 >> 12) & 0x3);
-        ImGui::Text("Color1: %03X  Sel1: %d", color_in1 & 0xfff,
-                    (color_in1 >> 12) & 0x3);
-        ImGui::Text("Color2: %03X  Sel2: %d", color_in2 & 0xfff,
-                    (color_in2 >> 12) & 0x3);
+        ImGui::Text("Color0: %03X  Sel0: %d", color_in0 & 0xfff, (color_in0 >> 12) & 0x3);
+        ImGui::Text("Color1: %03X  Sel1: %d", color_in1 & 0xfff, (color_in1 >> 12) & 0x3);
+        ImGui::Text("Color2: %03X  Sel2: %d", color_in2 & 0xfff, (color_in2 >> 12) & 0x3);
 
-        ImGui::Text("Prio0: %X %X %X %X", (ctrl[4] >> 0) & 0xf,
-                    (ctrl[4] >> 4) & 0xf, (ctrl[5] >> 0) & 0xf,
-                    (ctrl[5] >> 4) & 0xf);
+        ImGui::Text("Prio0: %X %X %X %X", (ctrl[4] >> 0) & 0xf, (ctrl[4] >> 4) & 0xf, (ctrl[5] >> 0) & 0xf, (ctrl[5] >> 4) & 0xf);
 
-        ImGui::Text("Prio1: %X %X %X %X", (ctrl[6] >> 0) & 0xf,
-                    (ctrl[6] >> 4) & 0xf, (ctrl[7] >> 0) & 0xf,
-                    (ctrl[7] >> 4) & 0xf);
+        ImGui::Text("Prio1: %X %X %X %X", (ctrl[6] >> 0) & 0xf, (ctrl[6] >> 4) & 0xf, (ctrl[7] >> 0) & 0xf, (ctrl[7] >> 4) & 0xf);
 
-        ImGui::Text("Prio2: %X %X %X %X", (ctrl[8] >> 0) & 0xf,
-                    (ctrl[8] >> 4) & 0xf, (ctrl[9] >> 0) & 0xf,
-                    (ctrl[9] >> 4) & 0xf);
+        ImGui::Text("Prio2: %X %X %X %X", (ctrl[8] >> 0) & 0xf, (ctrl[8] >> 4) & 0xf, (ctrl[9] >> 0) & 0xf, (ctrl[9] >> 4) & 0xf);
 
         for (int i = 0; i < 8; i++)
         {
@@ -51,4 +44,3 @@ public:
 };
 
 TC0360PRIWindow s_TC0360PRIWindow;
-

@@ -11,19 +11,23 @@
 
 class TC0100SCNViewWindow : public Window
 {
-public:
+  public:
     int m_layer = 0;
 
-    TC0100SCNViewWindow() : Window("TC0100SCN View", ImGuiWindowFlags_AlwaysAutoResize) {}
+    TC0100SCNViewWindow() : Window("TC0100SCN View", ImGuiWindowFlags_AlwaysAutoResize)
+    {
+    }
 
-    void Init() {}
+    void Init()
+    {
+    }
 
     bool IsWide()
     {
         const uint16_t ctrl = G_F2_SIGNAL(scn0, ctrl)[6];
         return (ctrl & (1 << 4)) != 0;
     }
-    
+
     uint16_t MemWord(uint32_t addr)
     {
         addr = (addr & 0xffff) >> 1;
@@ -44,11 +48,12 @@ public:
         const int num_columns = wide ? 128 : 64;
         const int num_rows = 64;
 
-        const char *layer_names[3] = { "BG0", "BG1", "FG0" };
+        const char *layer_names[3] = {"BG0", "BG1", "FG0"};
         ImGui::Combo("Layer", &m_layer, layer_names, 3);
 
         ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(1.0f, 1.0f));
-        if (ImGui::BeginTable("layer", num_columns, ImGuiTableFlags_ScrollX | ImGuiTableFlags_ScrollY | ImGuiTableFlags_SizingFixedSame, ImVec2(760, 560)))
+        if (ImGui::BeginTable("layer", num_columns, ImGuiTableFlags_ScrollX | ImGuiTableFlags_ScrollY | ImGuiTableFlags_SizingFixedSame,
+                              ImVec2(760, 560)))
         {
             if (m_layer == 2)
             {
@@ -56,19 +61,16 @@ public:
                 MemorySlice gfx_wide(g_sim_core.Memory(MemoryRegion::SCN_0), 0x12000, 0x2000);
 
                 uint32_t base_addr = 0x4000;
-                for( int y = 0; y < num_rows; y++ )
+                for (int y = 0; y < num_rows; y++)
                 {
                     ImGui::TableNextRow();
-                    for( int x = 0; x < num_columns; x++ )
+                    for (int x = 0; x < num_columns; x++)
                     {
                         uint32_t addr = base_addr + (((y * num_columns) + x) * 2);
                         uint16_t attrib = MemWord(addr);
                         ImGui::TableNextColumn();
-                        SDL_Texture *tex = g_sim_core.gfx_cache->GetTexture(
-                                wide ? gfx_wide : gfx_normal,
-                                GfxCacheFormat::TC0100SCN_FG,
-                                attrib & 0xff,
-                                (attrib >> 8) & 0x3f);
+                        SDL_Texture *tex = g_sim_core.gfx_cache->GetTexture(wide ? gfx_wide : gfx_normal, GfxCacheFormat::TC0100SCN_FG,
+                                                                            attrib & 0xff, (attrib >> 8) & 0x3f);
                         ImGui::Image((ImTextureID)tex, ImVec2(16, 16));
                     }
                 }
@@ -85,11 +87,8 @@ public:
                     ImGui::LabelText("Code", "%02X", attrib & 0xff);
                     ImGui::LabelText("Attrib", "%02X", attrib >> 8);
                     ImGui::LabelText("Address", "%04X", addr);
-                    SDL_Texture *tex = g_sim_core.gfx_cache->GetTexture(
-                            wide ? gfx_wide : gfx_normal,
-                            GfxCacheFormat::TC0100SCN_FG,
-                            attrib & 0xff,
-                            (attrib >> 8) & 0x3f);
+                    SDL_Texture *tex = g_sim_core.gfx_cache->GetTexture(wide ? gfx_wide : gfx_normal, GfxCacheFormat::TC0100SCN_FG,
+                                                                        attrib & 0xff, (attrib >> 8) & 0x3f);
                     ImGui::Image((ImTextureID)tex, ImVec2(64, 64));
                     ImGui::End();
                 }
@@ -97,16 +96,17 @@ public:
             else
             {
                 uint32_t base_addr = LayerBaseAddr();
-                for( int y = 0; y < num_rows; y++ )
+                for (int y = 0; y < num_rows; y++)
                 {
                     ImGui::TableNextRow();
-                    for( int x = 0; x < num_columns; x++ )
+                    for (int x = 0; x < num_columns; x++)
                     {
                         uint32_t addr = base_addr + (((y * num_columns) + x) * 4);
                         uint16_t attrib = MemWord(addr);
                         uint16_t code = MemWord(addr + 2) & 0x7fff;
                         ImGui::TableNextColumn();
-                        SDL_Texture *tex = g_sim_core.gfx_cache->GetTexture(MemoryRegion::SCN0_ROM, GfxCacheFormat::TC0100SCN, code, attrib & 0xff);
+                        SDL_Texture *tex =
+                            g_sim_core.gfx_cache->GetTexture(MemoryRegion::SCN0_ROM, GfxCacheFormat::TC0100SCN, code, attrib & 0xff);
                         ImGui::Image((ImTextureID)tex, ImVec2(16, 16));
                     }
                 }
@@ -124,7 +124,8 @@ public:
                     ImGui::LabelText("Code", "%04X", code);
                     ImGui::LabelText("Attrib", "%04X", attrib);
                     ImGui::LabelText("Address", "%04X", addr);
-                    SDL_Texture *tex = g_sim_core.gfx_cache->GetTexture(MemoryRegion::SCN0_ROM, GfxCacheFormat::TC0100SCN, code, attrib & 0xff);
+                    SDL_Texture *tex =
+                        g_sim_core.gfx_cache->GetTexture(MemoryRegion::SCN0_ROM, GfxCacheFormat::TC0100SCN, code, attrib & 0xff);
                     ImGui::Image((ImTextureID)tex, ImVec2(64, 64));
                     ImGui::End();
                 }

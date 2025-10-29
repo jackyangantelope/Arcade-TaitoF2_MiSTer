@@ -15,14 +15,14 @@
 
 extern SimState *state_manager;
 
-static CommandQueue* g_command_queue = nullptr;
+static CommandQueue *g_command_queue = nullptr;
 
 extern uint32_t dipswitch_a;
 extern uint32_t dipswitch_b;
 
 class MemoryInterfaceEditor : public MemoryEditor
 {
-public:
+  public:
     MemoryInterfaceEditor(MemoryInterface &mem) : MemoryEditor(), mMemory(mem)
     {
         ReadFn = ReadMem;
@@ -48,8 +48,8 @@ public:
         MemoryInterfaceEditor *_this = (MemoryInterfaceEditor *)user;
         _this->mMemory.Write(off, 1, &data);
     }
-         
-    MemoryInterface& mMemory;
+
+    MemoryInterface &mMemory;
 };
 
 void ui_init(const char *title)
@@ -57,7 +57,7 @@ void ui_init(const char *title)
     imgui_init(title);
 }
 
-void ui_set_command_queue(CommandQueue* queue)
+void ui_set_command_queue(CommandQueue *queue)
 {
     g_command_queue = queue;
 }
@@ -78,7 +78,7 @@ void ui_game_changed()
 {
     char title[64];
     const char *name = g_sim_core.GetGameName();
-    
+
     snprintf(title, sizeof(title), "F2 - %s", name);
     imgui_set_title(title);
     refresh_state_files = true;
@@ -100,8 +100,7 @@ void ui_draw()
 
         ImGui::Checkbox("WP Set", &g_sim_core.m_simulation_wp_set);
         ImGui::SameLine();
-        ImGui::InputInt("##wpaddr", &g_sim_core.m_simulation_wp_addr, 0, 0,
-                        ImGuiInputTextFlags_CharsHexadecimal);
+        ImGui::InputInt("##wpaddr", &g_sim_core.m_simulation_wp_addr, 0, 0, ImGuiInputTextFlags_CharsHexadecimal);
 
         if (ImGui::Button("Reset"))
         {
@@ -117,8 +116,7 @@ void ui_draw()
         ImGui::Text("Save/Restore State");
 
         static char state_filename[256] = "state.f2state";
-        ImGui::InputText("State Filename", state_filename,
-                         sizeof(state_filename));
+        ImGui::InputText("State Filename", state_filename, sizeof(state_filename));
 
         static std::vector<std::string> state_files;
         static int selected_state_file = -1;
@@ -128,8 +126,7 @@ void ui_draw()
         {
             state_files = state_manager->get_f2state_files();
             std::string auto_name = state_manager->generate_next_state_name();
-            strncpy(state_filename, auto_name.c_str(),
-                    sizeof(state_filename) - 1);
+            strncpy(state_filename, auto_name.c_str(), sizeof(state_filename) - 1);
             state_filename[sizeof(state_filename) - 1] = '\0';
             refresh_state_files = false;
         }
@@ -138,12 +135,10 @@ void ui_draw()
         {
             // Ensure filename has .f2state extension
             std::string filename = state_filename;
-            if (filename.size() < 8 ||
-                filename.substr(filename.size() - 8) != ".f2state")
+            if (filename.size() < 8 || filename.substr(filename.size() - 8) != ".f2state")
             {
                 filename += ".f2state";
-                strncpy(state_filename, filename.c_str(),
-                        sizeof(state_filename) - 1);
+                strncpy(state_filename, filename.c_str(), sizeof(state_filename) - 1);
                 state_filename[sizeof(state_filename) - 1] = '\0';
             }
 
@@ -161,10 +156,8 @@ void ui_draw()
                     }
                 }
                 // Auto-generate next filename after successful save
-                std::string auto_name =
-                    state_manager->generate_next_state_name();
-                strncpy(state_filename, auto_name.c_str(),
-                        sizeof(state_filename) - 1);
+                std::string auto_name = state_manager->generate_next_state_name();
+                strncpy(state_filename, auto_name.c_str(), sizeof(state_filename) - 1);
                 state_filename[sizeof(state_filename) - 1] = '\0';
             }
         }
@@ -176,9 +169,7 @@ void ui_draw()
             ImGui::BeginChild("StateFiles", ImVec2(0, 100), true);
             for (size_t i = 0; i < state_files.size(); i++)
             {
-                if (ImGui::Selectable(state_files[i].c_str(),
-                                      selected_state_file == (int)i,
-                                      ImGuiSelectableFlags_AllowDoubleClick))
+                if (ImGui::Selectable(state_files[i].c_str(), selected_state_file == (int)i, ImGuiSelectableFlags_AllowDoubleClick))
                 {
                     selected_state_file = (int)i;
                     if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
@@ -198,17 +189,14 @@ void ui_draw()
 
         ImGui::PushItemWidth(100);
         if (ImGui::InputInt("Trace Depth", &g_sim_core.m_trace_depth, 1, 10,
-                            g_sim_core.m_trace_active ? ImGuiInputTextFlags_ReadOnly
-                                         : ImGuiInputTextFlags_None))
+                            g_sim_core.m_trace_active ? ImGuiInputTextFlags_ReadOnly : ImGuiInputTextFlags_None))
         {
             g_sim_core.m_trace_depth = std::min(std::max(g_sim_core.m_trace_depth, 1), 99);
         }
         ImGui::PopItemWidth();
         ImGui::InputText("Filename", g_sim_core.m_trace_filename, sizeof(g_sim_core.m_trace_filename),
-                         g_sim_core.IsTraceActive() ? ImGuiInputTextFlags_ReadOnly
-                             : ImGuiInputTextFlags_None);
-        if (ImGui::Button(g_sim_core.IsTraceActive() ? "Stop Tracing###TraceBtn"
-                              : "Start Tracing###TraceBtn"))
+                         g_sim_core.IsTraceActive() ? ImGuiInputTextFlags_ReadOnly : ImGuiInputTextFlags_None);
+        if (ImGui::Button(g_sim_core.IsTraceActive() ? "Stop Tracing###TraceBtn" : "Start Tracing###TraceBtn"))
         {
             if (g_sim_core.IsTraceActive())
             {
@@ -229,8 +217,10 @@ void ui_draw()
 
 class OffsetsWindow : public Window
 {
-public:
-    OffsetsWindow() : Window("Layer Offsets") {}
+  public:
+    OffsetsWindow() : Window("Layer Offsets")
+    {
+    }
 
     void Init() {};
     void Input(const char *label, uint16_t *h, uint16_t *v)
@@ -245,7 +235,6 @@ public:
         *v = vals[1] & 0x1ff;
     }
 
-
     void Draw()
     {
         Input("SCN0", &G_F2_SIGNAL(cfg_hofs_100scn0), &G_F2_SIGNAL(cfg_vofs_100scn0));
@@ -253,15 +242,17 @@ public:
         Input("SCN1", &G_F2_SIGNAL(cfg_hofs_100scn1), &G_F2_SIGNAL(cfg_vofs_100scn1));
         Input("SCP", &G_F2_SIGNAL(cfg_hofs_480scp), &G_F2_SIGNAL(cfg_vofs_480scp));
         Input("GRW", &G_F2_SIGNAL(cfg_hofs_430grw), &G_F2_SIGNAL(cfg_vofs_430grw));
-     }
+    }
 };
 
 OffsetsWindow s_OffsetsWindow;
 
 class DipswitchWindow : public Window
 {
-public:
-    DipswitchWindow() : Window("Dipswitches") {}
+  public:
+    DipswitchWindow() : Window("Dipswitches")
+    {
+    }
 
     void Init() {};
     void Draw()
@@ -284,8 +275,7 @@ public:
             {
                 ImGui::TableNextColumn();
                 ImGui::PushID(i);
-                ImGui::CheckboxFlags("##dwsa", &dipswitch_a,
-                                     ((uint32_t)1 << i));
+                ImGui::CheckboxFlags("##dwsa", &dipswitch_a, ((uint32_t)1 << i));
                 ImGui::PopID();
             }
             ImGui::TableNextColumn();
@@ -294,33 +284,34 @@ public:
             {
                 ImGui::TableNextColumn();
                 ImGui::PushID(i);
-                ImGui::CheckboxFlags("##dwsb", &dipswitch_b,
-                                     ((uint32_t)1 << i));
+                ImGui::CheckboxFlags("##dwsb", &dipswitch_b, ((uint32_t)1 << i));
                 ImGui::PopID();
             }
             ImGui::EndTable();
         }
-     }
+    }
 };
 
 DipswitchWindow s_DipswitchWindow;
 
 class ROMWindow : public Window
 {
-public:
+  public:
     struct Tab
     {
         const char *mName;
         std::unique_ptr<MemoryInterfaceEditor> mEditor;
 
-        Tab(const char *name, MemoryInterface& memory)
-            : mName(name),
-              mEditor(std::make_unique<MemoryInterfaceEditor>(memory)) {}
+        Tab(const char *name, MemoryInterface &memory) : mName(name), mEditor(std::make_unique<MemoryInterfaceEditor>(memory))
+        {
+        }
     };
 
     std::vector<Tab> mTabs;
 
-    ROMWindow() : Window("ROM View") {}
+    ROMWindow() : Window("ROM View")
+    {
+    }
 
     void Init()
     {
@@ -353,20 +344,22 @@ ROMWindow s_ROMWindow;
 
 class RAMWindow : public Window
 {
-public:
+  public:
     struct Tab
     {
         const char *mName;
         std::unique_ptr<MemoryInterfaceEditor> mEditor;
 
-        Tab(const char *name, MemoryInterface& memory)
-            : mName(name),
-              mEditor(std::make_unique<MemoryInterfaceEditor>(memory)) {}
+        Tab(const char *name, MemoryInterface &memory) : mName(name), mEditor(std::make_unique<MemoryInterfaceEditor>(memory))
+        {
+        }
     };
 
     std::vector<Tab> mTabs;
 
-    RAMWindow() : Window("RAM View") {}
+    RAMWindow() : Window("RAM View")
+    {
+    }
 
     void Init()
     {
@@ -399,4 +392,3 @@ public:
 };
 
 RAMWindow s_RAMWindow;
-

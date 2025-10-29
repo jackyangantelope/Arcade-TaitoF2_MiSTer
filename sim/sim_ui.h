@@ -5,7 +5,7 @@
 class CommandQueue;
 
 void ui_init(const char *title);
-void ui_set_command_queue(CommandQueue* queue);
+void ui_set_command_queue(CommandQueue *queue);
 
 void ui_game_changed();
 

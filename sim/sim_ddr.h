@@ -27,7 +27,7 @@ class SimDDR : public MemoryInterface
         burst_size = 0;
     }
 
-    bool load_data(const std::vector<uint8_t>& data, uint32_t offset = 0, uint32_t stride = 1)
+    bool load_data(const std::vector<uint8_t> &data, uint32_t offset = 0, uint32_t stride = 1)
     {
         uint32_t mem_offset = offset - base_addr;
 
@@ -58,8 +58,7 @@ class SimDDR : public MemoryInterface
 
     // Load data from a file into memory at specified offset with optional
     // stride
-    bool load_data(const std::string &filename, uint32_t offset = 0,
-                   uint32_t stride = 1)
+    bool load_data(const std::string &filename, uint32_t offset = 0, uint32_t stride = 1)
     {
         std::vector<uint8_t> buffer;
         if (!g_fs.loadFile(filename, buffer))
@@ -70,16 +69,14 @@ class SimDDR : public MemoryInterface
 
         if (load_data(buffer, offset, stride))
         {
-            printf("Loaded %zu bytes from %s at offset 0x%08X with stride %u\n",
-                buffer.size(), filename.c_str(), offset, stride);
+            printf("Loaded %zu bytes from %s at offset 0x%08X with stride %u\n", buffer.size(), filename.c_str(), offset, stride);
             return true;
         }
         return false;
     }
 
     // Save memory data to a file
-    bool save_data(const std::string &filename, uint32_t offset = 0,
-                   size_t length = 0)
+    bool save_data(const std::string &filename, uint32_t offset = 0, size_t length = 0)
     {
         uint32_t mem_offset = offset - base_addr;
 
@@ -95,8 +92,7 @@ class SimDDR : public MemoryInterface
         FILE *fp = fopen(filename.c_str(), "wb");
         if (!fp)
         {
-            printf("Failed to open file for saving memory: %s\n",
-                   filename.c_str());
+            printf("Failed to open file for saving memory: %s\n", filename.c_str());
             return false;
         }
 
@@ -105,19 +101,16 @@ class SimDDR : public MemoryInterface
 
         if (bytes_written != length)
         {
-            printf("Failed to write entire data to file: %s\n",
-                   filename.c_str());
+            printf("Failed to write entire data to file: %s\n", filename.c_str());
             return false;
         }
 
-        printf("Saved %zu bytes to %s from offset 0x%08X\n", bytes_written,
-               filename.c_str(), offset);
+        printf("Saved %zu bytes to %s from offset 0x%08X\n", bytes_written, filename.c_str(), offset);
         return true;
     }
 
     // Clock the memory, processing read/write operations
-    void clock(uint32_t addr, const uint64_t &wdata, uint64_t &rdata, bool read,
-               bool write, uint8_t &busy_out, uint8_t &read_complete_out,
+    void clock(uint32_t addr, const uint64_t &wdata, uint64_t &rdata, bool read, bool write, uint8_t &busy_out, uint8_t &read_complete_out,
                uint8_t burstcnt = 1, uint8_t byteenable = 0xFF)
     {
         // Update busy status - simulate memory with occasional busy cycles
@@ -140,9 +133,7 @@ class SimDDR : public MemoryInterface
                         pending_rdata = 0;
                         for (int i = 0; i < 8; i++)
                         {
-                            pending_rdata |= static_cast<uint64_t>(
-                                                 memory[current_burst_addr + i])
-                                             << (i * 8);
+                            pending_rdata |= static_cast<uint64_t>(memory[current_burst_addr + i]) << (i * 8);
                         }
                     }
                     else
@@ -265,9 +256,11 @@ class SimDDR : public MemoryInterface
     uint8_t &operator[](size_t addr)
     {
         static uint8_t dummy = 0;
-        if (addr < base_addr) return dummy;
+        if (addr < base_addr)
+            return dummy;
         size_t offset = addr - base_addr;
-        if (offset >= size) return dummy;
+        if (offset >= size)
+            return dummy;
         return memory[offset];
     }
 
@@ -285,7 +278,8 @@ class SimDDR : public MemoryInterface
     // MemoryInterface
     virtual void Read(uint32_t address, uint32_t sz, void *data) const
     {
-        if (address < base_addr) return;
+        if (address < base_addr)
+            return;
         address = address - base_addr;
         sz = ClampSize(size, address, sz);
         memcpy(data, memory.data() + address, sz);
@@ -293,16 +287,22 @@ class SimDDR : public MemoryInterface
 
     virtual void Write(uint32_t address, uint32_t sz, const void *data)
     {
-        if (address < base_addr) return;
+        if (address < base_addr)
+            return;
         address = address - base_addr;
         sz = ClampSize(size, address, sz);
         memcpy(memory.data() + address, data, sz);
     }
 
-    virtual uint32_t GetSize() const { return size + base_addr; }
-    virtual bool IsReadonly() const { return false; }
+    virtual uint32_t GetSize() const
+    {
+        return size + base_addr;
+    }
+    virtual bool IsReadonly() const
+    {
+        return false;
+    }
 
-    
   private:
     std::vector<uint8_t> memory;
     uint32_t size;

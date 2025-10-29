@@ -6,3 +6,4 @@ AllowShortFunctionsOnASingleLine: None
 PointerAlignment: Right
 SpaceBeforeParens: ControlStatements
 SortIncludes: false
+ColumnLimit: 140

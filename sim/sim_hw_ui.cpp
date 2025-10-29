@@ -7,9 +7,7 @@
 #include "sim_sdram.h"
 #include "dis68k/dis68k.h"
 
-#define SWAP32(x)                                                              \
-    (((x) & 0xff000000) >> 16) | (((x) & 0x00ff0000) >> 16) |                  \
-        (((x) & 0x0000ff00) << 16) | (((x) & 0x000000ff) << 16)
+#define SWAP32(x) (((x) & 0xff000000) >> 16) | (((x) & 0x00ff0000) >> 16) | (((x) & 0x0000ff00) << 16) | (((x) & 0x000000ff) << 16)
 
 struct SimDebug
 {
@@ -36,8 +34,10 @@ struct PresetZoom
 
 class MiscDebugWindow : public Window
 {
-public:
-    MiscDebugWindow() : Window("Misc Debug") {}
+  public:
+    MiscDebugWindow() : Window("Misc Debug")
+    {
+    }
 
     void Draw()
     {
@@ -46,69 +46,51 @@ public:
         bool modified = false;
 
         int v = SWAP32(sim_debug_data->y) & 0xffff;
-        if (ImGui::InputScalar("BG1 Y", ImGuiDataType_U32, &v, &step,
-                               &step_fast, "%04X",
-                               ImGuiInputTextFlags_CharsHexadecimal))
+        if (ImGui::InputScalar("BG1 Y", ImGuiDataType_U32, &v, &step, &step_fast, "%04X", ImGuiInputTextFlags_CharsHexadecimal))
         {
             sim_debug_data->y = SWAP32(v);
             modified = true;
         }
 
         v = SWAP32(sim_debug_data->zoomy) & 0xff;
-        if (ImGui::InputScalar("BG1 ZoomY", ImGuiDataType_U32, &v, &step,
-                               &step_fast, "%02X",
-                               ImGuiInputTextFlags_CharsHexadecimal))
+        if (ImGui::InputScalar("BG1 ZoomY", ImGuiDataType_U32, &v, &step, &step_fast, "%02X", ImGuiInputTextFlags_CharsHexadecimal))
         {
             sim_debug_data->zoomy = SWAP32(v);
             modified = true;
         }
 
         v = SWAP32(sim_debug_data->dy) & 0xff;
-        if (ImGui::InputScalar("BG1 DY", ImGuiDataType_U32, &v, &step,
-                               &step_fast, "%02X",
-                               ImGuiInputTextFlags_CharsHexadecimal))
+        if (ImGui::InputScalar("BG1 DY", ImGuiDataType_U32, &v, &step, &step_fast, "%02X", ImGuiInputTextFlags_CharsHexadecimal))
         {
             sim_debug_data->dy = SWAP32(v);
             modified = true;
         }
 
         v = SWAP32(sim_debug_data->x) & 0xffff;
-        if (ImGui::InputScalar("BG1 X", ImGuiDataType_U32, &v, &step,
-                               &step_fast, "%04X",
-                               ImGuiInputTextFlags_CharsHexadecimal))
+        if (ImGui::InputScalar("BG1 X", ImGuiDataType_U32, &v, &step, &step_fast, "%04X", ImGuiInputTextFlags_CharsHexadecimal))
         {
             sim_debug_data->x = SWAP32(v);
             modified = true;
         }
 
         v = SWAP32(sim_debug_data->zoomx) & 0xff;
-        if (ImGui::InputScalar("BG1 ZoomX", ImGuiDataType_U32, &v, &step,
-                               &step_fast, "%02X",
-                               ImGuiInputTextFlags_CharsHexadecimal))
+        if (ImGui::InputScalar("BG1 ZoomX", ImGuiDataType_U32, &v, &step, &step_fast, "%02X", ImGuiInputTextFlags_CharsHexadecimal))
         {
             sim_debug_data->zoomx = SWAP32(v);
             modified = true;
         }
 
         v = SWAP32(sim_debug_data->dx) & 0xff;
-        if (ImGui::InputScalar("BG1 DX", ImGuiDataType_U32, &v, &step,
-                               &step_fast, "%02X",
-                               ImGuiInputTextFlags_CharsHexadecimal))
+        if (ImGui::InputScalar("BG1 DX", ImGuiDataType_U32, &v, &step, &step_fast, "%02X", ImGuiInputTextFlags_CharsHexadecimal))
         {
             sim_debug_data->dx = SWAP32(v);
             modified = true;
         }
 
         const PresetZoom presets[] = {
-            {0xfed7, 0x00, 0xff, 0x0000, 0x00, 0x00},
-            {0xfed7, 0x00, 0x00, 0x0000, 0x00, 0x00},
-            {0xfed9, 0x00, 0x00, 0x0000, 0x00, 0x00},
-            {0xff9b, 0x7f, 0x00, 0xffc4, 0xc0, 0xcf},
-            {0xff9b, 0x7f, 0x00, 0x0003, 0x00, 0x00},
-            {0xff9b, 0x7f, 0x00, 0x0073, 0x00, 0x00},
-            {0xff9b, 0x7f, 0x00, 0xffdb, 0x80, 0x80},
-            {0xff9b, 0x7f, 0x00, 0xffca, 0xb7, 0xc7},
-            {0xff9b, 0x7f, 0x00, 0xffbd, 0xe0, 0xe0},
+            {0xfed7, 0x00, 0xff, 0x0000, 0x00, 0x00}, {0xfed7, 0x00, 0x00, 0x0000, 0x00, 0x00}, {0xfed9, 0x00, 0x00, 0x0000, 0x00, 0x00},
+            {0xff9b, 0x7f, 0x00, 0xffc4, 0xc0, 0xcf}, {0xff9b, 0x7f, 0x00, 0x0003, 0x00, 0x00}, {0xff9b, 0x7f, 0x00, 0x0073, 0x00, 0x00},
+            {0xff9b, 0x7f, 0x00, 0xffdb, 0x80, 0x80}, {0xff9b, 0x7f, 0x00, 0xffca, 0xb7, 0xc7}, {0xff9b, 0x7f, 0x00, 0xffbd, 0xe0, 0xe0},
             {0xff9b, 0x7f, 0x00, 0xffba, 0xe0, 0x60},
         };
 
@@ -117,9 +99,8 @@ public:
             for (int n = 0; n < IM_ARRAYSIZE(presets); n++)
             {
                 char label[64];
-                snprintf(label, sizeof(label), "%04X,%02X,%02X,%04X,%02X,%02X",
-                         presets[n].y, presets[n].zoomy, presets[n].dy,
-                         presets[n].x, presets[n].zoomx, presets[n].dx);
+                snprintf(label, sizeof(label), "%04X,%02X,%02X,%04X,%02X,%02X", presets[n].y, presets[n].zoomy, presets[n].dy, presets[n].x,
+                         presets[n].zoomx, presets[n].dx);
                 if (ImGui::Selectable(label, false))
                 {
                     sim_debug_data->zoomy = SWAP32(presets[n].zoomy);
@@ -142,18 +123,20 @@ public:
     }
 };
 
-//MiscDebugWindow s_MiscDebugWindow;
+// MiscDebugWindow s_MiscDebugWindow;
 
 class M68000Window : public Window
 {
-public:
-    M68000Window() : Window("68000") {}
+  public:
+    M68000Window() : Window("68000")
+    {
+    }
 
     void Init() {};
 
     void Draw()
     {
-        uint32_t pc = G_F2_SIGNAL(m68000,excUnit,PcL) | (G_F2_SIGNAL(m68000,excUnit,PcH) << 16);
+        uint32_t pc = G_F2_SIGNAL(m68000, excUnit, PcL) | (G_F2_SIGNAL(m68000, excUnit, PcH) << 16);
         ImGui::LabelText("PC", "%08X", pc);
         Dis68k dis(g_sim_core.sdram->mData + pc, g_sim_core.sdram->mData + pc + 64, pc);
         char optxt[128];
@@ -164,4 +147,3 @@ public:
 };
 
 M68000Window s_M68000Window;
-

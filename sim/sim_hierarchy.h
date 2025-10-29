@@ -6,16 +6,19 @@
 // Usage: F2_SIGNAL(cpu_word_addr) -> sim_top__DOT__f2_inst__DOT__cpu_word_addr
 
 #define _F2_CONCAT_HELPER(...) _F2_CONCAT_IMPL(__VA_ARGS__, , , , , , , , , )
-#define _F2_CONCAT_IMPL(a, b, c, d, e, f, g, h, i, ...) \
+#define _F2_CONCAT_IMPL(a, b, c, d, e, f, g, h, i, ...)                                                                                    \
     a##__DOT__##b##__DOT__##c##__DOT__##d##__DOT__##e##__DOT__##f##__DOT__##g##__DOT__##h##__DOT__##i
 
 #define _F2_REMOVE_TRAILING_DOTS(x) _F2_CLEAN_##x
 #define _F2_CLEAN_sim_top__DOT__f2_inst__DOT____DOT____DOT____DOT____DOT____DOT____DOT____DOT__ sim_top__DOT__f2_inst
 #define _F2_CLEAN_sim_top__DOT__f2_inst__DOT__a__DOT____DOT____DOT____DOT____DOT____DOT____DOT__ sim_top__DOT__f2_inst__DOT__a
 #define _F2_CLEAN_sim_top__DOT__f2_inst__DOT__a__DOT__b__DOT____DOT____DOT____DOT____DOT____DOT__ sim_top__DOT__f2_inst__DOT__a__DOT__b
-#define _F2_CLEAN_sim_top__DOT__f2_inst__DOT__a__DOT__b__DOT__c__DOT____DOT____DOT____DOT____DOT__ sim_top__DOT__f2_inst__DOT__a__DOT__b__DOT__c
-#define _F2_CLEAN_sim_top__DOT__f2_inst__DOT__a__DOT__b__DOT__c__DOT__d__DOT____DOT____DOT____DOT__ sim_top__DOT__f2_inst__DOT__a__DOT__b__DOT__c__DOT__d
-#define _F2_CLEAN_sim_top__DOT__f2_inst__DOT__a__DOT__b__DOT__c__DOT__d__DOT__e__DOT____DOT____DOT__ sim_top__DOT__f2_inst__DOT__a__DOT__b__DOT__c__DOT__d__DOT__e
+#define _F2_CLEAN_sim_top__DOT__f2_inst__DOT__a__DOT__b__DOT__c__DOT____DOT____DOT____DOT____DOT__                                         \
+    sim_top__DOT__f2_inst__DOT__a__DOT__b__DOT__c
+#define _F2_CLEAN_sim_top__DOT__f2_inst__DOT__a__DOT__b__DOT__c__DOT__d__DOT____DOT____DOT____DOT__                                        \
+    sim_top__DOT__f2_inst__DOT__a__DOT__b__DOT__c__DOT__d
+#define _F2_CLEAN_sim_top__DOT__f2_inst__DOT__a__DOT__b__DOT__c__DOT__d__DOT__e__DOT____DOT____DOT__                                       \
+    sim_top__DOT__f2_inst__DOT__a__DOT__b__DOT__c__DOT__d__DOT__e
 
 // Simpler approach using token pasting
 #define F2_SIGNAL_1(a) sim_top__DOT__f2_inst__DOT__##a

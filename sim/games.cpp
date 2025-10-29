@@ -12,15 +12,10 @@
 #include <cstdio>
 
 static const char *game_names[N_GAMES] = {
-    "finalb",        "dondokod",    "megab",        "thundfox",
-    "cameltry",      "qtorimon",    "liquidk",      "quizhq",
-    "ssi",           "gunfront",    "growl",        "mjnquest",
-    "footchmp",      "koshien",     "yuyugogo",     "ninjak",
-    "solfigtr",      "qzquest",     "pulirula",     "metalb",
-    "qzchikyu",      "yesnoj",      "deadconx",     "dinorex",
-    "qjinsei",       "qcrayon",     "qcrayon2",     "driftout",
-    "deadconxj",     "metalba",     "hthero",
-    "finalb_test",   "qjinsei_test","driftout_test","deadconx_test",
+    "finalb",   "dondokod",  "megab",    "thundfox", "cameltry",    "qtorimon",     "liquidk",       "quizhq",        "ssi",
+    "gunfront", "growl",     "mjnquest", "footchmp", "koshien",     "yuyugogo",     "ninjak",        "solfigtr",      "qzquest",
+    "pulirula", "metalb",    "qzchikyu", "yesnoj",   "deadconx",    "dinorex",      "qjinsei",       "qcrayon",       "qcrayon2",
+    "driftout", "deadconxj", "metalba",  "hthero",   "finalb_test", "qjinsei_test", "driftout_test", "deadconx_test",
 };
 
 game_t game_find(const char *name)
@@ -52,8 +47,7 @@ static bool load_audio(const char *name)
         return false;
     }
 
-    memcpy(g_sim_core.top->rootp->sim_top__DOT__f2_inst__DOT__sound_rom__DOT__ram.m_storage, data.data(),
-           data.size());
+    memcpy(g_sim_core.top->rootp->sim_top__DOT__f2_inst__DOT__sound_rom__DOT__ram.m_storage, data.data(), data.size());
 
     return true;
 }
@@ -444,50 +438,55 @@ bool game_init(game_t game)
 bool game_init_mra(const char *mra_path)
 {
     g_fs.clearSearchPaths();
-    
+
     // Add common ROM search paths
-    std::vector<std::string> searchPaths = {
-        ".",
-        "../roms/"
-    };
-    
+    std::vector<std::string> searchPaths = {".", "../roms/"};
+
     // Add ROM search paths
-    for (const auto& path : searchPaths) {
+    for (const auto &path : searchPaths)
+    {
         g_fs.addSearchPath(path);
     }
-    
+
     // Add the directory containing the MRA file as a search path
     std::string mraPathStr(mra_path);
     size_t lastSlash = mraPathStr.find_last_of("/\\");
-    if (lastSlash != std::string::npos) {
+    if (lastSlash != std::string::npos)
+    {
         g_fs.addSearchPath(mraPathStr.substr(0, lastSlash));
     }
-    
+
     // Load the MRA file
     MRALoader loader;
     std::vector<uint8_t> romData;
     uint32_t address = 0;
-    
-    if (!loader.load(mra_path, romData, address)) {
+
+    if (!loader.load(mra_path, romData, address))
+    {
         printf("Failed to load MRA file '%s': %s\n", mra_path, loader.getLastError().c_str());
         return false;
     }
-    
+
     printf("Loaded MRA: %s\n", mra_path);
     printf("ROM data size: %zu bytes\n", romData.size());
-   
-    if (address == 0) {
-        if (!g_sim_core.SendIOCTLData(0, romData)) {
+
+    if (address == 0)
+    {
+        if (!g_sim_core.SendIOCTLData(0, romData))
+        {
             printf("Failed to send ROM data via ioctl\n");
             return false;
         }
-    } else {
-        if (!g_sim_core.SendIOCTLDataDDR(0, address, romData)) {
+    }
+    else
+    {
+        if (!g_sim_core.SendIOCTLDataDDR(0, address, romData))
+        {
             printf("Failed to send ROM data via DDR\n");
             return false;
         }
     }
-    
+
     printf("Successfully loaded MRA: %s\n", mra_path);
     return true;
 }

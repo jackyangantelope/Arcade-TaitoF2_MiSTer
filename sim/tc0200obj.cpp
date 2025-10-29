@@ -29,21 +29,24 @@ uint16_t extended_code(uint16_t index, uint16_t code)
     {
         uint8_t *ctrl = G_F2_SIGNAL(tc0190fmc, ctrl).m_storage;
         uint8_t sel = (code >> 10) & 7;
-        switch(sel)
+        switch (sel)
         {
-            case 0:
-            case 1: return (ctrl[2] << 11) | (code & 0x7ff);
+        case 0:
+        case 1:
+            return (ctrl[2] << 11) | (code & 0x7ff);
 
-            case 2:
-            case 3: return (ctrl[3] << 11) | (code & 0x7ff);
+        case 2:
+        case 3:
+            return (ctrl[3] << 11) | (code & 0x7ff);
 
-            default: return (ctrl[sel] << 10) | (code & 0x3ff);
+        default:
+            return (ctrl[sel] << 10) | (code & 0x3ff);
         }
     }
-    
+
     if (G_F2_SIGNAL(cfg_obj_extender) == 1)
     {
-        uint8_t ext = G_F2_SIGNAL(tc0200obj_extender,extension_ram,ram).m_storage[index];
+        uint8_t ext = G_F2_SIGNAL(tc0200obj_extender, extension_ram, ram).m_storage[index];
         return (code & 0xff) | (ext << 8);
     }
     else
@@ -60,12 +63,14 @@ static void bullet(int x)
 
 class TC0200OBJ_Window : public Window
 {
-public:
+  public:
     int m_bank = 0;
     bool m_hide_empty = false;
 
-    TC0200OBJ_Window() : Window("TC0200OBJ Instances") {}
-    
+    TC0200OBJ_Window() : Window("TC0200OBJ Instances")
+    {
+    }
+
     void Init() {};
 
     void Draw()
@@ -76,15 +81,12 @@ public:
 
         ImGui::Checkbox("Hide Empty", &m_hide_empty);
 
-        if (ImGui::BeginTable(
-                "obj", 26,
-                ImGuiTableFlags_HighlightHoveredColumn |
-                    ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_ScrollY |
-                    ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_RowBg))
+        if (ImGui::BeginTable("obj", 26,
+                              ImGuiTableFlags_HighlightHoveredColumn | ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_ScrollY |
+                                  ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_RowBg))
         {
             uint32_t colflags = ImGuiTableColumnFlags_AngledHeader;
-            ImGui::TableSetupColumn("",
-                                    colflags & ~ImGuiTableColumnFlags_AngledHeader);
+            ImGui::TableSetupColumn("", colflags & ~ImGuiTableColumnFlags_AngledHeader);
             ImGui::TableSetupColumn("Code", colflags);
             ImGui::TableSetupColumn("Code (Ext)", colflags);
             ImGui::TableSetupColumn("X", colflags);
@@ -157,8 +159,7 @@ public:
             int tooltip_idx = -1;
             while (clipper.Step())
             {
-                for (uint16_t i = clipper.DisplayStart;
-                     i < clipper.DisplayEnd; i++)
+                for (uint16_t i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
                 {
                     int index = valid_insts[i];
 
@@ -239,7 +240,8 @@ public:
                 uint16_t code = extcode[tooltip_idx];
                 if (code != 0)
                 {
-                    SDL_Texture *tex = g_sim_core.gfx_cache->GetTexture(MemoryRegion::OBJ_ROM, GfxCacheFormat::TC0200OBJ, code, latched_color[tooltip_idx]);
+                    SDL_Texture *tex = g_sim_core.gfx_cache->GetTexture(MemoryRegion::OBJ_ROM, GfxCacheFormat::TC0200OBJ, code,
+                                                                        latched_color[tooltip_idx]);
                     ImGui::BeginTooltip();
                     ImGui::LabelText("Code", "%04X", code);
                     ImGui::LabelText("Color", "%02X", latched_color[tooltip_idx]);
@@ -255,11 +257,12 @@ public:
 
 TC0200OBJ_Window s_TC0200OBJ_Window;
 
-
 class TC0200OBJ_Preview_Window : public Window
 {
-public:
-    TC0200OBJ_Preview_Window() : Window("TC0200OBJ Preview") {}
+  public:
+    TC0200OBJ_Preview_Window() : Window("TC0200OBJ Preview")
+    {
+    }
     int m_color = 0;
 
     void Init() {};
@@ -269,9 +272,7 @@ public:
         m_color &= 0xff;
 
         if (ImGui::BeginTable("obj_list", 17,
-                              ImGuiTableFlags_HighlightHoveredColumn |
-                                  ImGuiTableFlags_BordersInnerV |
-                                  ImGuiTableFlags_ScrollY |
+                              ImGuiTableFlags_HighlightHoveredColumn | ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_ScrollY |
                                   ImGuiTableFlags_SizingFixedFit))
         {
             ImGuiTableColumnFlags colflags = 0;
@@ -299,8 +300,7 @@ public:
             clipper.Begin(0x10000 / 16);
             while (clipper.Step())
             {
-                for (uint16_t index = clipper.DisplayStart;
-                     index < clipper.DisplayEnd; index++)
+                for (uint16_t index = clipper.DisplayStart; index < clipper.DisplayEnd; index++)
                 {
                     ImGui::TableNextRow();
                     ImGui::TableNextColumn();
@@ -309,7 +309,8 @@ public:
                     for (int i = 0; i < 16; i++)
                     {
                         ImGui::TableNextColumn();
-                        SDL_Texture *tex = g_sim_core.gfx_cache->GetTexture(MemoryRegion::OBJ_ROM, GfxCacheFormat::TC0200OBJ, base_code + i, m_color);
+                        SDL_Texture *tex =
+                            g_sim_core.gfx_cache->GetTexture(MemoryRegion::OBJ_ROM, GfxCacheFormat::TC0200OBJ, base_code + i, m_color);
                         ImGui::Image((ImTextureID)tex, ImVec2(32, 32));
                     }
                 }
@@ -321,4 +322,3 @@ public:
 };
 
 TC0200OBJ_Preview_Window s_TC0200OBJ_Preview_Window;
-

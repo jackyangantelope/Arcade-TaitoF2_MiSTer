@@ -24,9 +24,7 @@ class SimSDRAM : public MemoryInterface
         mData = nullptr;
     }
 
-    void update_channel_16(int ch, int dly, uint32_t addr, uint8_t req,
-                           uint8_t rw, uint8_t be, uint16_t din, uint16_t *dout,
-                           uint8_t *ack)
+    void update_channel_16(int ch, int dly, uint32_t addr, uint8_t req, uint8_t rw, uint8_t be, uint16_t din, uint16_t *dout, uint8_t *ack)
     {
         if (req == *ack)
             return;
@@ -54,9 +52,7 @@ class SimSDRAM : public MemoryInterface
         }
     }
 
-    void update_channel_32(int ch, int dly, uint32_t addr, uint8_t req,
-                           uint8_t rw, uint8_t be, uint32_t din, uint32_t *dout,
-                           uint8_t *ack)
+    void update_channel_32(int ch, int dly, uint32_t addr, uint8_t req, uint8_t rw, uint8_t be, uint32_t din, uint32_t *dout, uint8_t *ack)
     {
         if (req == *ack)
             return;
@@ -71,8 +67,7 @@ class SimSDRAM : public MemoryInterface
 
         if (rw)
         {
-            *dout = (mData[addr + 3] << 24) | (mData[addr + 2] << 16) |
-                    (mData[addr + 1] << 8) | (mData[addr + 0]);
+            *dout = (mData[addr + 3] << 24) | (mData[addr + 2] << 16) | (mData[addr + 1] << 8) | (mData[addr + 0]);
             *ack = req;
         }
         else
@@ -89,9 +84,7 @@ class SimSDRAM : public MemoryInterface
         }
     }
 
-    void update_channel_64(int ch, int dly, uint32_t addr, uint8_t req,
-                           uint8_t rw, uint8_t be, uint64_t din, uint64_t *dout,
-                           uint8_t *ack)
+    void update_channel_64(int ch, int dly, uint32_t addr, uint8_t req, uint8_t rw, uint8_t be, uint64_t din, uint64_t *dout, uint8_t *ack)
     {
         if (req == *ack)
             return;
@@ -106,14 +99,9 @@ class SimSDRAM : public MemoryInterface
 
         if (rw)
         {
-            *dout = ((uint64_t)mData[addr + 7] << 56) |
-                    ((uint64_t)mData[addr + 6] << 48) |
-                    ((uint64_t)mData[addr + 5] << 40) |
-                    ((uint64_t)mData[addr + 4] << 32) |
-                    ((uint64_t)mData[addr + 3] << 24) |
-                    ((uint64_t)mData[addr + 2] << 16) |
-                    ((uint64_t)mData[addr + 1] << 8) |
-                    ((uint64_t)mData[addr + 0]);
+            *dout = ((uint64_t)mData[addr + 7] << 56) | ((uint64_t)mData[addr + 6] << 48) | ((uint64_t)mData[addr + 5] << 40) |
+                    ((uint64_t)mData[addr + 4] << 32) | ((uint64_t)mData[addr + 3] << 24) | ((uint64_t)mData[addr + 2] << 16) |
+                    ((uint64_t)mData[addr + 1] << 8) | ((uint64_t)mData[addr + 0]);
             *ack = req;
         }
         else
@@ -154,8 +142,7 @@ class SimSDRAM : public MemoryInterface
             addr += stride;
         }
 
-        printf("Loaded %zu bytes from %s at offset 0x%08X with stride %d\n",
-               buffer.size(), name, offset, stride);
+        printf("Loaded %zu bytes from %s at offset 0x%08X with stride %d\n", buffer.size(), name, offset, stride);
         return true;
     }
 
@@ -183,8 +170,7 @@ class SimSDRAM : public MemoryInterface
             addr += stride;
         }
 
-        printf("Loaded %zu bytes (16-bit BE) from %s at offset 0x%08X\n",
-               buffer.size(), name, offset);
+        printf("Loaded %zu bytes (16-bit BE) from %s at offset 0x%08X\n", buffer.size(), name, offset);
         return true;
     }
 
@@ -220,9 +206,14 @@ class SimSDRAM : public MemoryInterface
         memcpy(mData + address, data, size);
     }
 
-    virtual uint32_t GetSize() const { return mSize; }
-    virtual bool IsReadonly() const { return false; }
-
+    virtual uint32_t GetSize() const
+    {
+        return mSize;
+    }
+    virtual bool IsReadonly() const
+    {
+        return false;
+    }
 
     uint32_t mSize;
     uint32_t mMask;

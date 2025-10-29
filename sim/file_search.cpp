@@ -92,8 +92,7 @@ void FileSearch::clearSearchPaths()
     m_zipFiles.clear();
 }
 
-bool FileSearch::loadFile(const std::string &filename,
-                          std::vector<uint8_t> &buffer)
+bool FileSearch::loadFile(const std::string &filename, std::vector<uint8_t> &buffer)
 {
     // Search all paths in the order they were added
     for (const auto &searchPath : m_searchPaths)
@@ -118,9 +117,7 @@ bool FileSearch::loadFile(const std::string &filename,
     return false;
 }
 
-bool FileSearch::loadFromDirectory(const std::string &dirPath,
-                                   const std::string &filename,
-                                   std::vector<uint8_t> &buffer)
+bool FileSearch::loadFromDirectory(const std::string &dirPath, const std::string &filename, std::vector<uint8_t> &buffer)
 {
     fs::path filePath = fs::path(dirPath) / filename;
 
@@ -155,9 +152,7 @@ bool FileSearch::loadFromDirectory(const std::string &dirPath,
     return true;
 }
 
-bool FileSearch::loadFromZip(const std::string &zipPath,
-                             const std::string &filename,
-                             std::vector<uint8_t> &buffer)
+bool FileSearch::loadFromZip(const std::string &zipPath, const std::string &filename, std::vector<uint8_t> &buffer)
 {
     ZipInfo *zipInfo = m_zipFiles[zipPath];
     if (!zipInfo || !zipInfo->valid)
@@ -166,8 +161,7 @@ bool FileSearch::loadFromZip(const std::string &zipPath,
     }
 
     // Find the file inside the zip archive
-    int file_index = mz_zip_reader_locate_file(&zipInfo->archive,
-                                               filename.c_str(), nullptr, 0);
+    int file_index = mz_zip_reader_locate_file(&zipInfo->archive, filename.c_str(), nullptr, 0);
     if (file_index < 0)
     {
         return false;
@@ -185,8 +179,7 @@ bool FileSearch::loadFromZip(const std::string &zipPath,
     buffer.resize(file_stat.m_uncomp_size);
 
     // Extract file
-    if (!mz_zip_reader_extract_to_mem(&zipInfo->archive, file_index,
-                                      buffer.data(), buffer.size(), 0))
+    if (!mz_zip_reader_extract_to_mem(&zipInfo->archive, file_index, buffer.data(), buffer.size(), 0))
     {
         printf("Failed to extract file from zip: %s -> %s\n", zipPath.c_str(), filename.c_str());
         return false;
@@ -209,12 +202,11 @@ bool FileSearch::loadFileByCRC(uint32_t crc32, std::vector<uint8_t> &buffer)
             }
         }
     }
-    
+
     return false;
 }
 
-bool FileSearch::loadFromZipByCRC(const std::string &zipPath, uint32_t crc32,
-                                  std::vector<uint8_t> &buffer)
+bool FileSearch::loadFromZipByCRC(const std::string &zipPath, uint32_t crc32, std::vector<uint8_t> &buffer)
 {
     ZipInfo *zipInfo = m_zipFiles[zipPath];
     if (!zipInfo || !zipInfo->valid)
@@ -232,9 +224,8 @@ bool FileSearch::loadFromZipByCRC(const std::string &zipPath, uint32_t crc32,
             {
                 // Found file with matching CRC
                 buffer.resize(fileStat.m_uncomp_size);
-                
-                if (mz_zip_reader_extract_to_mem(&zipInfo->archive, fileIndex,
-                                                 buffer.data(), buffer.size(), 0))
+
+                if (mz_zip_reader_extract_to_mem(&zipInfo->archive, fileIndex, buffer.data(), buffer.size(), 0))
                 {
                     return true;
                 }
@@ -277,7 +268,7 @@ std::string FileSearch::findFilePath(const std::string &filename)
             }
         }
     }
-    
+
     return ""; // File not found
 }
 
@@ -290,7 +281,7 @@ void FileSearch::restoreSearchPaths(const std::vector<SearchPath> &savedPaths)
 {
     // Clear current paths and zip cache
     clearSearchPaths();
-    
+
     // Restore saved paths
     for (const auto &path : savedPaths)
     {

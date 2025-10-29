@@ -12,8 +12,7 @@
 #include <iomanip>
 
 SimState::SimState(F2 *top, SimDDR *memory, int offset, int size)
-    : m_top(top), m_memory(memory), m_offset(offset), m_size(size),
-      m_game_name("unknown")
+    : m_top(top), m_memory(memory), m_offset(offset), m_size(size), m_game_name("unknown")
 {
 }
 
@@ -83,8 +82,7 @@ std::vector<std::string> SimState::get_f2state_files()
         {
             std::string filename = ent->d_name;
             // Check if filename ends with .f2state
-            if (filename.size() > 8 &&
-                filename.substr(filename.size() - 8) == ".f2state")
+            if (filename.size() > 8 && filename.substr(filename.size() - 8) == ".f2state")
             {
                 files.push_back(filename);
             }

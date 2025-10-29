@@ -14,9 +14,13 @@ struct GfxCacheEntry
     SDL_Texture *texture;
     uint64_t last_used;
 
-    GfxCacheEntry() : texture(nullptr), last_used(0) {}
+    GfxCacheEntry() : texture(nullptr), last_used(0)
+    {
+    }
 
-    GfxCacheEntry(SDL_Texture *tex, uint64_t used) : texture(tex), last_used(used) {}
+    GfxCacheEntry(SDL_Texture *tex, uint64_t used) : texture(tex), last_used(used)
+    {
+    }
 
     GfxCacheEntry(GfxCacheEntry &&o)
     {
@@ -53,14 +57,13 @@ enum class GfxCacheFormat
 
 class GfxCache
 {
-public:
+  public:
     std::map<uint64_t, GfxCacheEntry> m_cache;
     GfxPalette m_palettes[512];
 
     MemoryInterface *m_colormem;
     SDL_Renderer *m_renderer = nullptr;
     uint64_t m_used_idx = 0;
-
 
     static uint64_t CalcHash(const void *buf, size_t len, uint64_t hval)
     {
@@ -105,7 +108,6 @@ public:
         bool bpp15 = G_F2_SIGNAL(cfg_bpp15);
         bool bppmix = G_F2_SIGNAL(cfg_bppmix);
 
-
         for (int i = 0; i < 16; i++)
         {
             uint8_t r, g, b;
@@ -148,7 +150,7 @@ public:
         return entry;
     }
 
-    void Init(SDL_Renderer *renderer, MemoryInterface& colormem)
+    void Init(SDL_Renderer *renderer, MemoryInterface &colormem)
     {
         m_cache.clear();
         m_used_idx = 0;
@@ -180,51 +182,51 @@ public:
         return GetTexture(g_sim_core.Memory(region), format, code, palette_idx);
     }
 
-    SDL_Texture *GetTexture(MemoryInterface& gfxmem, GfxCacheFormat format, uint16_t code, uint8_t palette_idx)
+    SDL_Texture *GetTexture(MemoryInterface &gfxmem, GfxCacheFormat format, uint16_t code, uint8_t palette_idx)
     {
         const GfxPalette *palette = GetPalette(palette_idx);
 
         int size;
         int bytesize;
         bool dynamic;
-        
-        const bool bpp6 = G_F2_SIGNAL(tc0200obj,ctrl_6bpp);
 
-        switch(format)
+        const bool bpp6 = G_F2_SIGNAL(tc0200obj, ctrl_6bpp);
+
+        switch (format)
         {
-            case GfxCacheFormat::TC0200OBJ:
-            {
-                size = 16;
-                bytesize = bpp6 ? 16 * 16 : 16 * 8;
-                dynamic = false;
-                break;
-            }
-
-            case GfxCacheFormat::TC0100SCN:
-            {
-                size = 8;
-                bytesize = 8 * 4;
-                dynamic = false;
-                break;
-            }
-
-            case GfxCacheFormat::TC0100SCN_FG:
-            {
-                size = 8;
-                bytesize = 8 * 2;
-                dynamic = true;
-                break;
-            }
-
-            case GfxCacheFormat::TC0480SCP:
-            {
-                size = 16;
-                bytesize = 16 * 8;
-                dynamic = false;
-                break;
-            }
+        case GfxCacheFormat::TC0200OBJ:
+        {
+            size = 16;
+            bytesize = bpp6 ? 16 * 16 : 16 * 8;
+            dynamic = false;
+            break;
         }
-       
+
+        case GfxCacheFormat::TC0100SCN:
+        {
+            size = 8;
+            bytesize = 8 * 4;
+            dynamic = false;
+            break;
+        }
+
+        case GfxCacheFormat::TC0100SCN_FG:
+        {
+            size = 8;
+            bytesize = 8 * 2;
+            dynamic = true;
+            break;
+        }
+
+        case GfxCacheFormat::TC0480SCP:
+        {
+            size = 16;
+            bytesize = 16 * 8;
+            dynamic = false;
+            break;
+        }
+        }
+
         uint32_t addr = (code * bytesize);
         uint8_t src_data[16 * 16];
 
@@ -255,7 +257,7 @@ public:
 
         uint32_t pixels[16 * 16];
         const uint32_t *pal32 = palette->rgb;
-        
+
         uint32_t *dest = pixels;
         const uint8_t *src = src_data;
 
@@ -271,7 +273,7 @@ public:
                     dest[3] = pal32[((src[0] & 0xf0) >> 4)];
                     dest[2] = pal32[((src[0] & 0x0f) >> 0)];
                     dest += 4;
-                    src  += 4;
+                    src += 4;
                 }
             }
             else
@@ -295,16 +297,16 @@ public:
                 dest[12] = pal32[((src[5] & 0x0f) >> 0)];
                 dest[11] = pal32[((src[6] & 0xf0) >> 4)];
                 dest[10] = pal32[((src[6] & 0x0f) >> 0)];
-                dest[ 9] = pal32[((src[7] & 0xf0) >> 4)];
-                dest[ 8] = pal32[((src[7] & 0x0f) >> 0)];
-                dest[ 7] = pal32[((src[0] & 0xf0) >> 4)];
-                dest[ 6] = pal32[((src[0] & 0x0f) >> 0)];
-                dest[ 5] = pal32[((src[1] & 0xf0) >> 4)];
-                dest[ 4] = pal32[((src[1] & 0x0f) >> 0)];
-                dest[ 3] = pal32[((src[2] & 0xf0) >> 4)];
-                dest[ 2] = pal32[((src[2] & 0x0f) >> 0)];
-                dest[ 1] = pal32[((src[3] & 0xf0) >> 4)];
-                dest[ 0] = pal32[((src[3] & 0x0f) >> 0)];
+                dest[9] = pal32[((src[7] & 0xf0) >> 4)];
+                dest[8] = pal32[((src[7] & 0x0f) >> 0)];
+                dest[7] = pal32[((src[0] & 0xf0) >> 4)];
+                dest[6] = pal32[((src[0] & 0x0f) >> 0)];
+                dest[5] = pal32[((src[1] & 0xf0) >> 4)];
+                dest[4] = pal32[((src[1] & 0x0f) >> 0)];
+                dest[3] = pal32[((src[2] & 0xf0) >> 4)];
+                dest[2] = pal32[((src[2] & 0x0f) >> 0)];
+                dest[1] = pal32[((src[3] & 0xf0) >> 4)];
+                dest[0] = pal32[((src[3] & 0x0f) >> 0)];
                 dest += 16;
                 src += 8;
             }
@@ -342,8 +344,7 @@ public:
             }
         }
 
-        SDL_Texture *tex = SDL_CreateTexture(m_renderer, SDL_PIXELFORMAT_RGBA8888,
-                                             SDL_TEXTUREACCESS_STATIC, size, size);
+        SDL_Texture *tex = SDL_CreateTexture(m_renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STATIC, size, size);
 
         SDL_UpdateTexture(tex, nullptr, pixels, size * 4);
 
@@ -353,4 +354,3 @@ public:
 };
 
 #endif
-

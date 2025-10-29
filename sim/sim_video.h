@@ -10,14 +10,18 @@
 class SimVideo : public Window
 {
   public:
-    SimVideo() : Window("Video Output", ImGuiWindowFlags_NoScrollbar) {}
+    SimVideo() : Window("Video Output", ImGuiWindowFlags_NoScrollbar)
+    {
+    }
 
     ~SimVideo()
     {
         deinit();
     }
-    
-    void Init() {}
+
+    void Init()
+    {
+    }
 
     void init(int w, int h, SDL_Renderer *renderer)
     {
@@ -26,12 +30,11 @@ class SimVideo : public Window
         pixels = new uint32_t[width * height];
         if (renderer)
         {
-            texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBX8888,
-                                        SDL_TEXTUREACCESS_STREAMING, width, height);
+            texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBX8888, SDL_TEXTUREACCESS_STREAMING, width, height);
         }
         else
         {
-            texture = nullptr;  // Headless mode
+            texture = nullptr; // Headless mode
         }
         x = 0;
         y = 0;
@@ -93,8 +96,8 @@ class SimVideo : public Window
     void update_texture()
     {
         if (!texture)
-            return;  // Skip in headless mode
-            
+            return; // Skip in headless mode
+
         SDL_Rect region;
 
         int line_count = height;
@@ -138,8 +141,7 @@ class SimVideo : public Window
         if (!screenshot_status.empty())
         {
             ImGui::SameLine();
-            ImGui::TextColored(ImVec4(0, 1, 0, 1), "%s",
-                               screenshot_status.c_str());
+            ImGui::TextColored(ImVec4(0, 1, 0, 1), "%s", screenshot_status.c_str());
             if (--screenshot_status_timer <= 0)
                 screenshot_status.clear();
         }
@@ -152,8 +154,7 @@ class SimVideo : public Window
         if (!window->SkipItems)
         {
 
-            const ImRect bb(window->DC.CursorPos,
-                            window->DC.CursorPos + ImVec2(w, h));
+            const ImRect bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(w, h));
             ImGui::ItemSize(bb);
             if (ImGui::ItemAdd(bb, 0))
             {
@@ -175,10 +176,8 @@ class SimVideo : public Window
                     uv3 = ImVec2(0, 1);
                 }
 
-                window->DrawList->AddImageQuad(
-                    (ImTextureID)texture, bb.GetTL(), bb.GetTR(), bb.GetBR(),
-                    bb.GetBL(), uv0, uv1, uv2, uv3,
-                    ImGui::GetColorU32(ImVec4(1, 1, 1, 1)));
+                window->DrawList->AddImageQuad((ImTextureID)texture, bb.GetTL(), bb.GetTR(), bb.GetBR(), bb.GetBL(), uv0, uv1, uv2, uv3,
+                                               ImGui::GetColorU32(ImVec4(1, 1, 1, 1)));
             }
         }
     }

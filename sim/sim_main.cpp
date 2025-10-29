@@ -44,27 +44,30 @@ int main(int argc, char **argv)
 {
     CommandQueue command_queue;
     std::string game_name_str;
-    
+
     // Parse command line arguments
     if (!command_queue.parse_arguments(argc, argv, game_name_str))
     {
         return -1;
     }
-    
+
     // Convert positional game argument to command if provided
-    if (!game_name_str.empty()) {
+    if (!game_name_str.empty())
+    {
         // Check if it's an MRA file
-        if (game_name_str.length() > 4 && 
-            game_name_str.substr(game_name_str.length() - 4) == ".mra") {
+        if (game_name_str.length() > 4 && game_name_str.substr(game_name_str.length() - 4) == ".mra")
+        {
             command_queue.add(Command(CommandType::LOAD_MRA, game_name_str));
-        } else {
+        }
+        else
+        {
             command_queue.add(Command(CommandType::LOAD_GAME, game_name_str));
             command_queue.add(Command(CommandType::RESET, 100));
         }
     }
-    
+
     g_sim_core.Init();
-    
+
     // Only initialize UI if not in headless mode
     if (!command_queue.is_headless())
     {
@@ -88,10 +91,9 @@ int main(int argc, char **argv)
     if (!command_queue.is_headless())
     {
         g_sim_core.video->init(320, 224, imgui_get_renderer());
-        
-        g_sim_core.gfx_cache->Init(imgui_get_renderer(),
-                       g_sim_core.Memory(MemoryRegion::COLOR));
-      }
+
+        g_sim_core.gfx_cache->Init(imgui_get_renderer(), g_sim_core.Memory(MemoryRegion::COLOR));
+    }
     else
     {
         // Minimal init for headless mode
@@ -102,10 +104,10 @@ int main(int argc, char **argv)
 
     const Uint8 *keyboard_state = command_queue.is_headless() ? nullptr : SDL_GetKeyboardState(NULL);
     bool screenshot_key_pressed = false;
-    
+
     // Track frame counting for interactive mode
     bool prev_vblank = false;
-    
+
     // Main loop
     bool running = true;
     while (running)
@@ -113,8 +115,8 @@ int main(int argc, char **argv)
         // Check if we have commands to execute
         if (!command_queue.empty())
         {
-            Command& cmd = command_queue.front();
-            
+            Command &cmd = command_queue.front();
+
             switch (cmd.type)
             {
             case CommandType::RUN_CYCLES:
@@ -125,7 +127,7 @@ int main(int argc, char **argv)
                     printf("Completed running %llu cycles\n", cmd.count);
                 command_queue.pop();
                 break;
-                
+
             case CommandType::RUN_FRAMES:
                 if (command_queue.is_verbose())
                     printf("Running %llu frames...\n", cmd.count);
@@ -138,7 +140,7 @@ int main(int argc, char **argv)
                     printf("Completed running %llu frames\n", cmd.count);
                 command_queue.pop();
                 break;
-                
+
             case CommandType::SCREENSHOT:
                 g_sim_core.video->update_texture();
                 if (command_queue.is_verbose())
@@ -154,7 +156,7 @@ int main(int argc, char **argv)
                 }
                 command_queue.pop();
                 break;
-                
+
             case CommandType::SAVE_STATE:
                 if (command_queue.is_verbose())
                     printf("Saving state to: %s\n", cmd.filename.c_str());
@@ -168,7 +170,7 @@ int main(int argc, char **argv)
                 state_manager->restore_state(cmd.filename.c_str());
                 command_queue.pop();
                 break;
- 
+
             case CommandType::TRACE_START:
                 if (command_queue.is_verbose())
                     printf("Starting trace to: %s\n", cmd.filename.c_str());
@@ -177,7 +179,7 @@ int main(int argc, char **argv)
                     printf("Trace started successfully\n");
                 command_queue.pop();
                 break;
-                
+
             case CommandType::TRACE_STOP:
                 if (command_queue.is_verbose())
                     printf("Stopping trace\n");
@@ -194,44 +196,53 @@ int main(int argc, char **argv)
                 }
                 command_queue.pop();
                 break;
-                
+
             case CommandType::LOAD_GAME:
                 if (command_queue.is_verbose())
                     printf("Loading game: %s\n", cmd.filename.c_str());
                 {
                     game_t game = game_find(cmd.filename.c_str());
-                    if (game != GAME_INVALID) {
-                        if (game_init(game)) {
+                    if (game != GAME_INVALID)
+                    {
+                        if (game_init(game))
+                        {
                             state_manager->set_game_name(cmd.filename.c_str());
                             if (!command_queue.is_headless())
                                 ui_game_changed();
                             if (command_queue.is_verbose())
                                 printf("Successfully loaded game: %s\n", cmd.filename.c_str());
-                        } else {
+                        }
+                        else
+                        {
                             printf("Failed to load game: %s\n", cmd.filename.c_str());
                         }
-                    } else {
+                    }
+                    else
+                    {
                         printf("Unknown game: %s\n", cmd.filename.c_str());
                     }
                 }
                 command_queue.pop();
                 break;
-                
+
             case CommandType::LOAD_MRA:
                 if (command_queue.is_verbose())
                     printf("Loading MRA: %s\n", cmd.filename.c_str());
-                if (game_init_mra(cmd.filename.c_str())) {
+                if (game_init_mra(cmd.filename.c_str()))
+                {
                     state_manager->set_game_name(g_sim_core.GetGameName());
                     if (!command_queue.is_headless())
                         ui_game_changed();
                     if (command_queue.is_verbose())
                         printf("Successfully loaded MRA: %s (%s)\n", cmd.filename.c_str(), g_sim_core.GetGameName());
-                } else {
+                }
+                else
+                {
                     printf("Failed to load MRA: %s\n", cmd.filename.c_str());
                 }
                 command_queue.pop();
                 break;
-                
+
             case CommandType::RESET:
                 if (command_queue.is_verbose())
                     printf("Reset for %llu cycles\n", cmd.count);
@@ -243,7 +254,7 @@ int main(int argc, char **argv)
                 g_sim_core.top->reset = 0;
                 command_queue.pop();
                 break;
-                
+
             case CommandType::SET_DIPSWITCH_A:
                 if (command_queue.is_verbose())
                     printf("Set dipswitch A to 0x%llx\n", cmd.count);
@@ -251,7 +262,7 @@ int main(int argc, char **argv)
                 g_sim_core.top->dswa = dipswitch_a;
                 command_queue.pop();
                 break;
-                
+
             case CommandType::SET_DIPSWITCH_B:
                 if (command_queue.is_verbose())
                     printf("Set dipswitch B to 0x%llx\n", cmd.count);
@@ -259,14 +270,14 @@ int main(int argc, char **argv)
                 g_sim_core.top->dswb = dipswitch_b;
                 command_queue.pop();
                 break;
-                
+
             case CommandType::EXIT:
                 if (command_queue.is_verbose())
                     printf("Exiting...\n");
                 running = false;
                 command_queue.pop();
                 break;
-                
+
             default:
                 printf("Unhandled command type\n");
                 command_queue.pop();
@@ -276,14 +287,14 @@ int main(int argc, char **argv)
         else if (!command_queue.is_headless())
         {
             g_sim_core.gfx_cache->PruneCache();
-            
+
             // Interactive mode
             if (!ui_begin_frame())
             {
                 running = false;
                 break;
             }
-            
+
             // Handle F12 screenshot key
             if (keyboard_state && keyboard_state[SDL_SCANCODE_F12] && !screenshot_key_pressed)
             {

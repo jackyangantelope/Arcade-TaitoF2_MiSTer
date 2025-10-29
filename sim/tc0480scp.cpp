@@ -11,10 +11,14 @@
 
 class TC0480SCPFlagsWindow : public Window
 {
-public:
-    TC0480SCPFlagsWindow() : Window("TC0480SCP Flags") {}
+  public:
+    TC0480SCPFlagsWindow() : Window("TC0480SCP Flags")
+    {
+    }
 
-    void Init() {}
+    void Init()
+    {
+    }
 
     void Draw()
     {
@@ -24,14 +28,10 @@ public:
             ctrl[i] = G_F2_SIGNAL(tc0480scp, ctrl)[i];
         }
 
-        ImGui::LabelText("BG0", "X:%d Y:%d Z:%d DX:%d DY:%d", ctrl[0], ctrl[4],
-                         ctrl[8], ctrl[16], ctrl[20]);
-        ImGui::LabelText("BG1", "X:%d Y:%d Z:%d DX:%d DY:%d", ctrl[1], ctrl[5],
-                         ctrl[9], ctrl[17], ctrl[21]);
-        ImGui::LabelText("BG2", "X:%d Y:%d Z:%d DX:%d DY:%d", ctrl[2], ctrl[6],
-                         ctrl[10], ctrl[18], ctrl[22]);
-        ImGui::LabelText("BG3", "X:%d Y:%d Z:%d DX:%d DY:%d", ctrl[3], ctrl[7],
-                         ctrl[11], ctrl[19], ctrl[23]);
+        ImGui::LabelText("BG0", "X:%d Y:%d Z:%d DX:%d DY:%d", ctrl[0], ctrl[4], ctrl[8], ctrl[16], ctrl[20]);
+        ImGui::LabelText("BG1", "X:%d Y:%d Z:%d DX:%d DY:%d", ctrl[1], ctrl[5], ctrl[9], ctrl[17], ctrl[21]);
+        ImGui::LabelText("BG2", "X:%d Y:%d Z:%d DX:%d DY:%d", ctrl[2], ctrl[6], ctrl[10], ctrl[18], ctrl[22]);
+        ImGui::LabelText("BG3", "X:%d Y:%d Z:%d DX:%d DY:%d", ctrl[3], ctrl[7], ctrl[11], ctrl[19], ctrl[23]);
         ImGui::LabelText("FG0", "X:%d Y:%d", ctrl[12], ctrl[13]);
         ImGui::LabelText("Status", "%04X %04X", ctrl[14], ctrl[15]);
     }
@@ -39,22 +39,25 @@ public:
 
 TC0480SCPFlagsWindow s_TC0480SCPFlagsWindow;
 
-
 class TC0480SCPViewWindow : public Window
 {
-public:
+  public:
     int m_layer = 0;
 
-    TC0480SCPViewWindow() : Window("TC0480SCP View") {}
+    TC0480SCPViewWindow() : Window("TC0480SCP View")
+    {
+    }
 
-    void Init() {}
-    
+    void Init()
+    {
+    }
+
     bool IsWide()
     {
         const uint16_t ctrl = G_F2_SIGNAL(tc0480scp, ctrl)[15];
         return (ctrl & (1 << 7)) != 0;
     }
-    
+
     uint16_t MemWord(uint32_t addr)
     {
         addr = (addr & 0xffff) >> 1;
@@ -75,22 +78,23 @@ public:
         const int num_columns = wide ? 64 : 32;
         const int num_rows = 32;
 
-        const char *layer_names[4] = { "BG0", "BG1", "BG2", "BG3" };
+        const char *layer_names[4] = {"BG0", "BG1", "BG2", "BG3"};
         ImGui::Combo("Layer", &m_layer, layer_names, 4);
 
         if (ImGui::BeginTable("layer", num_columns))
         {
             uint32_t base_addr = LayerBaseAddr();
-            for( int y = 0; y < num_rows; y++ )
+            for (int y = 0; y < num_rows; y++)
             {
                 ImGui::TableNextRow();
-                for( int x = 0; x < num_columns; x++ )
+                for (int x = 0; x < num_columns; x++)
                 {
                     uint32_t addr = base_addr + (((y * num_columns) + x) * 4);
                     uint16_t attrib = MemWord(addr);
                     uint16_t code = MemWord(addr + 2) & 0x7fff;
                     ImGui::TableNextColumn();
-                    SDL_Texture *tex = g_sim_core.gfx_cache->GetTexture(MemoryRegion::SCN1_ROM, GfxCacheFormat::TC0480SCP, code, attrib & 0xff);
+                    SDL_Texture *tex =
+                        g_sim_core.gfx_cache->GetTexture(MemoryRegion::SCN1_ROM, GfxCacheFormat::TC0480SCP, code, attrib & 0xff);
                     ImGui::Image((ImTextureID)tex, ImVec2(32, 32));
                     ImGui::Text("%04X", code);
                 }

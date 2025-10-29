@@ -6,7 +6,7 @@
 
 class MemoryInterface
 {
-public:
+  public:
     virtual void Read(uint32_t address, uint32_t size, void *data) const = 0;
     virtual void Write(uint32_t address, uint32_t size, const void *data) = 0;
 
@@ -16,19 +16,20 @@ public:
 
     virtual ~MemoryInterface() {};
 
-protected:
+  protected:
     static uint32_t ClampSize(uint32_t totalSize, uint32_t offset, uint32_t size)
     {
-        if (offset >= totalSize) return 0;
+        if (offset >= totalSize)
+            return 0;
         return std::min((totalSize - offset), size);
     }
 };
 
 class MemorySlice : public MemoryInterface
 {
-public:
+  public:
     MemorySlice() = delete;
-    MemorySlice(MemoryInterface& source, uint32_t offset, uint32_t size) : mSource(source)
+    MemorySlice(MemoryInterface &source, uint32_t offset, uint32_t size) : mSource(source)
     {
         mIsReadonly = source.IsReadonly();
         mSourceSize = source.GetSize();
@@ -49,21 +50,26 @@ public:
         mSource.Write(address + mOffset, size, data);
     }
 
-    virtual uint32_t GetSize() const { return mSize; }
-    virtual bool IsReadonly() const { return mIsReadonly; }
-
+    virtual uint32_t GetSize() const
+    {
+        return mSize;
+    }
+    virtual bool IsReadonly() const
+    {
+        return mIsReadonly;
+    }
 
     uint32_t mOffset;
     uint32_t mSize;
 
     bool mIsReadonly;
     uint32_t mSourceSize;
-    MemoryInterface& mSource;
+    MemoryInterface &mSource;
 };
 
 class Memory16b : public MemoryInterface
 {
-public:
+  public:
     Memory16b(void *lowMem, void *highMem, uint32_t size)
     {
         mLowMem = (uint8_t *)lowMem;
@@ -75,7 +81,7 @@ public:
     {
         uint32_t endAddress = address + ClampSize(mSize, address, size);
         uint8_t *outPtr = (uint8_t *)data;
-        while( address < endAddress )
+        while (address < endAddress)
         {
             if (address & 1)
                 *outPtr = mLowMem[address >> 1];
@@ -90,7 +96,7 @@ public:
     {
         uint32_t endAddress = address + ClampSize(mSize, address, size);
         const uint8_t *inPtr = (const uint8_t *)data;
-        while( address < endAddress )
+        while (address < endAddress)
         {
             if (address & 1)
                 mLowMem[address >> 1] = *inPtr;
@@ -101,8 +107,14 @@ public:
         }
     }
 
-    virtual uint32_t GetSize() const { return mSize; }
-    virtual bool IsReadonly() const { return false; }
+    virtual uint32_t GetSize() const
+    {
+        return mSize;
+    }
+    virtual bool IsReadonly() const
+    {
+        return false;
+    }
 
     uint8_t *mLowMem;
     uint8_t *mHighMem;
@@ -111,7 +123,7 @@ public:
 
 class Memory8b : public MemoryInterface
 {
-public:
+  public:
     Memory8b(void *mem, uint32_t size)
     {
         mMem = (uint8_t *)mem;
@@ -130,12 +142,17 @@ public:
         memcpy(mMem + address, data, size);
     }
 
-    virtual uint32_t GetSize() const { return mSize; }
-    virtual bool IsReadonly() const { return false; }
+    virtual uint32_t GetSize() const
+    {
+        return mSize;
+    }
+    virtual bool IsReadonly() const
+    {
+        return false;
+    }
 
     uint8_t *mMem;
     uint32_t mSize;
 };
-
 
 #endif

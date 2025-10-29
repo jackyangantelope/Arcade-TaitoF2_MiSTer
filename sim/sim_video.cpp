@@ -46,8 +46,7 @@ bool SimVideo::save_screenshot(const char *filename)
         }
     }
 
-    int result = stbi_write_png(filename, actual_width, actual_height, 3,
-                                rgb_data, actual_width * 3);
+    int result = stbi_write_png(filename, actual_width, actual_height, 3, rgb_data, actual_width * 3);
 
     delete[] rgb_data;
 
@@ -73,8 +72,7 @@ std::string SimVideo::generate_screenshot_filename(const char *game_name)
     struct tm *timeinfo = localtime(&now);
 
     std::stringstream filename;
-    filename << "screenshots/" << game_name << "_"
-             << std::put_time(timeinfo, "%Y%m%d_%H%M%S") << ".png";
+    filename << "screenshots/" << game_name << "_" << std::put_time(timeinfo, "%Y%m%d_%H%M%S") << ".png";
 
     return filename.str();
 }
