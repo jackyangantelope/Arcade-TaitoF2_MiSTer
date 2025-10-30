@@ -41,25 +41,25 @@ class SimCore
 {
   public:
     // Public members that external code needs access to
-    F2 *top;
-    std::unique_ptr<SimVideo> video;
-    std::unique_ptr<SimDDR> ddr_memory;
-    std::unique_ptr<SimSDRAM> sdram;
+    F2 *mTop;
+    std::unique_ptr<SimVideo> mVideo;
+    std::unique_ptr<SimDDR> mDDRMemory;
+    std::unique_ptr<SimSDRAM> mSDRAM;
 
-    std::unique_ptr<GfxCache> gfx_cache;
+    std::unique_ptr<GfxCache> mGfxCache;
 
     // Simulation state (made public for compatibility)
-    uint64_t m_total_ticks;
-    bool m_simulation_run;
-    bool m_simulation_step;
-    int m_simulation_step_size;
-    bool m_simulation_step_vblank;
-    bool m_system_pause;
-    bool m_simulation_wp_set;
-    int m_simulation_wp_addr;
-    bool m_trace_active;
-    char m_trace_filename[64];
-    int m_trace_depth;
+    uint64_t mTotalTicks;
+    bool mSimulationRun;
+    bool mSimulationStep;
+    int mSimulationStepSize;
+    bool mSimulationStepVblank;
+    bool mSystemPause;
+    bool mSimulationWpSet;
+    int mSimulationWpAddr;
+    bool mTraceActive;
+    char mTraceFilename[64];
+    int mTraceDepth;
 
     // Constructor/Destructor
     SimCore();
@@ -76,7 +76,7 @@ class SimCore
     void StopTrace();
     bool IsTraceActive() const
     {
-        return m_trace_active;
+        return mTraceActive;
     }
 
     // IOCTL methods
@@ -86,7 +86,7 @@ class SimCore
     // Stats
     uint64_t GetTotalTicks() const
     {
-        return m_total_ticks;
+        return mTotalTicks;
     }
 
     void SetGame(game_t game);
@@ -95,26 +95,26 @@ class SimCore
 
     MemoryInterface &Memory(MemoryRegion region)
     {
-        return *m_memory_region[(int)region];
+        return *mMemoryRegion[(int)region];
     }
 
   private:
     // Verilator context and top module
-    VerilatedContext *m_contextp;
-    std::unique_ptr<VerilatedFstC> m_tfp;
+    VerilatedContext *mContextp;
+    std::unique_ptr<VerilatedFstC> mTfp;
 
-    std::unique_ptr<MemoryInterface> m_memory_region[(int)MemoryRegion::COUNT];
+    std::unique_ptr<MemoryInterface> mMemoryRegion[(int)MemoryRegion::COUNT];
 
     // IOCTL helper methods
     void WaitForIOCTLReady();
 
     void SetMemory(MemoryRegion region, std::unique_ptr<MemoryInterface> &&memory)
     {
-        m_memory_region[(int)region].swap(memory);
+        mMemoryRegion[(int)region].swap(memory);
     }
 };
 
 // Global instance
-extern SimCore g_sim_core;
+extern SimCore gSimCore;
 
 #endif // SIM_CORE_H

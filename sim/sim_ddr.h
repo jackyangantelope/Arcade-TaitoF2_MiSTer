@@ -61,7 +61,7 @@ class SimDDR : public MemoryInterface
     bool load_data(const std::string &filename, uint32_t offset = 0, uint32_t stride = 1)
     {
         std::vector<uint8_t> buffer;
-        if (!g_fs.loadFile(filename, buffer))
+        if (!g_fs.LoadFile(filename, buffer))
         {
             printf("Failed to find file: %s\n", filename.c_str());
             return false;

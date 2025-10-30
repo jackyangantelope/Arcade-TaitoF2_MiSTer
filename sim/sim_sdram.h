@@ -129,7 +129,7 @@ class SimSDRAM : public MemoryInterface
     bool load_data(const char *name, int offset, int stride)
     {
         std::vector<uint8_t> buffer;
-        if (!g_fs.loadFile(name, buffer))
+        if (!g_fs.LoadFile(name, buffer))
         {
             printf("Failed to find file: %s\n", name);
             return false;
@@ -149,7 +149,7 @@ class SimSDRAM : public MemoryInterface
     bool load_data16be(const char *name, int offset, int stride)
     {
         std::vector<uint8_t> buffer;
-        if (!g_fs.loadFile(name, buffer))
+        if (!g_fs.LoadFile(name, buffer))
         {
             printf("Failed to find file: %s\n", name);
             return false;

@@ -88,7 +88,7 @@ bool MRALoader::load(const std::string &mraPath, std::vector<uint8_t> &romData, 
         bool foundAnyZip = false;
         for (const std::string &zip : zipPaths)
         {
-            std::string actualZipPath = g_fs.findFilePath(zip);
+            std::string actualZipPath = g_fs.FindFilePath(zip);
             if (!actualZipPath.empty())
             {
                 // Found the zip file, add it to search paths
@@ -144,12 +144,12 @@ bool MRALoader::load(const std::string &mraPath, std::vector<uint8_t> &romData, 
                 if (crc32Value != 0)
                 {
                     // Try CRC lookup first
-                    loaded = g_fs.loadFileByCRC(crc32Value, partData);
+                    loaded = g_fs.LoadFileByCRC(crc32Value, partData);
                 }
                 if (!loaded)
                 {
                     // Fallback to filename lookup
-                    loaded = g_fs.loadFile(fileName, partData);
+                    loaded = g_fs.LoadFile(fileName, partData);
                 }
 
                 if (!loaded)
@@ -267,12 +267,12 @@ bool MRALoader::load(const std::string &mraPath, std::vector<uint8_t> &romData, 
                     if (crc32Value != 0)
                     {
                         // Try CRC lookup first
-                        loaded = g_fs.loadFileByCRC(crc32Value, partData);
+                        loaded = g_fs.LoadFileByCRC(crc32Value, partData);
                     }
                     if (!loaded)
                     {
                         // Fallback to filename lookup
-                        loaded = g_fs.loadFile(fileName, partData);
+                        loaded = g_fs.LoadFile(fileName, partData);
                     }
 
                     if (!loaded)

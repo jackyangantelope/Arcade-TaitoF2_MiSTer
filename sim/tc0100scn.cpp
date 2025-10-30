@@ -57,8 +57,8 @@ class TC0100SCNViewWindow : public Window
         {
             if (m_layer == 2)
             {
-                MemorySlice gfx_normal(g_sim_core.Memory(MemoryRegion::SCN_0), 0x6000, 0x2000);
-                MemorySlice gfx_wide(g_sim_core.Memory(MemoryRegion::SCN_0), 0x12000, 0x2000);
+                MemorySlice gfx_normal(gSimCore.Memory(MemoryRegion::SCN_0), 0x6000, 0x2000);
+                MemorySlice gfx_wide(gSimCore.Memory(MemoryRegion::SCN_0), 0x12000, 0x2000);
 
                 uint32_t base_addr = 0x4000;
                 for (int y = 0; y < num_rows; y++)
@@ -69,7 +69,7 @@ class TC0100SCNViewWindow : public Window
                         uint32_t addr = base_addr + (((y * num_columns) + x) * 2);
                         uint16_t attrib = MemWord(addr);
                         ImGui::TableNextColumn();
-                        SDL_Texture *tex = g_sim_core.gfx_cache->GetTexture(wide ? gfx_wide : gfx_normal, GfxCacheFormat::TC0100SCN_FG,
+                        SDL_Texture *tex = gSimCore.mGfxCache->GetTexture(wide ? gfx_wide : gfx_normal, GfxCacheFormat::TC0100SCN_FG,
                                                                             attrib & 0xff, (attrib >> 8) & 0x3f);
                         ImGui::Image((ImTextureID)tex, ImVec2(16, 16));
                     }
@@ -87,7 +87,7 @@ class TC0100SCNViewWindow : public Window
                     ImGui::LabelText("Code", "%02X", attrib & 0xff);
                     ImGui::LabelText("Attrib", "%02X", attrib >> 8);
                     ImGui::LabelText("Address", "%04X", addr);
-                    SDL_Texture *tex = g_sim_core.gfx_cache->GetTexture(wide ? gfx_wide : gfx_normal, GfxCacheFormat::TC0100SCN_FG,
+                    SDL_Texture *tex = gSimCore.mGfxCache->GetTexture(wide ? gfx_wide : gfx_normal, GfxCacheFormat::TC0100SCN_FG,
                                                                         attrib & 0xff, (attrib >> 8) & 0x3f);
                     ImGui::Image((ImTextureID)tex, ImVec2(64, 64));
                     ImGui::End();
@@ -106,7 +106,7 @@ class TC0100SCNViewWindow : public Window
                         uint16_t code = MemWord(addr + 2) & 0x7fff;
                         ImGui::TableNextColumn();
                         SDL_Texture *tex =
-                            g_sim_core.gfx_cache->GetTexture(MemoryRegion::SCN0_ROM, GfxCacheFormat::TC0100SCN, code, attrib & 0xff);
+                            gSimCore.mGfxCache->GetTexture(MemoryRegion::SCN0_ROM, GfxCacheFormat::TC0100SCN, code, attrib & 0xff);
                         ImGui::Image((ImTextureID)tex, ImVec2(16, 16));
                     }
                 }
@@ -125,7 +125,7 @@ class TC0100SCNViewWindow : public Window
                     ImGui::LabelText("Attrib", "%04X", attrib);
                     ImGui::LabelText("Address", "%04X", addr);
                     SDL_Texture *tex =
-                        g_sim_core.gfx_cache->GetTexture(MemoryRegion::SCN0_ROM, GfxCacheFormat::TC0100SCN, code, attrib & 0xff);
+                        gSimCore.mGfxCache->GetTexture(MemoryRegion::SCN0_ROM, GfxCacheFormat::TC0100SCN, code, attrib & 0xff);
                     ImGui::Image((ImTextureID)tex, ImVec2(64, 64));
                     ImGui::End();
                 }

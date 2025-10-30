@@ -15,15 +15,15 @@
 #include <cstdio>
 
 // Global instance
-SimCore g_sim_core;
+SimCore gSimCore;
 
 // SimCore implementation
 SimCore::SimCore()
-    : video(nullptr), top(nullptr), ddr_memory(nullptr), sdram(nullptr), m_contextp(nullptr), m_total_ticks(0), m_trace_active(false),
-      m_trace_depth(1), m_simulation_run(false), m_simulation_step(false), m_simulation_step_size(100000), m_simulation_step_vblank(false),
-      m_system_pause(false), m_simulation_wp_set(false), m_simulation_wp_addr(0)
+    : mVideo(nullptr), mTop(nullptr), mDDRMemory(nullptr), mSDRAM(nullptr), mContextp(nullptr), mTotalTicks(0), mTraceActive(false),
+      mTraceDepth(1), mSimulationRun(false), mSimulationStep(false), mSimulationStepSize(100000), mSimulationStepVblank(false),
+      mSystemPause(false), mSimulationWpSet(false), mSimulationWpAddr(0)
 {
-    strcpy(m_trace_filename, "sim.fst");
+    strcpy(mTraceFilename, "sim.fst");
 }
 
 SimCore::~SimCore()
@@ -32,25 +32,25 @@ SimCore::~SimCore()
 }
 
 #define unique_memory_16b(instance, size)                                                                                                  \
-    std::make_unique<Memory16b>(top->rootp->F2_SIGNAL(instance, ram_l).m_storage, top->rootp->F2_SIGNAL(instance, ram_h).m_storage, size)
+    std::make_unique<Memory16b>(mTop->rootp->F2_SIGNAL(instance, ram_l).m_storage, mTop->rootp->F2_SIGNAL(instance, ram_h).m_storage, size)
 
-#define unique_memory_8b(instance, size) std::make_unique<Memory8b>(top->rootp->F2_SIGNAL(instance, ram).m_storage, size)
+#define unique_memory_8b(instance, size) std::make_unique<Memory8b>(mTop->rootp->F2_SIGNAL(instance, ram).m_storage, size)
 
 #define unique_memory_8b_2(instance1, instance2, size)                                                                                     \
-    std::make_unique<Memory8b>(top->rootp->F2_SIGNAL(instance1, instance2, ram).m_storage, size)
+    std::make_unique<Memory8b>(mTop->rootp->F2_SIGNAL(instance1, instance2, ram).m_storage, size)
 
 void SimCore::Init()
 {
-    m_contextp = new VerilatedContext;
-    top = new F2{m_contextp};
-    m_tfp = nullptr;
+    mContextp = new VerilatedContext;
+    mTop = new F2{mContextp};
+    mTfp = nullptr;
 
     // Create memory subsystems
-    sdram = std::make_unique<SimSDRAM>(128 * 1024 * 1024);
-    ddr_memory = std::make_unique<SimDDR>(0x30000000, 256 * 1024 * 1024);
-    video = std::make_unique<SimVideo>();
+    mSDRAM = std::make_unique<SimSDRAM>(128 * 1024 * 1024);
+    mDDRMemory = std::make_unique<SimDDR>(0x30000000, 256 * 1024 * 1024);
+    mVideo = std::make_unique<SimVideo>();
 
-    gfx_cache = std::make_unique<GfxCache>();
+    mGfxCache = std::make_unique<GfxCache>();
 
     SetMemory(MemoryRegion::SCN_0, unique_memory_16b(scn_ram_0, 64 * 1024));
     SetMemory(MemoryRegion::SCN_MUX, unique_memory_16b(scn_mux_ram, 64 * 1024));
@@ -61,42 +61,42 @@ void SimCore::Init()
     SetMemory(MemoryRegion::OBJ_EXT, unique_memory_8b_2(tc0200obj_extender, extension_ram, 8 * 1024));
     SetMemory(MemoryRegion::SOUND, unique_memory_8b(sound_ram, 64 * 1024));
     SetMemory(MemoryRegion::SOUND_ROM, unique_memory_8b(sound_ram, 128 * 1024));
-    SetMemory(MemoryRegion::CPU_ROM, std::make_unique<MemorySlice>(*sdram, CPU_ROM_SDR_BASE, 1024 * 1024));
-    SetMemory(MemoryRegion::SCN0_ROM, std::make_unique<MemorySlice>(*sdram, SCN0_ROM_SDR_BASE, 2048 * 1024));
-    SetMemory(MemoryRegion::SCN1_ROM, std::make_unique<MemorySlice>(*sdram, SCN1_ROM_SDR_BASE, 2048 * 1024));
-    SetMemory(MemoryRegion::OBJ_ROM, std::make_unique<MemorySlice>(*ddr_memory, OBJ_DATA_DDR_BASE, 6 * 1024 * 1024));
+    SetMemory(MemoryRegion::CPU_ROM, std::make_unique<MemorySlice>(*mSDRAM, CPU_ROM_SDR_BASE, 1024 * 1024));
+    SetMemory(MemoryRegion::SCN0_ROM, std::make_unique<MemorySlice>(*mSDRAM, SCN0_ROM_SDR_BASE, 2048 * 1024));
+    SetMemory(MemoryRegion::SCN1_ROM, std::make_unique<MemorySlice>(*mSDRAM, SCN1_ROM_SDR_BASE, 2048 * 1024));
+    SetMemory(MemoryRegion::OBJ_ROM, std::make_unique<MemorySlice>(*mDDRMemory, OBJ_DATA_DDR_BASE, 6 * 1024 * 1024));
 }
 
 void SimCore::Tick(int count)
 {
     for (int i = 0; i < count; i++)
     {
-        m_total_ticks++;
+        mTotalTicks++;
 
-        sdram->update_channel_64(0, 8, top->sdr_addr, top->sdr_req, top->sdr_rw, top->sdr_be, top->sdr_data, &top->sdr_q, &top->sdr_ack);
-        video->clock(top->ce_pixel != 0, top->hblank != 0, top->vblank != 0, top->red, top->green, top->blue);
+        mSDRAM->update_channel_64(0, 8, mTop->sdr_addr, mTop->sdr_req, mTop->sdr_rw, mTop->sdr_be, mTop->sdr_data, &mTop->sdr_q, &mTop->sdr_ack);
+        mVideo->clock(mTop->ce_pixel != 0, mTop->hblank != 0, mTop->vblank != 0, mTop->red, mTop->green, mTop->blue);
 
-        ddr_memory->clock(top->ddr_addr, top->ddr_wdata, top->ddr_rdata, top->ddr_read, top->ddr_write, top->ddr_busy,
-                          top->ddr_read_complete, top->ddr_burstcnt, top->ddr_byteenable);
+        mDDRMemory->clock(mTop->ddr_addr, mTop->ddr_wdata, mTop->ddr_rdata, mTop->ddr_read, mTop->ddr_write, mTop->ddr_busy,
+                          mTop->ddr_read_complete, mTop->ddr_burstcnt, mTop->ddr_byteenable);
 
-        m_contextp->timeInc(1);
-        top->clk = 0;
+        mContextp->timeInc(1);
+        mTop->clk = 0;
 
-        top->eval();
-        if (m_tfp)
-            m_tfp->dump(m_contextp->time());
+        mTop->eval();
+        if (mTfp)
+            mTfp->dump(mContextp->time());
 
-        m_contextp->timeInc(1);
-        top->clk = 1;
+        mContextp->timeInc(1);
+        mTop->clk = 1;
 
-        top->eval();
-        if (m_tfp)
-            m_tfp->dump(m_contextp->time());
+        mTop->eval();
+        if (mTfp)
+            mTfp->dump(mContextp->time());
 
-        if (m_simulation_wp_set && top->rootp->F2_SIGNAL(cpu_word_addr) == m_simulation_wp_addr)
+        if (mSimulationWpSet && mTop->rootp->F2_SIGNAL(cpu_word_addr) == mSimulationWpAddr)
         {
-            m_simulation_run = false;
-            m_simulation_step = false;
+            mSimulationRun = false;
+            mSimulationStep = false;
             return;
         }
     }
@@ -112,64 +112,64 @@ void SimCore::TickUntil(std::function<bool()> until)
 
 void SimCore::Shutdown()
 {
-    if (m_tfp)
+    if (mTfp)
     {
-        m_tfp->close();
-        m_tfp.reset();
+        mTfp->close();
+        mTfp.reset();
     }
 
-    if (top)
+    if (mTop)
     {
-        top->final();
-        delete top;
-        top = nullptr;
+        mTop->final();
+        delete mTop;
+        mTop = nullptr;
     }
 
-    if (m_contextp)
+    if (mContextp)
     {
-        delete m_contextp;
-        m_contextp = nullptr;
+        delete mContextp;
+        mContextp = nullptr;
     }
 
     // Reset member objects
-    sdram.reset();
-    ddr_memory.reset();
-    video.reset();
+    mSDRAM.reset();
+    mDDRMemory.reset();
+    mVideo.reset();
 }
 
 void SimCore::StartTrace(const char *filename, int depth)
 {
-    if (!m_contextp || !top)
+    if (!mContextp || !mTop)
         return;
 
-    if (m_tfp)
+    if (mTfp)
     {
-        m_tfp->close();
-        m_tfp.reset();
+        mTfp->close();
+        mTfp.reset();
     }
 
-    strcpy(m_trace_filename, filename);
-    m_trace_depth = depth;
+    strcpy(mTraceFilename, filename);
+    mTraceDepth = depth;
 
-    m_tfp = std::make_unique<VerilatedFstC>();
-    top->trace(m_tfp.get(), m_trace_depth);
-    m_tfp->open(m_trace_filename);
-    m_trace_active = true;
+    mTfp = std::make_unique<VerilatedFstC>();
+    mTop->trace(mTfp.get(), mTraceDepth);
+    mTfp->open(mTraceFilename);
+    mTraceActive = true;
 }
 
 void SimCore::StopTrace()
 {
-    if (m_tfp)
+    if (mTfp)
     {
-        m_tfp->close();
-        m_tfp.reset();
+        mTfp->close();
+        mTfp.reset();
     }
-    m_trace_active = false;
+    mTraceActive = false;
 }
 
 bool SimCore::SendIOCTLData(uint8_t index, const std::vector<uint8_t> &data)
 {
-    if (!top)
+    if (!mTop)
     {
         return false;
     }
@@ -177,12 +177,12 @@ bool SimCore::SendIOCTLData(uint8_t index, const std::vector<uint8_t> &data)
     printf("Starting ioctl download (index=%d, size=%zu)\n", (int)index, data.size());
 
     // Start download sequence
-    top->reset = 1;
-    top->ioctl_download = 1;
-    top->ioctl_index = index;
-    top->ioctl_wr = 0;
-    top->ioctl_addr = 0;
-    top->ioctl_dout = 0;
+    mTop->reset = 1;
+    mTop->ioctl_download = 1;
+    mTop->ioctl_index = index;
+    mTop->ioctl_wr = 0;
+    mTop->ioctl_addr = 0;
+    mTop->ioctl_dout = 0;
 
     // Clock to let the core see download start
     Tick(1);
@@ -191,16 +191,16 @@ bool SimCore::SendIOCTLData(uint8_t index, const std::vector<uint8_t> &data)
     for (size_t i = 0; i < data.size(); i++)
     {
         // Set up data and address
-        top->ioctl_addr = i;
-        top->ioctl_dout = data[i];
-        top->ioctl_wr = 1;
+        mTop->ioctl_addr = i;
+        mTop->ioctl_dout = data[i];
+        mTop->ioctl_wr = 1;
 
         // Clock and wait for ready
         Tick(1);
         WaitForIOCTLReady();
 
         // Deassert write
-        top->ioctl_wr = 0;
+        mTop->ioctl_wr = 0;
         Tick(1);
 
         // Progress indicator every 64KB
@@ -211,8 +211,8 @@ bool SimCore::SendIOCTLData(uint8_t index, const std::vector<uint8_t> &data)
     }
 
     // End download sequence
-    top->ioctl_download = 0;
-    top->reset = 0;
+    mTop->ioctl_download = 0;
+    mTop->reset = 0;
     Tick(1);
 
     printf("ioctl download complete\n");
@@ -223,22 +223,22 @@ bool SimCore::SendIOCTLDataDDR(uint8_t index, uint32_t addr, const std::vector<u
 {
     printf("Starting DDR ioctl download (index=%d, size=%zu, addr=%08x)\n", (int)index, data.size(), addr);
 
-    ddr_memory->load_data(data, addr, 1);
-    top->reset = 1;
-    top->ioctl_download = 1;
-    top->ioctl_index = index;
-    top->ioctl_wr = 0;
-    top->ioctl_addr = data.size();
-    top->ioctl_dout = 0;
+    mDDRMemory->load_data(data, addr, 1);
+    mTop->reset = 1;
+    mTop->ioctl_download = 1;
+    mTop->ioctl_index = index;
+    mTop->ioctl_wr = 0;
+    mTop->ioctl_addr = data.size();
+    mTop->ioctl_dout = 0;
 
     Tick(1);
 
-    top->ioctl_download = 0;
+    mTop->ioctl_download = 0;
     Tick(2);
 
-    TickUntil([&] { return top->rootp->sim_top__DOT__rom_load_busy == 0; });
+    TickUntil([&] { return mTop->rootp->sim_top__DOT__rom_load_busy == 0; });
 
-    top->reset = 0;
+    mTop->reset = 0;
 
     printf("ioctl download complete\n");
     return true;
@@ -248,7 +248,7 @@ void SimCore::WaitForIOCTLReady()
 {
     int timeout = 1000; // Prevent infinite loops
 
-    while (top->ioctl_wait && timeout > 0)
+    while (mTop->ioctl_wait && timeout > 0)
     {
         Tick(1);
         timeout--;
@@ -262,12 +262,12 @@ void SimCore::WaitForIOCTLReady()
 
 void SimCore::SetGame(game_t game)
 {
-    top->rootp->sim_top__DOT__board_cfg = game << 8;
+    mTop->rootp->sim_top__DOT__board_cfg = game << 8;
 }
 
 game_t SimCore::GetGame() const
 {
-    return (game_t)(top->rootp->sim_top__DOT__board_cfg >> 8);
+    return (game_t)(mTop->rootp->sim_top__DOT__board_cfg >> 8);
 }
 
 const char *SimCore::GetGameName() const

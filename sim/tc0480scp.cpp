@@ -94,7 +94,7 @@ class TC0480SCPViewWindow : public Window
                     uint16_t code = MemWord(addr + 2) & 0x7fff;
                     ImGui::TableNextColumn();
                     SDL_Texture *tex =
-                        g_sim_core.gfx_cache->GetTexture(MemoryRegion::SCN1_ROM, GfxCacheFormat::TC0480SCP, code, attrib & 0xff);
+                        gSimCore.mGfxCache->GetTexture(MemoryRegion::SCN1_ROM, GfxCacheFormat::TC0480SCP, code, attrib & 0xff);
                     ImGui::Image((ImTextureID)tex, ImVec2(32, 32));
                     ImGui::Text("%04X", code);
                 }

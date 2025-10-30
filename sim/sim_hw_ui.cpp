@@ -118,7 +118,7 @@ class MiscDebugWindow : public Window
         if (modified)
         {
             sim_debug_data->modified++;
-            g_sim_core.top->rootp->sim_top__DOT__f2_inst__DOT__rom_cache__DOT__version++;
+            gSimCore.mTop->rootp->sim_top__DOT__f2_inst__DOT__rom_cache__DOT__version++;
         }
     }
 };
@@ -138,7 +138,7 @@ class M68000Window : public Window
     {
         uint32_t pc = G_F2_SIGNAL(m68000, excUnit, PcL) | (G_F2_SIGNAL(m68000, excUnit, PcH) << 16);
         ImGui::LabelText("PC", "%08X", pc);
-        Dis68k dis(g_sim_core.sdram->mData + pc, g_sim_core.sdram->mData + pc + 64, pc);
+        Dis68k dis(gSimCore.mSDRAM->mData + pc, gSimCore.mSDRAM->mData + pc + 64, pc);
         char optxt[128];
         uint32_t addr;
         dis.disasm(&addr, optxt, sizeof(optxt));

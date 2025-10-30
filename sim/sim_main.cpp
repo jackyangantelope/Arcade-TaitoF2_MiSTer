@@ -66,7 +66,7 @@ int main(int argc, char **argv)
         }
     }
 
-    g_sim_core.Init();
+    gSimCore.Init();
 
     // Only initialize UI if not in headless mode
     if (!command_queue.is_headless())
@@ -77,27 +77,27 @@ int main(int argc, char **argv)
 
     g_fs.addSearchPath(".");
 
-    sim_debug_data = (SimDebug *)(g_sim_core.sdram->mData + 0x80000);
+    sim_debug_data = (SimDebug *)(gSimCore.mSDRAM->mData + 0x80000);
 
-    g_sim_core.top->ss_do_save = 0;
-    g_sim_core.top->ss_do_restore = 0;
-    g_sim_core.top->obj_debug_idx = -1;
+    gSimCore.mTop->ss_do_save = 0;
+    gSimCore.mTop->ss_do_restore = 0;
+    gSimCore.mTop->obj_debug_idx = -1;
 
-    g_sim_core.top->joystick_p1 = 0;
-    g_sim_core.top->joystick_p2 = 0;
+    gSimCore.mTop->joystick_p1 = 0;
+    gSimCore.mTop->joystick_p2 = 0;
 
-    state_manager = new SimState(g_sim_core.top, g_sim_core.ddr_memory.get(), 0x3E000000, 512 * 1024);
+    state_manager = new SimState(gSimCore.mTop, gSimCore.mDDRMemory.get(), 0x3E000000, 512 * 1024);
 
     if (!command_queue.is_headless())
     {
-        g_sim_core.video->init(320, 224, imgui_get_renderer());
+        gSimCore.mVideo->init(320, 224, imgui_get_renderer());
 
-        g_sim_core.gfx_cache->Init(imgui_get_renderer(), g_sim_core.Memory(MemoryRegion::COLOR));
+        gSimCore.mGfxCache->Init(imgui_get_renderer(), gSimCore.Memory(MemoryRegion::COLOR));
     }
     else
     {
         // Minimal init for headless mode
-        g_sim_core.video->init(320, 224, nullptr);
+        gSimCore.mVideo->init(320, 224, nullptr);
     }
 
     Verilated::traceEverOn(true);
@@ -122,7 +122,7 @@ int main(int argc, char **argv)
             case CommandType::RUN_CYCLES:
                 if (command_queue.is_verbose())
                     printf("Running %llu cycles...\n", cmd.count);
-                g_sim_core.Tick(cmd.count);
+                gSimCore.Tick(cmd.count);
                 if (command_queue.is_verbose())
                     printf("Completed running %llu cycles\n", cmd.count);
                 command_queue.pop();
@@ -133,8 +133,8 @@ int main(int argc, char **argv)
                     printf("Running %llu frames...\n", cmd.count);
                 for (uint64_t i = 0; i < cmd.count; i++)
                 {
-                    g_sim_core.TickUntil([&] { return g_sim_core.top->vblank == 0; });
-                    g_sim_core.TickUntil([&] { return g_sim_core.top->vblank != 0; });
+                    gSimCore.TickUntil([&] { return gSimCore.mTop->vblank == 0; });
+                    gSimCore.TickUntil([&] { return gSimCore.mTop->vblank != 0; });
                 }
                 if (command_queue.is_verbose())
                     printf("Completed running %llu frames\n", cmd.count);
@@ -142,10 +142,10 @@ int main(int argc, char **argv)
                 break;
 
             case CommandType::SCREENSHOT:
-                g_sim_core.video->update_texture();
+                gSimCore.mVideo->update_texture();
                 if (command_queue.is_verbose())
                     printf("Saving screenshot to: %s\n", cmd.filename.c_str());
-                if (g_sim_core.video->save_screenshot(cmd.filename.c_str()))
+                if (gSimCore.mVideo->save_screenshot(cmd.filename.c_str()))
                 {
                     if (command_queue.is_verbose())
                         printf("Screenshot saved successfully\n");
@@ -174,7 +174,7 @@ int main(int argc, char **argv)
             case CommandType::TRACE_START:
                 if (command_queue.is_verbose())
                     printf("Starting trace to: %s\n", cmd.filename.c_str());
-                g_sim_core.StartTrace(cmd.filename.c_str(), 99);
+                gSimCore.StartTrace(cmd.filename.c_str(), 99);
                 if (command_queue.is_verbose())
                     printf("Trace started successfully\n");
                 command_queue.pop();
@@ -183,9 +183,9 @@ int main(int argc, char **argv)
             case CommandType::TRACE_STOP:
                 if (command_queue.is_verbose())
                     printf("Stopping trace\n");
-                if (g_sim_core.IsTraceActive())
+                if (gSimCore.IsTraceActive())
                 {
-                    g_sim_core.StopTrace();
+                    gSimCore.StopTrace();
                     if (command_queue.is_verbose())
                         printf("Trace stopped successfully\n");
                 }
@@ -230,11 +230,11 @@ int main(int argc, char **argv)
                     printf("Loading MRA: %s\n", cmd.filename.c_str());
                 if (game_init_mra(cmd.filename.c_str()))
                 {
-                    state_manager->set_game_name(g_sim_core.GetGameName());
+                    state_manager->set_game_name(gSimCore.GetGameName());
                     if (!command_queue.is_headless())
                         ui_game_changed();
                     if (command_queue.is_verbose())
-                        printf("Successfully loaded MRA: %s (%s)\n", cmd.filename.c_str(), g_sim_core.GetGameName());
+                        printf("Successfully loaded MRA: %s (%s)\n", cmd.filename.c_str(), gSimCore.GetGameName());
                 }
                 else
                 {
@@ -247,11 +247,11 @@ int main(int argc, char **argv)
                 if (command_queue.is_verbose())
                     printf("Reset for %llu cycles\n", cmd.count);
                 // Set reset signal
-                g_sim_core.top->reset = 1;
+                gSimCore.mTop->reset = 1;
                 // Run for specified cycles
-                g_sim_core.Tick(cmd.count);
+                gSimCore.Tick(cmd.count);
                 // Clear reset signal
-                g_sim_core.top->reset = 0;
+                gSimCore.mTop->reset = 0;
                 command_queue.pop();
                 break;
 
@@ -259,7 +259,7 @@ int main(int argc, char **argv)
                 if (command_queue.is_verbose())
                     printf("Set dipswitch A to 0x%llx\n", cmd.count);
                 dipswitch_a = cmd.count & 0xff;
-                g_sim_core.top->dswa = dipswitch_a;
+                gSimCore.mTop->dswa = dipswitch_a;
                 command_queue.pop();
                 break;
 
@@ -267,7 +267,7 @@ int main(int argc, char **argv)
                 if (command_queue.is_verbose())
                     printf("Set dipswitch B to 0x%llx\n", cmd.count);
                 dipswitch_b = cmd.count & 0xff;
-                g_sim_core.top->dswb = dipswitch_b;
+                gSimCore.mTop->dswb = dipswitch_b;
                 command_queue.pop();
                 break;
 
@@ -286,7 +286,7 @@ int main(int argc, char **argv)
         }
         else if (!command_queue.is_headless())
         {
-            g_sim_core.gfx_cache->PruneCache();
+            gSimCore.mGfxCache->PruneCache();
 
             // Interactive mode
             if (!ui_begin_frame())
@@ -298,8 +298,8 @@ int main(int argc, char **argv)
             // Handle F12 screenshot key
             if (keyboard_state && keyboard_state[SDL_SCANCODE_F12] && !screenshot_key_pressed)
             {
-                std::string filename = g_sim_core.video->generate_screenshot_filename("sim");
-                g_sim_core.video->save_screenshot(filename.c_str());
+                std::string filename = gSimCore.mVideo->generate_screenshot_filename("sim");
+                gSimCore.mVideo->save_screenshot(filename.c_str());
                 screenshot_key_pressed = true;
             }
             else if (keyboard_state && !keyboard_state[SDL_SCANCODE_F12])
@@ -307,27 +307,27 @@ int main(int argc, char **argv)
                 screenshot_key_pressed = false;
             }
 
-            g_sim_core.top->dswa = dipswitch_a & 0xff;
-            g_sim_core.top->dswb = dipswitch_b & 0xff;
-            g_sim_core.top->pause = g_sim_core.m_system_pause;
+            gSimCore.mTop->dswa = dipswitch_a & 0xff;
+            gSimCore.mTop->dswb = dipswitch_b & 0xff;
+            gSimCore.mTop->pause = gSimCore.mSystemPause;
 
-            g_sim_core.top->joystick_p1 = imgui_get_buttons() & 0xffff;
-            g_sim_core.top->start = (imgui_get_buttons() >> 16) & 0xffff;
+            gSimCore.mTop->joystick_p1 = imgui_get_buttons() & 0xffff;
+            gSimCore.mTop->start = (imgui_get_buttons() >> 16) & 0xffff;
 
-            if (g_sim_core.m_simulation_run || g_sim_core.m_simulation_step)
+            if (gSimCore.mSimulationRun || gSimCore.mSimulationStep)
             {
-                if (g_sim_core.m_simulation_step_vblank)
+                if (gSimCore.mSimulationStepVblank)
                 {
-                    g_sim_core.TickUntil([&] { return g_sim_core.top->vblank == 0; });
-                    g_sim_core.TickUntil([&] { return g_sim_core.top->vblank != 0; });
+                    gSimCore.TickUntil([&] { return gSimCore.mTop->vblank == 0; });
+                    gSimCore.TickUntil([&] { return gSimCore.mTop->vblank != 0; });
                 }
                 else
                 {
-                    g_sim_core.Tick(g_sim_core.m_simulation_step_size);
+                    gSimCore.Tick(gSimCore.mSimulationStepSize);
                 }
-                g_sim_core.video->update_texture();
+                gSimCore.mVideo->update_texture();
             }
-            g_sim_core.m_simulation_step = false;
+            gSimCore.mSimulationStep = false;
 
             ui_draw();
 
@@ -340,7 +340,7 @@ int main(int argc, char **argv)
         }
     }
 
-    g_sim_core.Shutdown();
+    gSimCore.Shutdown();
 
     delete state_manager;
     return 0;

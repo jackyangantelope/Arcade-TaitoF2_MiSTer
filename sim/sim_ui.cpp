@@ -77,7 +77,7 @@ static bool refresh_state_files = true;
 void ui_game_changed()
 {
     char title[64];
-    const char *name = g_sim_core.GetGameName();
+    const char *name = gSimCore.GetGameName();
 
     snprintf(title, sizeof(title), "F2 - %s", name);
     imgui_set_title(title);
@@ -88,19 +88,19 @@ void ui_draw()
 {
     if (ImGui::Begin("Simulation Control"))
     {
-        ImGui::LabelText("Ticks", "%llu", g_sim_core.m_total_ticks);
-        ImGui::Checkbox("Run", &g_sim_core.m_simulation_run);
+        ImGui::LabelText("Ticks", "%llu", gSimCore.mTotalTicks);
+        ImGui::Checkbox("Run", &gSimCore.mSimulationRun);
         if (ImGui::Button("Step"))
         {
-            g_sim_core.m_simulation_step = true;
-            g_sim_core.m_simulation_run = false;
+            gSimCore.mSimulationStep = true;
+            gSimCore.mSimulationRun = false;
         }
-        ImGui::InputInt("Step Size", &g_sim_core.m_simulation_step_size);
-        ImGui::Checkbox("Step Frame", &g_sim_core.m_simulation_step_vblank);
+        ImGui::InputInt("Step Size", &gSimCore.mSimulationStepSize);
+        ImGui::Checkbox("Step Frame", &gSimCore.mSimulationStepVblank);
 
-        ImGui::Checkbox("WP Set", &g_sim_core.m_simulation_wp_set);
+        ImGui::Checkbox("WP Set", &gSimCore.mSimulationWpSet);
         ImGui::SameLine();
-        ImGui::InputInt("##wpaddr", &g_sim_core.m_simulation_wp_addr, 0, 0, ImGuiInputTextFlags_CharsHexadecimal);
+        ImGui::InputInt("##wpaddr", &gSimCore.mSimulationWpAddr, 0, 0, ImGuiInputTextFlags_CharsHexadecimal);
 
         if (ImGui::Button("Reset"))
         {
@@ -108,7 +108,7 @@ void ui_draw()
         }
 
         ImGui::SameLine();
-        ImGui::Checkbox("Pause", &g_sim_core.m_system_pause);
+        ImGui::Checkbox("Pause", &gSimCore.mSystemPause);
 
         ImGui::Separator();
 
@@ -188,25 +188,25 @@ void ui_draw()
         ImGui::Separator();
 
         ImGui::PushItemWidth(100);
-        if (ImGui::InputInt("Trace Depth", &g_sim_core.m_trace_depth, 1, 10,
-                            g_sim_core.m_trace_active ? ImGuiInputTextFlags_ReadOnly : ImGuiInputTextFlags_None))
+        if (ImGui::InputInt("Trace Depth", &gSimCore.mTraceDepth, 1, 10,
+                            gSimCore.mTraceActive ? ImGuiInputTextFlags_ReadOnly : ImGuiInputTextFlags_None))
         {
-            g_sim_core.m_trace_depth = std::min(std::max(g_sim_core.m_trace_depth, 1), 99);
+            gSimCore.mTraceDepth = std::min(std::max(gSimCore.mTraceDepth, 1), 99);
         }
         ImGui::PopItemWidth();
-        ImGui::InputText("Filename", g_sim_core.m_trace_filename, sizeof(g_sim_core.m_trace_filename),
-                         g_sim_core.IsTraceActive() ? ImGuiInputTextFlags_ReadOnly : ImGuiInputTextFlags_None);
-        if (ImGui::Button(g_sim_core.IsTraceActive() ? "Stop Tracing###TraceBtn" : "Start Tracing###TraceBtn"))
+        ImGui::InputText("Filename", gSimCore.mTraceFilename, sizeof(gSimCore.mTraceFilename),
+                         gSimCore.IsTraceActive() ? ImGuiInputTextFlags_ReadOnly : ImGuiInputTextFlags_None);
+        if (ImGui::Button(gSimCore.IsTraceActive() ? "Stop Tracing###TraceBtn" : "Start Tracing###TraceBtn"))
         {
-            if (g_sim_core.IsTraceActive())
+            if (gSimCore.IsTraceActive())
             {
-                g_sim_core.StopTrace();
+                gSimCore.StopTrace();
             }
             else
             {
-                if (strlen(g_sim_core.m_trace_filename) > 0)
+                if (strlen(gSimCore.mTraceFilename) > 0)
                 {
-                    g_sim_core.StartTrace(g_sim_core.m_trace_filename, g_sim_core.m_trace_depth);
+                    gSimCore.StartTrace(gSimCore.mTraceFilename, gSimCore.mTraceDepth);
                 }
             }
         }
@@ -316,11 +316,11 @@ class ROMWindow : public Window
     void Init()
     {
         mTabs.clear();
-        mTabs.emplace_back("CPU", g_sim_core.Memory(MemoryRegion::CPU_ROM));
-        mTabs.emplace_back("Sound", g_sim_core.Memory(MemoryRegion::SOUND_ROM));
-        mTabs.emplace_back("SCN0", g_sim_core.Memory(MemoryRegion::SCN0_ROM));
-        mTabs.emplace_back("SCN1", g_sim_core.Memory(MemoryRegion::SCN1_ROM));
-        mTabs.emplace_back("OBJ", g_sim_core.Memory(MemoryRegion::OBJ_ROM));
+        mTabs.emplace_back("CPU", gSimCore.Memory(MemoryRegion::CPU_ROM));
+        mTabs.emplace_back("Sound", gSimCore.Memory(MemoryRegion::SOUND_ROM));
+        mTabs.emplace_back("SCN0", gSimCore.Memory(MemoryRegion::SCN0_ROM));
+        mTabs.emplace_back("SCN1", gSimCore.Memory(MemoryRegion::SCN1_ROM));
+        mTabs.emplace_back("OBJ", gSimCore.Memory(MemoryRegion::OBJ_ROM));
     }
 
     void Draw()
@@ -364,14 +364,14 @@ class RAMWindow : public Window
     void Init()
     {
         mTabs.clear();
-        mTabs.emplace_back("Work", g_sim_core.Memory(MemoryRegion::WORK));
-        mTabs.emplace_back("Screen", g_sim_core.Memory(MemoryRegion::SCN_0));
-        mTabs.emplace_back("Screen Mux", g_sim_core.Memory(MemoryRegion::SCN_MUX));
-        mTabs.emplace_back("Color", g_sim_core.Memory(MemoryRegion::COLOR));
-        mTabs.emplace_back("Pivot", g_sim_core.Memory(MemoryRegion::PIVOT));
-        mTabs.emplace_back("OBJ", g_sim_core.Memory(MemoryRegion::OBJ));
-        mTabs.emplace_back("OBJ Extension", g_sim_core.Memory(MemoryRegion::OBJ_EXT));
-        mTabs.emplace_back("Sound", g_sim_core.Memory(MemoryRegion::SOUND));
+        mTabs.emplace_back("Work", gSimCore.Memory(MemoryRegion::WORK));
+        mTabs.emplace_back("Screen", gSimCore.Memory(MemoryRegion::SCN_0));
+        mTabs.emplace_back("Screen Mux", gSimCore.Memory(MemoryRegion::SCN_MUX));
+        mTabs.emplace_back("Color", gSimCore.Memory(MemoryRegion::COLOR));
+        mTabs.emplace_back("Pivot", gSimCore.Memory(MemoryRegion::PIVOT));
+        mTabs.emplace_back("OBJ", gSimCore.Memory(MemoryRegion::OBJ));
+        mTabs.emplace_back("OBJ Extension", gSimCore.Memory(MemoryRegion::OBJ_EXT));
+        mTabs.emplace_back("Sound", gSimCore.Memory(MemoryRegion::SOUND));
     }
 
     void Draw()

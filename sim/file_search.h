@@ -25,8 +25,8 @@ class FileSearch
     // Structure to track search paths in order
     struct SearchPath
     {
-        std::string path;
-        PathType type;
+        std::string mPath;
+        PathType mType;
     };
 
     // Constructor
@@ -48,7 +48,7 @@ class FileSearch
      * @param buffer Vector to store the file contents
      * @return true if file was found and loaded
      */
-    bool loadFile(const std::string &filename, std::vector<uint8_t> &buffer);
+    bool LoadFile(const std::string &filename, std::vector<uint8_t> &buffer);
 
     /**
      * Load a file by CRC32 from zip files in search paths
@@ -56,14 +56,14 @@ class FileSearch
      * @param buffer Vector to store the file contents
      * @return true if file was found and loaded
      */
-    bool loadFileByCRC(uint32_t crc32, std::vector<uint8_t> &buffer);
+    bool LoadFileByCRC(uint32_t crc32, std::vector<uint8_t> &buffer);
 
     /**
      * Find the full path of a file in search paths
      * @param filename Name of the file to locate
      * @return Full path to the file, or empty string if not found
      */
-    std::string findFilePath(const std::string &filename);
+    std::string FindFilePath(const std::string &filename);
 
     /**
      * Clear all search paths
@@ -88,44 +88,44 @@ class FileSearch
      */
     size_t getSearchPathCount() const
     {
-        return m_searchPaths.size();
+        return mSearchPaths.size();
     }
 
   private:
     // Structure to hold opened zip archive information
     struct ZipInfo
     {
-        mz_zip_archive archive;
-        bool valid;
+        mz_zip_archive mArchive;
+        bool mValid;
 
-        ZipInfo() : valid(false)
+        ZipInfo() : mValid(false)
         {
-            mz_zip_zero_struct(&archive);
+            mz_zip_zero_struct(&mArchive);
         }
 
         ~ZipInfo()
         {
-            if (valid)
+            if (mValid)
             {
-                mz_zip_reader_end(&archive);
+                mz_zip_reader_end(&mArchive);
             }
         }
     };
 
     // List of search paths in the order they were added
-    std::vector<SearchPath> m_searchPaths;
+    std::vector<SearchPath> mSearchPaths;
 
     // Map of zip file paths to their archive objects
-    std::unordered_map<std::string, ZipInfo *> m_zipFiles;
+    std::unordered_map<std::string, ZipInfo *> mZipFiles;
 
     // Try to load file from a directory
-    bool loadFromDirectory(const std::string &dirPath, const std::string &filename, std::vector<uint8_t> &buffer);
+    bool LoadFromDirectory(const std::string &dirPath, const std::string &filename, std::vector<uint8_t> &buffer);
 
     // Try to load file from a zip archive
-    bool loadFromZip(const std::string &zipPath, const std::string &filename, std::vector<uint8_t> &buffer);
+    bool LoadFromZip(const std::string &zipPath, const std::string &filename, std::vector<uint8_t> &buffer);
 
     // Try to load file by CRC from a zip archive
-    bool loadFromZipByCRC(const std::string &zipPath, uint32_t crc32, std::vector<uint8_t> &buffer);
+    bool LoadFromZipByCRC(const std::string &zipPath, uint32_t crc32, std::vector<uint8_t> &buffer);
 };
 
 // Global FileSearch instance that can be used throughout the application

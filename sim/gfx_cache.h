@@ -179,7 +179,7 @@ class GfxCache
 
     SDL_Texture *GetTexture(MemoryRegion region, GfxCacheFormat format, uint16_t code, uint8_t palette_idx)
     {
-        return GetTexture(g_sim_core.Memory(region), format, code, palette_idx);
+        return GetTexture(gSimCore.Memory(region), format, code, palette_idx);
     }
 
     SDL_Texture *GetTexture(MemoryInterface &gfxmem, GfxCacheFormat format, uint16_t code, uint8_t palette_idx)

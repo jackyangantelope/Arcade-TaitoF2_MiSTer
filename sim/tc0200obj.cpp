@@ -222,15 +222,15 @@ class TC0200OBJ_Window : public Window
                     ImGui::TableNextColumn();
                     ImGui::Text("%02X", inst.zoom_y);
                     ImGui::TableNextColumn();
-                    bool is_debug = index == g_sim_core.top->obj_debug_idx;
+                    bool is_debug = index == gSimCore.mTop->obj_debug_idx;
                     char id[16];
                     snprintf(id, 16, "##debug%d", index);
                     if (ImGui::RadioButton(id, is_debug))
                     {
                         if (is_debug)
-                            g_sim_core.top->obj_debug_idx = -1;
+                            gSimCore.mTop->obj_debug_idx = -1;
                         else
-                            g_sim_core.top->obj_debug_idx = index;
+                            gSimCore.mTop->obj_debug_idx = index;
                     }
                 }
             }
@@ -240,7 +240,7 @@ class TC0200OBJ_Window : public Window
                 uint16_t code = extcode[tooltip_idx];
                 if (code != 0)
                 {
-                    SDL_Texture *tex = g_sim_core.gfx_cache->GetTexture(MemoryRegion::OBJ_ROM, GfxCacheFormat::TC0200OBJ, code,
+                    SDL_Texture *tex = gSimCore.mGfxCache->GetTexture(MemoryRegion::OBJ_ROM, GfxCacheFormat::TC0200OBJ, code,
                                                                         latched_color[tooltip_idx]);
                     ImGui::BeginTooltip();
                     ImGui::LabelText("Code", "%04X", code);
@@ -310,7 +310,7 @@ class TC0200OBJ_Preview_Window : public Window
                     {
                         ImGui::TableNextColumn();
                         SDL_Texture *tex =
-                            g_sim_core.gfx_cache->GetTexture(MemoryRegion::OBJ_ROM, GfxCacheFormat::TC0200OBJ, base_code + i, m_color);
+                            gSimCore.mGfxCache->GetTexture(MemoryRegion::OBJ_ROM, GfxCacheFormat::TC0200OBJ, base_code + i, m_color);
                         ImGui::Image((ImTextureID)tex, ImVec2(32, 32));
                     }
                 }
