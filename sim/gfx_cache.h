@@ -11,28 +11,28 @@
 
 struct GfxCacheEntry
 {
-    SDL_Texture *texture;
-    uint64_t last_used;
+    SDL_Texture *mTexture;
+    uint64_t mLastUsed;
 
-    GfxCacheEntry() : texture(nullptr), last_used(0)
+    GfxCacheEntry() : mTexture(nullptr), mLastUsed(0)
     {
     }
 
-    GfxCacheEntry(SDL_Texture *tex, uint64_t used) : texture(tex), last_used(used)
+    GfxCacheEntry(SDL_Texture *tex, uint64_t used) : mTexture(tex), mLastUsed(used)
     {
     }
 
     GfxCacheEntry(GfxCacheEntry &&o)
     {
-        texture = o.texture;
-        last_used = o.last_used;
-        o.texture = nullptr;
+        mTexture = o.mTexture;
+        mLastUsed = o.mLastUsed;
+        o.mTexture = nullptr;
     }
 
     ~GfxCacheEntry()
     {
-        if (texture)
-            SDL_DestroyTexture(texture);
+        if (mTexture)
+            SDL_DestroyTexture(mTexture);
     }
 
     GfxCacheEntry(const GfxCacheEntry &) = delete;
@@ -40,9 +40,9 @@ struct GfxCacheEntry
 
 struct GfxPalette
 {
-    uint32_t rgb[16];
-    uint64_t hash;
-    uint64_t count;
+    uint32_t mRGB[16];
+    uint64_t mHash;
+    uint64_t mCount;
 };
 
 #define FNV_64_PRIME ((uint64_t)0x100000001b3ULL)
@@ -58,12 +58,12 @@ enum class GfxCacheFormat
 class GfxCache
 {
   public:
-    std::map<uint64_t, GfxCacheEntry> m_cache;
-    GfxPalette m_palettes[512];
+    std::map<uint64_t, GfxCacheEntry> mCache;
+    GfxPalette mPalettes[512];
 
-    MemoryInterface *m_colormem;
-    SDL_Renderer *m_renderer = nullptr;
-    uint64_t m_used_idx = 0;
+    MemoryInterface *mColormem;
+    SDL_Renderer *mRenderer = nullptr;
+    uint64_t mUsedIdx = 0;
 
     static uint64_t CalcHash(const void *buf, size_t len, uint64_t hval)
     {
@@ -83,26 +83,26 @@ class GfxCache
     {
         index %= 512;
 
-        GfxPalette *entry = &m_palettes[index];
-        entry->count++;
+        GfxPalette *entry = &mPalettes[index];
+        entry->mCount++;
 
-        if (entry->hash != 0 && (entry->count & 0xff) != 0)
+        if (entry->mHash != 0 && (entry->mCount & 0xff) != 0)
         {
             return entry;
         }
 
         uint16_t addr = index * 32;
         uint8_t rawpal[32];
-        m_colormem->Read(addr, 32, rawpal);
+        mColormem->Read(addr, 32, rawpal);
 
         uint64_t hash = CalcHash(rawpal, sizeof(rawpal), 0);
 
-        if (hash == entry->hash)
+        if (hash == entry->mHash)
         {
             return entry;
         }
 
-        entry->hash = hash;
+        entry->mHash = hash;
 
         bool dar260 = G_F2_SIGNAL(cfg_260dar);
         bool bpp15 = G_F2_SIGNAL(cfg_bpp15);
@@ -143,48 +143,48 @@ class GfxCache
 
             uint32_t c = (r << 24) | (g << 16) | (b << 8);
             if (i & 15)
-                entry->rgb[i] = c | 0xff;
+                entry->mRGB[i] = c | 0xff;
             else
-                entry->rgb[i] = 0xff0000ff;
+                entry->mRGB[i] = 0xff0000ff;
         }
         return entry;
     }
 
     void Init(SDL_Renderer *renderer, MemoryInterface &colormem)
     {
-        m_cache.clear();
-        m_used_idx = 0;
-        m_renderer = renderer;
-        m_colormem = &colormem;
+        mCache.clear();
+        mUsedIdx = 0;
+        mRenderer = renderer;
+        mColormem = &colormem;
     }
 
     void PruneCache()
     {
-        if (m_cache.size() < 2048)
+        if (mCache.size() < 2048)
             return;
 
-        size_t num_to_remove = 128;
+        size_t numToRemove = 128;
 
-        std::vector<std::pair<uint64_t, uint64_t>> hash_ages;
-        for (const auto &it : m_cache)
+        std::vector<std::pair<uint64_t, uint64_t>> hashAges;
+        for (const auto &it : mCache)
         {
-            hash_ages.push_back({it.second.last_used, it.first});
+            hashAges.push_back({it.second.mLastUsed, it.first});
         }
-        std::sort(hash_ages.begin(), hash_ages.end());
-        for (size_t i = 0; i < num_to_remove; i++)
+        std::sort(hashAges.begin(), hashAges.end());
+        for (size_t i = 0; i < numToRemove; i++)
         {
-            m_cache.erase(hash_ages[i].second);
+            mCache.erase(hashAges[i].second);
         }
     }
 
-    SDL_Texture *GetTexture(MemoryRegion region, GfxCacheFormat format, uint16_t code, uint8_t palette_idx)
+    SDL_Texture *GetTexture(MemoryRegion region, GfxCacheFormat format, uint16_t code, uint8_t paletteIdx)
     {
-        return GetTexture(gSimCore.Memory(region), format, code, palette_idx);
+        return GetTexture(gSimCore.Memory(region), format, code, paletteIdx);
     }
 
-    SDL_Texture *GetTexture(MemoryInterface &gfxmem, GfxCacheFormat format, uint16_t code, uint8_t palette_idx)
+    SDL_Texture *GetTexture(MemoryInterface &gfxmem, GfxCacheFormat format, uint16_t code, uint8_t paletteIdx)
     {
-        const GfxPalette *palette = GetPalette(palette_idx);
+        const GfxPalette *palette = GetPalette(paletteIdx);
 
         int size;
         int bytesize;
@@ -228,38 +228,38 @@ class GfxCache
         }
 
         uint32_t addr = (code * bytesize);
-        uint8_t src_data[16 * 16];
+        uint8_t srcData[16 * 16];
 
         uint64_t hash;
 
         if (dynamic)
         {
-            gfxmem.Read(addr, bytesize, src_data);
-            hash = CalcHash(src_data, bytesize, palette->hash);
+            gfxmem.Read(addr, bytesize, srcData);
+            hash = CalcHash(srcData, bytesize, palette->mHash);
         }
         else
         {
-            hash = CalcHash(&code, sizeof(code), palette->hash);
+            hash = CalcHash(&code, sizeof(code), palette->mHash);
         }
 
-        auto it = m_cache.find(hash);
-        if (it != m_cache.end())
+        auto it = mCache.find(hash);
+        if (it != mCache.end())
         {
-            it->second.last_used = m_used_idx;
-            m_used_idx++;
-            return it->second.texture;
+            it->second.mLastUsed = mUsedIdx;
+            mUsedIdx++;
+            return it->second.mTexture;
         }
 
         if (!dynamic)
         {
-            gfxmem.Read(addr, bytesize, src_data);
+            gfxmem.Read(addr, bytesize, srcData);
         }
 
         uint32_t pixels[16 * 16];
-        const uint32_t *pal32 = palette->rgb;
+        const uint32_t *pal32 = palette->mRGB;
 
         uint32_t *dest = pixels;
-        const uint8_t *src = src_data;
+        const uint8_t *src = srcData;
 
         if (format == GfxCacheFormat::TC0200OBJ)
         {
@@ -344,12 +344,12 @@ class GfxCache
             }
         }
 
-        SDL_Texture *tex = SDL_CreateTexture(m_renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STATIC, size, size);
+        SDL_Texture *tex = SDL_CreateTexture(mRenderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STATIC, size, size);
 
         SDL_UpdateTexture(tex, nullptr, pixels, size * 4);
 
-        auto r = m_cache.emplace(hash, GfxCacheEntry(tex, m_used_idx));
-        return r.first->second.texture;
+        auto r = mCache.emplace(hash, GfxCacheEntry(tex, mUsedIdx));
+        return r.first->second.mTexture;
     }
 };
 
