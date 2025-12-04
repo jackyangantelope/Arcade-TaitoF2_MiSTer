@@ -1,0 +1,84 @@
+name: Compile MiSTer Core
+
+on:
+  workflow_dispatch:
+  push:
+    paths-ignore:
+      - 'README.md'
+      - 'releases/**'
+
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Create temporary .dockerignore
+        run: |
+          cat > .dockerignore <<'EOF'
+          [dD][oO][cC]
+          [dD][oO][cC][sS]
+          [rR]elease*
+          [lL][iI][cC][eE][nN][sS][eE]
+          [cC][Ll][eE][aA][nN].[bB][aA][tT]
+          palettes/
+          .gitignore
+          .git
+          **/.git
+          .github
+          .DS_Store
+          *.[mM][rR][aA]
+          *.[rR][bB][fF]
+          *.[tT][xX][tT]
+          *.[mM][dD]
+          *.[pP][nN][gG]
+          *.[gG][iI][fF]
+          LatestBuild*.zip
+          EOF
+
+      - name: Compile inside Docker 
+        run: |
+          cat <<EOF | docker build -t core-build -f - .
+          FROM theypsilon/quartus-lite-c5:17.0.2.docker0
+          WORKDIR /project
+          COPY . .
+          RUN set -e && \\
+              PROJECT_NAME=\$(basename "\$(find . -maxdepth 1 -name '*.qpf')") && \\
+              echo "Compiling project: \$PROJECT_NAME" && \\
+              /opt/intelFPGA_lite/quartus/bin/quartus_sh --flow compile "\$PROJECT_NAME" && \\
+              RBF=\$(find output_files -name '*.rbf' | head -n1) && \\
+              cp "\$RBF" /project/output_files/core.rbf
+          CMD cat /project/output_files/core.rbf
+          EOF
+
+      - name: Extract and name
+        run: |
+          CONTAINER=$(docker create core-build)
+
+          REPO_NAME="${{ github.event.repository.name }}"
+          DATE=$(date +%Y%m%d)
+
+          # Special case: Menu core is lowercase for some reason
+          if [[ "$REPO_NAME" == "Menu_MiSTer" || "$REPO_NAME" == "menu_MiSTer" || "$REPO_NAME" == "Menu" ]]; then
+            CORE_NAME="menu"
+          else
+            CORE_NAME="${REPO_NAME%_MiSTer}"   # remove suffix if present, keep original case
+          fi
+
+          RBF_NAME="${CORE_NAME}_${DATE}.rbf"
+          ARTIFACT_NAME="${CORE_NAME}_${DATE}"
+
+          docker cp $CONTAINER:/project/output_files/core.rbf "$RBF_NAME"
+          docker rm $CONTAINER
+
+          echo "Generated file: $RBF_NAME"
+          echo "ARTIFACT_NAME=$ARTIFACT_NAME" >> $GITHUB_ENV
+          echo "RBF_PATH=$RBF_NAME" >> $GITHUB_ENV
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ARTIFACT_NAME }}   # e.g. Gameboy_20251201 or menu_20251201
+          path: ${{ env.RBF_PATH }}
